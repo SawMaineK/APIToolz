@@ -21,5 +21,6 @@
             "email": "sawmainek90@gmail.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "minimum-stability": "stable"
 }
