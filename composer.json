@@ -1,0 +1,25 @@
+{
+    "name": "sawmainek/apitoolz",
+    "description": "APIToolz expeditiously gennerates RESTful APIs within seconds based on a provided model.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Sawmainek\\Apitoolz\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sawmainek\\Apitoolz\\APIToolzServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Saw Maine K",
+            "email": "sawmainek90@gmail.com"
+        }
+    ],
+    "require": {}
+}
