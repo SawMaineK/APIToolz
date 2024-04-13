@@ -3,7 +3,7 @@
 namespace Sawmainek\Apitoolz;
 
 use Illuminate\Support\ServiceProvider;
-use Sawmainek\Apitoolz\Console\APIRestfulGenerator;
+use Sawmainek\Apitoolz\Console\RestfulAPIGenerator;
 
 class APIToolzServiceProvider extends ServiceProvider
 {
@@ -13,7 +13,7 @@ class APIToolzServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton('command.apitoolz:generate', function ($app) {
-            return $app->make(APIRestfulGenerator::class);
+            return $app->make(RestfulAPIGenerator::class);
         });
     }
 
@@ -22,9 +22,10 @@ class APIToolzServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         // Register the command if we are using the application via the CLI
         $this->commands([
-            APIRestfulGenerator::class,
+            RestfulAPIGenerator::class,
         ]);
     }
 
