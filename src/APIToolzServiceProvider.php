@@ -22,7 +22,14 @@ class APIToolzServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'apitoolz');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        if ($this->app->runningInConsole()) {
+            // Publish views
+            $this->publishes([
+              __DIR__.'/../resources/views' => resource_path('views/vendor/apitoolz'),
+            ], 'views');
+        }
         // Register the command if we are using the application via the CLI
         $this->commands([
             RestfulAPIGenerator::class,

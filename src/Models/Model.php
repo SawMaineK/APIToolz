@@ -16,11 +16,14 @@ class Model extends BaseModel
     ];
 
     /**
-     * The attributes that should be cast to native types.
+     * Get the attributes that should be cast.
      *
-     * @var array
+     * @return array<string, string>
      */
-    protected $casts = [
-        'lock' => 'json', 'auth' => 'boolean', 'two_factor' => 'boolean'
-    ];
+    protected function casts(): array
+    {
+        return [
+            'lock' => 'json', 'auth' => 'boolean', 'two_factor' => 'boolean'
+        ];
+    }
 }

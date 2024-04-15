@@ -21,6 +21,12 @@
             "email": "sawmainek90@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "laravel/scout": "^10.8",
+        "algolia/algoliasearch-client-php": "^3.4",
+        "darkaonline/l5-swagger": "^8.6",
+        "zircote/swagger-php": "^4.8",
+        "maatwebsite/excel": "^3.1"
+    },
     "minimum-stability": "stable"
 }
