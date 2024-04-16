@@ -4,6 +4,8 @@ namespace Sawmainek\Apitoolz;
 
 use Illuminate\Support\ServiceProvider;
 use Sawmainek\Apitoolz\Console\RestfulAPIGenerator;
+use Sawmainek\Apitoolz\Console\DatatableGenerator;
+use Sawmainek\Apitoolz\Console\ModelRemover;
 
 class APIToolzServiceProvider extends ServiceProvider
 {
@@ -12,8 +14,16 @@ class APIToolzServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton('command.apitoolz:generate', function ($app) {
+        $this->app->singleton('command.apitoolz:model', function ($app) {
             return $app->make(RestfulAPIGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:datatable', function ($app) {
+            return $app->make(DatatableGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:remove-model', function ($app) {
+            return $app->make(ModelRemover::class);
         });
     }
 
@@ -37,6 +47,8 @@ class APIToolzServiceProvider extends ServiceProvider
         // Register the command if we are using the application via the CLI
         $this->commands([
             RestfulAPIGenerator::class,
+            DatatableGenerator::class,
+            ModelRemover::class,
         ]);
     }
 
@@ -50,7 +62,9 @@ class APIToolzServiceProvider extends ServiceProvider
     public function provides()
     {
         return [
-            'command.apitoolz.generate',
+            'command.apitoolz.model',
+            'command.apitoolz.datatable',
+            'command.apitoolz.remove-model',
         ];
     }
 }

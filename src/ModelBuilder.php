@@ -7,7 +7,7 @@ use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelBuilder
 {
-    public static function build(Model $model)
+    public static function build(Model $model, $softDelete = false)
     {
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
@@ -26,7 +26,7 @@ class ModelBuilder
         $config = ModelConfigUtils::decryptJson($model->config);
         $columns = \Schema::getColumns($codes['table']);
 
-        $config['softdelete'] = isset($config['softdelete']) ? $config['softdelete'] : false;
+        $config['softdelete'] = isset($config['softdelete']) ? $config['softdelete'] : $softDelete;
         $codes['softdelete'] = $config['softdelete'] == true ? "use SoftDeletes;" : "";
 
         $config['forms'] = isset($config['forms']) ? $config['forms'] : [];

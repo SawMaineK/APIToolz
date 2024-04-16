@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Sawmainek\Apitoolz\Models\Model;
+use Sawmainek\Apitoolz\ModelConfigUtils;
 
 class APIToolzController extends Controller
 {
@@ -47,14 +48,14 @@ class APIToolzController extends Controller
     public function makeInfo()
     {
         $info = Model::where('slug', $this->slug)->first();
-        $info->config = $this->decryptJson($info->config);
+        $info->config = ModelConfigUtils::decryptJson($info->config);
         return $info;
     }
 
     public function makePageInfo($id)
     {
         $info = Page::where('id', $id)->first();
-        $info->config = $this->decryptJson($info->config);
+        $info->config = ModelConfigUtils::decryptJson($info->config);
         return $info;
     }
 
@@ -263,47 +264,6 @@ class APIToolzController extends Controller
             }
         }
         return $this->response("The bulk data has created successfully.", 204);
-    }
-
-    public function blend($str, $data)
-    {
-        $src = $rep = array();
-        foreach ($data as $k => $v) {
-            $src[] = "{" . $k . "}";
-            if (is_array($v)) {
-                $str2 = "";
-                foreach ($v as $v2) {
-                    $str2 .= $v2;
-                }
-                $rep[] = $str2;
-            } else {
-                $rep[] = $v;
-            }
-        }
-        if (is_array($str)) {
-            foreach ($str as $st) {
-                $res[] = trim(str_ireplace($src, $rep, $st));
-            }
-        } else {
-            $res = str_ireplace($src, $rep, $str);
-        }
-        return $res;
-    }
-
-    public function encryptJson($arr)
-    {
-        $str = json_encode($arr);
-        $enc = base64_encode($str);
-        $enc = strtr($enc, 'poligamI123456', '123456poligamI');
-        return $enc;
-    }
-
-    public function decryptJson($str)
-    {
-        $dec = strtr($str, '123456poligamI', 'poligamI123456');
-        $dec = base64_decode($dec);
-        $obj = json_decode($dec, true);
-        return $obj;
     }
 
     function skipFields($field)

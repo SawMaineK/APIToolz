@@ -82,7 +82,7 @@ class ModelConfigUtils
             'length' => self::getLength($type),
             'cast' => self::getCast($type),
             "label" => \Str::title(str_replace('_', ' ', $field)),
-            'validator' => $type != 'hidden' && $null == 'NO' ? 'required' : '',
+            'validator' => $type != 'hidden' && !$null ? 'required' : '',
             'view' => $field == 'created_at' || $field == 'updated_at' || $field == 'deleted_at' ? false : true,
             'add' => $field == 'deleted_at' ? false : true,
             'edit' => $field == 'deleted_at' ? false : true,
