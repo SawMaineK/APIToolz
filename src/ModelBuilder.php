@@ -3,6 +3,7 @@
 namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\RouterBuilder;
+use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelBuilder
 {
@@ -233,7 +234,7 @@ class ModelBuilder
         file_put_contents($exportFile, $buildExport);
 
         RouterBuilder::build();
-        //$this->buildSeeder();
+        SeederBuilder::build();
         \Artisan::call('l5-swagger:generate');
         \Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
         \Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);

@@ -13,6 +13,12 @@ APIToolz expeditiously gennerates RESTful APIs within seconds based on a provide
 composer require sawmainek/apitoolz
 ```
 
+Then, you should publish APIToolz configuration file using the `vendor:publish` Artisan command. This command will publish the `apitoolz.php` configuration file to your application's `config` directory:
+
+```shell
+php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="config"
+```
+
 After you installed `sawmainek/apitoolz`, you must install `install:api` and complete the installation steps.
 
 ```shell
@@ -54,6 +60,17 @@ SCOUT_QUEUE=true
 ALGOLIA_APP_ID=YOUR_ALGOLIA_APP_ID
 ALGOLIA_SECRET=YOUR_ALGOLIA_SECRET
 ```
+
+## Usage
+
+Now, you can generate your model using the `apitoolz:generate` Artisan command.
+
+```shell
+php artisan apitoolz:generate Product --table=products
+```
+
+After generate, you can check your model Restful API via Swagger API document.
+Go to `http://127.0.0.1:8000/api/documentation`
 
 ## License
 
