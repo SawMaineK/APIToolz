@@ -47,6 +47,7 @@ class DatatableGenerator extends Command
             DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
             $this->info("The $table table has created successfully.");
         } else {
+            \DB::unprepared("Drop Table $table;");
             $this->error("This $table table is already exist.");
         }
         

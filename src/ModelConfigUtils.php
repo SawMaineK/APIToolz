@@ -201,6 +201,8 @@ class ModelConfigUtils
                 return 'string';
             case 'mediumtext':
                 return 'string';
+            case 'numeric':
+                return 'float';
             default:
                 return $types[0];
         }

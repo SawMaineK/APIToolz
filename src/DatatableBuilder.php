@@ -5,12 +5,15 @@ use Sawmainek\Apitoolz\APIToolzGenerator;
 
 class DatatableBuilder
 {
-    public static function build($table, $fields, $softDelete = false)
+    public static function build($table, $fields, $softDelete = false, $foreignKeys=[])
     {
         $codes['class'] = \Str::studly($table);
         $codes['table'] = \Str::lower($table);
         $codes['fields'] = [];
         $codes['soft_delete'] = $softDelete ? '$table->softDeletes();': '';
+        $codes['foreign_keys'] = [];
+
+        // Create table fields
         $data['fields'] = $fields;
         foreach ($data['fields'] as $i => $field) {
             if ($field['name'] && $field['name'] != 'id') {
@@ -20,6 +23,11 @@ class DatatableBuilder
                     'null' => isset($field['null']) ? $field['null'] : null,
                 ]);
             }
+        }
+
+        //Create foreignkey
+        foreach($foreignKeys as $key) {
+            $codes['foreign_keys'][] = "\t\t\t\$table->foreign('{$key['columns'][0]}')->references('{$key['foreign_columns'][0]}')->on('{$key['foreign_table']}');\n";
         }
 
         try {
@@ -40,6 +48,8 @@ class DatatableBuilder
         try {
             \DB::unprepared($sql);
             $columns = \Schema::getColumns(\Str::lower($table));
+            $indexes = \Schema::getIndexes(\Str::lower($table));
+            $foreignKeys = \Schema::getForeignKeys(\Str::lower($table));
             $fields = [];
             foreach($columns as $col) {
                 if($col['type_name'] != "int auto_increment" && $col['name'] != 'id' && $col['name'] != 'created_at' && $col['name'] != 'updated_at' && $col['name'] != 'deleted_at') {
@@ -50,11 +60,11 @@ class DatatableBuilder
                 }
             }
             \DB::unprepared("DROP table $table;");
-            self::build($table, $fields, $softDelete);
+            self::build($table, $fields, $softDelete, $foreignKeys);
         } catch (\Exception $e) {
             @unlink($dir);
             echo "{$e->getMessage()}\n";
-            echo "Abort...";
+            echo "Abort...\n";
             dd();
         }
     }

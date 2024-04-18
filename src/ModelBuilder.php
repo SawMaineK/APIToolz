@@ -18,7 +18,7 @@ class ModelBuilder
         $codes['fillable'] = "";
         $codes['hidden'] = "";
         $codes['casts'] = "";
-        $codes['subgrid'] = [];
+        $codes['relationships'] = [];
         $codes['index_loader'] = "";
         $codes['show_loader'] = "";
         $codes['notification'] = [];
@@ -37,13 +37,19 @@ class ModelBuilder
         }
         foreach ($forms as $form) {
             if($form['cast']) {
-                $casts[] = "'{$form['field']}' => '{$form['cast']}'";
+                if($form['cast'] == 'decimal') {
+                    $casts[] = "'{$form['field']}' => 'float'";
+                } else {
+                    $casts[] = "'{$form['field']}' => '{$form['cast']}'";
+                }
             }
             if ($form['search'] && $form['field'] != 'id') {
                 if($form['cast'] == 'object') {
                     $searchable[] = "'{$form['field']}' => is_object(\$this->{$form['field']}) ? json_encode(\$this->{$form['field']}) : \$this->{$form['field']}";
                 } elseif($form['cast'] == 'array') {
                     $searchable[] = "'{$form['field']}' => is_array(\$this->{$form['field']}) ? json_encode(\$this->{$form['field']}) : \$this->{$form['field']}";
+                } elseif($form['cast'] == 'decimal') {
+
                 } else {
                     $searchable[] = "'{$form['field']}' => \$this->{$form['field']}";
                 }
@@ -72,21 +78,26 @@ class ModelBuilder
         $config['forms'] =  $forms;
         $config['grid'] = $grids;
 
-        if(isset($config['subgrid']) && count($config['subgrid']) > 0) {
+        if(isset($config['relationships']) && count($config['relationships']) > 0) {
             $loader = [];
-            foreach($config['subgrid'] as $subgrid) {
-                $codes['subgrid'][] = APIToolzGenerator::blend('subgrid.tpl', $subgrid);
-                if(isset($subgrid['sub']) && count($subgrid['sub']) > 0) {
-                    foreach($subgrid['sub'] as $sub) {
-                        $loader[] = "'{$subgrid['title']}.{$sub}'";
+            foreach($config['relationships'] as $relation) {
+                if(isset($relation['key']) && $relation['key'] != '') {
+                    $codes['relationships'][] = APIToolzGenerator::blend('relationship.key.tpl', $relation);
+                } else {
+                    $codes['relationships'][] = APIToolzGenerator::blend('relationship.tpl', $relation);
+                }
+                
+                if(isset($relation['sub']) && explode(',',$relation['sub']) > 0) {
+                    foreach(explode(',',$relation['sub']) as $sub) {
+                        $loader[] = "'{$relation['title']}.{$sub}'";
                     }
                 } else {
-                    $loader[] = "'{$subgrid['title']}'";
+                    $loader[] = "'{$relation['title']}'";
                 }
             }
-            $subgrids = implode(', ', $loader);
-            $codes['index_loader'] = "\$result->load({$subgrids});";
-            $codes['show_loader'] = "\${$codes['alias']}->load({$subgrids});";
+            $relations = implode(', ', $loader);
+            $codes['index_loader'] = "\$result->load({$relations});";
+            $codes['show_loader'] = "\${$codes['alias']}->load({$relations});";
         }
         $codes['subject'] = "";
         $codes['receivers'] = [];

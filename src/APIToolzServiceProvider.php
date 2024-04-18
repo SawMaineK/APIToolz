@@ -3,9 +3,10 @@
 namespace Sawmainek\Apitoolz;
 
 use Illuminate\Support\ServiceProvider;
-use Sawmainek\Apitoolz\Console\RestfulAPIGenerator;
+use Sawmainek\Apitoolz\Console\ModelGenerator;
 use Sawmainek\Apitoolz\Console\DatatableGenerator;
-use Sawmainek\Apitoolz\Console\ModelRemover;
+use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
+use Sawmainek\Apitoolz\Console\DestriesGenerator;
 
 class APIToolzServiceProvider extends ServiceProvider
 {
@@ -15,15 +16,19 @@ class APIToolzServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton('command.apitoolz:model', function ($app) {
-            return $app->make(RestfulAPIGenerator::class);
+            return $app->make(ModelGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:datatable', function ($app) {
             return $app->make(DatatableGenerator::class);
         });
 
-        $this->app->singleton('command.apitoolz:remove-model', function ($app) {
-            return $app->make(ModelRemover::class);
+        $this->app->singleton('command.apitoolz:relation', function ($app) {
+            return $app->make(ModelRelationGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:remove', function ($app) {
+            return $app->make(DestriesGenerator::class);
         });
     }
 
@@ -46,9 +51,10 @@ class APIToolzServiceProvider extends ServiceProvider
         }
         // Register the command if we are using the application via the CLI
         $this->commands([
-            RestfulAPIGenerator::class,
+            ModelGenerator::class,
             DatatableGenerator::class,
-            ModelRemover::class,
+            DestriesGenerator::class,
+            ModelRelationGenerator::class
         ]);
     }
 
@@ -64,6 +70,7 @@ class APIToolzServiceProvider extends ServiceProvider
         return [
             'command.apitoolz.model',
             'command.apitoolz.datatable',
+            'command.apitoolz.relation',
             'command.apitoolz.remove-model',
         ];
     }

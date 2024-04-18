@@ -31,13 +31,14 @@ Then, you should publish APIToolz configuration file using the `vendor:publish` 
 php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="config"
 ```
 
-After you installed `sawmainek/apitoolz`, you must install `install:api` and complete the installation steps.
+After you installed `sawmainek/apitoolz`, you must install `install:api` and complete the installing steps.
 
 ```shell
 php artisan install:api
 ```
+NOTE: need to check with US
 
-If you want to customizable view for export, and etc..
+If you want to customizable view for `export Model`, and etc..
 
 ```shell
 php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="views"
@@ -114,12 +115,42 @@ NOTE: --table=`customers` and --sql="CREATE TABLE `customers` ..." must be same.
 After generate, you can check your model Restful API via Swagger API document.
 Go to `http://127.0.0.1:8000/api/documentation`
 
+### Model Relationship
+
+If you want to add relationship between two models e.g `belongTo`, `hasOne`, `hasMany`.
+
+```shell
+//For belongTo
+php artisan apitoolz:relation Sale --title=customer --relation-model=Customer --relation-type=belongsTo --foreign-key=customer_id
+
+//For hasOne
+php artisan apitoolz:relation Customer --title=phone --relation-model=Phone --relation-type=hasOne
+```
+
+If you want to remove existing relation of provided model,
+
+```shell
+php artisan apitoolz:relation Customer --title=phone --remove
+```
+
+For additional option of relationships, you can choose parameter as following:
+
+```shell
+apitoolz:relation {model} {--title=} {--relation-model=}  {--relation-type=belongsTo} {--foreign-key=} {--display-field=} {--sub-relation-model=} {--remove} {--force}
+```
+
+If you want to `rebuild` for your Restful API model,
+
+```shell
+php artisan apitoolz:model Customer --table=customers --rebuild
+```
+
 ## Remove Model
 
 If you want to remove created model, you can using the `apitoolz:remove` Artisan command.
 
 ```shell
-php artisan apitoolz:remove Product --force-detele
+php artisan apitoolz:remove Product --model --force-detele
 ```
 
 ## License

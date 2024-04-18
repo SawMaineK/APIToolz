@@ -8,7 +8,7 @@ use Sawmainek\Apitoolz\ModelConfigUtils;
 use Sawmainek\Apitoolz\ModelBuilder;
 use Sawmainek\Apitoolz\DatatableBuilder;
 
-class RestfulAPIGenerator extends Command
+class ModelGenerator extends Command
 {
     public $fields = [];
     public function __construct()
@@ -20,14 +20,14 @@ class RestfulAPIGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--desc=} {--type=} {--auth=false} {--soft-delete} {--sql=}';
+    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth=false} {--soft-delete} {--sql=} {--force} {--rebuild}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate Restful API based on provided model.';
+    protected $description = 'Generate Restful API model based on provided model name.';
 
     /**
      * Execute the console command.
@@ -46,7 +46,10 @@ class RestfulAPIGenerator extends Command
             $table = $this->ask('What is table name?');
 
         if(!ModelConfigUtils::hasTable($table)) {
-            $create = $this->ask("The $table table not found. Would you create $table table?(yes/no)",'yes');
+            $create = 'yes';
+            if(!$this->option('force')) {
+                $create = $this->ask("The $table table not found. Would you create $table table?(yes/no)",'yes');
+            }
             if($create == 'yes' || $create == 'y') {
                 if($this->option('sql') != '') {
                     DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
@@ -71,7 +74,7 @@ class RestfulAPIGenerator extends Command
             $model->name = \Str::studly($name);
             $model->slug = \Str::slug($name, '-');
             $model->title = $name;
-            $model->desc = $this->option('desc');
+            $model->desc = "";
             $model->table = $table;
             $model->key = ModelConfigUtils::findPrimaryKey($table);
             $model->type = $this->option('type'); //"1" for Ready Only
@@ -82,6 +85,16 @@ class RestfulAPIGenerator extends Command
             ModelBuilder::build($model, $this->option('soft-delete'));
             $this->info("This $name model has created successfully.");
         } else {
+            if($this->option('rebuild')) {
+                ModelBuilder::build($model);
+                return $this->info("This $name model rebuild successfully.");
+            } else {
+                $rebuild = $this->ask("This $name model already exist, you want to rebuild. (yes/no)", 'yes');
+                if($rebuild == 'yes' || $rebuild == 'y') {
+                    ModelBuilder::build($model);
+                    return $this->info("This $name model rebuild successfully.");
+                }
+            }
             $this->error("This $name model is already used.");
         }
     }
