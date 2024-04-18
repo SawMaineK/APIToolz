@@ -6,10 +6,13 @@ APIToolz expeditiously gennerates RESTful APIs within seconds based on a provide
 
 - Create database table migration via Artisan Commands
 - Create Restful API via Artisan Commands
-- Remove Created Restful API Model via Artisan Commands
-- Swagger API Documentation
+- Remove Restful API model via Artisan Commands
+- Swagger API documentation
 - Full-text search
-- Authentication
+- Authentication/Authorization
+- Support relationship between two models
+- Support entry form configuration `Validation, Show/Hide, Input Type(text, password, drop down, file upload, object, array, and etc...)`
+- Support list table configuration
 - Application user onboarding
 - Daily Auto Backup for Code and Database
 - Request/Process/Response logging layer `Coming Soon`
@@ -115,7 +118,7 @@ NOTE: --table=`customers` and --sql="CREATE TABLE `customers` ..." must be same.
 After generate, you can check your model Restful API via Swagger API document.
 Go to `http://127.0.0.1:8000/api/documentation`
 
-### Model Relationship
+## Model Relationship
 
 If you want to add relationship between two models e.g `belongTo`, `hasOne`, `hasMany`.
 
@@ -155,4 +158,4 @@ php artisan apitoolz:remove Product --model --force-detele
 
 ## License
 
-The MIT License (\MIT). Please see [License File](LICENSE.md) for more information.
+The Commercial Software License.
