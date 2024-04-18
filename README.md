@@ -1,4 +1,4 @@
-# APIToolz
+# API Toolz
 
 APIToolz expeditiously gennerates RESTful APIs within seconds based on a provided model.
 
@@ -11,8 +11,8 @@ APIToolz expeditiously gennerates RESTful APIs within seconds based on a provide
 - Full-text search
 - API authentication/authorization
 - Support relationship between two models
-- Support `[request body]` configuration `Validation, Cast[object, array], Full-text search enable, Fillable, Input Type(text, password, image/file upload, and etc..)` and more.
-- Support `[response body]` configuration `Casting, Show/Hide, Object, Array, and etc...` and more`.
+- Support `[request body]` configuration for `Validation, Cast[object, array], Full-text search enable, Fillable, Input Type(text, password, image/file upload, and etc..)` and more.
+- Support `[response body]` configuration for `Casting, Show/Hide, Object, Array, and etc...` and more`.
 - Application user onboarding `User Register, Login, Forget Password, Verification(email, OTP and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`.
 - Daily auto backup for code and database
 - Request/Process/Response logging layer `Coming Soon`
@@ -33,6 +33,15 @@ Then, you should publish APIToolz configuration file using the `vendor:publish` 
 ```shell
 php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="config"
 ```
+Then, set the environment variable with your APIToolz's `Purchase Key` and `Activated Key` credentials within your application's .env file:
+
+```shell
+APITOOLZ_HOST=https://apitoolz.com/api/v1/blender
+APITOOLZ_PURCHASE_KEY=YOUR_PURCHASE_KEY
+APITOOLZ_ACTIVATED_KEY=YOUR_ACTIVATED_KEY
+```
+
+If you don't have the `Purchase Key`, Please purchase from [Codecanyon](). After you have got `Purchase Key`, Please activate to get the `Activated Key` on our [APIToolz](https://apitoolz.com/apps/activation).
 
 After you installed `sawmainek/apitoolz`, you must install `install:api` and complete the installing steps.
 
@@ -123,7 +132,7 @@ After generate, you can check your model Restful API via Swagger API document.
 You can configure for provided model's field level configuration.
 
 ```shell
-php artisan apitoolz:request Sale --field=sale_date --searchable=false --fillable=false
+php artisan apitoolz:request Sale --field=sale_date --validator="required|date|after:tomorrow" --searchable=false
 ```
 
 If you want to reset defalut field configuration,

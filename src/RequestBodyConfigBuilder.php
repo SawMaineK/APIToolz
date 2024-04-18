@@ -24,7 +24,7 @@ class RequestBodyConfigBuilder
                     $config['forms'][$i]['search'] = $request['search'] ?? $form['search'];
                     $config['forms'][$i]['view'] = $request['view'] ?? $form['view'];
                     $config['forms'][$i]['sortlist'] = $request['sortlist'] ?? $form['sortlist'];
-                 
+
                     if($request['type'] == 'file') {
                         $config['forms'][$i]['file']['path_to_upload'] = $request['path_to_upload'];
                         $config['forms'][$i]['file']['upload_type'] = $request['upload_type'];
@@ -112,7 +112,7 @@ class RequestBodyConfigBuilder
                         $config['forms'][$i]['option']['sufix'] = $request['sufix'];
                     }
                 }
-                
+
             }
         }
         usort($config['forms'], "self::_sort");

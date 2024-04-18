@@ -72,7 +72,7 @@ class ModelBuilder
 
         $codes['fillable'] = implode(", ", $fillable ?? []);
         $codes['hidden'] = implode(", ", $hidden ?? []);
-        
+
         usort($forms, "self::_sort");
         usort($grids, "self::_sort");
         $config['forms'] =  $forms;
@@ -86,7 +86,7 @@ class ModelBuilder
                 } else {
                     $codes['relationships'][] = APIToolzGenerator::blend('relationship.tpl', $relation);
                 }
-                
+
                 if(isset($relation['sub']) && explode(',',$relation['sub']) > 0) {
                     foreach(explode(',',$relation['sub']) as $sub) {
                         $loader[] = "'{$relation['title']}.{$sub}'";
@@ -115,10 +115,10 @@ class ModelBuilder
                 $sendto = explode(',', $notification['email']['send_to']);
                 foreach($sendto as $to) {
                     $to = trim($to);
-                    $codes['receivers'][] = "\"{$to}\""; 
+                    $codes['receivers'][] = "\"{$to}\"";
                 }
                 $codes['receivers'] = implode(", \n\t\t\t", $codes['receivers']);
-                
+
                 if(!$model->lock || ($model->lock && !isset($model->lock['locked_notification']))) {
                     $mailClassFile = app_path("Mails/{$codes['class']}Mail.php");
                     $mailLayoutFile = base_path("resources/views/emails/{$codes['slug']}.blade.php");
@@ -178,7 +178,7 @@ class ModelBuilder
                 } else {
                     $codes['channel'] = "[\"{$notification['broadcast']['channel']}\"]";
                 }
-                
+
                 $codes['broadcast_body'] = $notification['broadcast']['body'];
 
                 if (isset($notification['broadcast']['when']['new'])) {
@@ -217,11 +217,11 @@ class ModelBuilder
         $model->update();
 
         //$codes['policy'] = $model->auth === "true" ? "\$this->authorizeResource({$codes['model']}::class, '{$codes['alias']}');" : "";
-        
+
         if(!$model->lock || ($model->lock && !isset($model->lock['locked_controller']))) {
             $controllerFile = app_path("Http/Controllers/{$codes['class']}Controller.php");
             $buildController = APIToolzGenerator::blend('controller.tpl', $codes);
-            
+
             file_put_contents($controllerFile, $buildController);
         }
 
@@ -240,7 +240,7 @@ class ModelBuilder
 
         $exportFile = app_path("Exports/{$codes['model']}Export.php");
         $buildExport = APIToolzGenerator::blend('export.tpl', $codes);
-        if ( !is_dir( app_path("Exports") ) ) 
+        if ( !is_dir( app_path("Exports") ) )
             mkdir(app_path("Exports"));
         file_put_contents($exportFile, $buildExport);
 
