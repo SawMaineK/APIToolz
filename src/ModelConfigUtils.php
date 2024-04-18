@@ -39,11 +39,11 @@ class ModelConfigUtils
         return $enc;
     }
 
-    public static function getFormConfig($class, $table, $column, $forms = [], $sort)
+    public static function getFormConfig($class, $table, $column, $forms = [], $sort, $reset = false)
     {
         $field = explode(' ', $column['name']);
         // return the field already existing in config;
-        if ($forms) {
+        if ($forms && !$reset) {
             foreach ($forms as $form) {
                 if ($form['field'] == $field[0]) {
                     return $form;
@@ -91,8 +91,8 @@ class ModelConfigUtils
             "sortlist" => $sort,
             'format_value' => '',
             'file' => array(
-                'image_multiple' => '0',
-                'save_full_path' => '0',
+                'image_multiple' => false,
+                'save_full_path' => false,
                 'path_to_upload' => '',
                 'upload_type' => '',
                 'upload_max_size' => '',

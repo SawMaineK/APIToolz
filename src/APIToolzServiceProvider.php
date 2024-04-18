@@ -5,8 +5,10 @@ namespace Sawmainek\Apitoolz;
 use Illuminate\Support\ServiceProvider;
 use Sawmainek\Apitoolz\Console\ModelGenerator;
 use Sawmainek\Apitoolz\Console\DatatableGenerator;
+use Sawmainek\Apitoolz\Console\RequestBodyConfigGenerator;
 use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
 use Sawmainek\Apitoolz\Console\DestriesGenerator;
+
 
 class APIToolzServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:datatable', function ($app) {
             return $app->make(DatatableGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:request', function ($app) {
+            return $app->make(RequestBodyConfigGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:relation', function ($app) {
@@ -53,8 +59,9 @@ class APIToolzServiceProvider extends ServiceProvider
         $this->commands([
             ModelGenerator::class,
             DatatableGenerator::class,
-            DestriesGenerator::class,
-            ModelRelationGenerator::class
+            RequestBodyConfigGenerator::class,
+            ModelRelationGenerator::class,
+            DestriesGenerator::class
         ]);
     }
 
@@ -70,8 +77,9 @@ class APIToolzServiceProvider extends ServiceProvider
         return [
             'command.apitoolz.model',
             'command.apitoolz.datatable',
+            'command.apitoolz.request',
             'command.apitoolz.relation',
-            'command.apitoolz.remove-model',
+            'command.apitoolz.remove',
         ];
     }
 }

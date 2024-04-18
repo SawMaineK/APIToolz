@@ -9,14 +9,14 @@ APIToolz expeditiously gennerates RESTful APIs within seconds based on a provide
 - Remove Restful API model via Artisan Commands
 - Swagger API documentation
 - Full-text search
-- Authentication/Authorization
+- API authentication/authorization
 - Support relationship between two models
-- Support entry form configuration `Validation, Show/Hide, Input Type(text, password, drop down, file upload, object, array, and etc...)`
-- Support list table configuration
-- Application user onboarding
-- Daily Auto Backup for Code and Database
+- Support `[request body]` configuration `Validation, Cast[object, array], Full-text search enable, Fillable, Input Type(text, password, image/file upload, and etc..)` and more.
+- Support `[response body]` configuration `Casting, Show/Hide, Object, Array, and etc...` and more`.
+- Application user onboarding `User Register, Login, Forget Password, Verification(email, OTP and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`.
+- Daily auto backup for code and database
 - Request/Process/Response logging layer `Coming Soon`
-- Export/Import Model `Coming Soon` via Artisan Commands
+- Export/Import model `Coming Soon` via Artisan Commands
 
 ## Requirements
 
@@ -116,7 +116,21 @@ CREATE TABLE customers (
 NOTE: --table=`customers` and --sql="CREATE TABLE `customers` ..." must be same.
 
 After generate, you can check your model Restful API via Swagger API document.
-Go to `http://127.0.0.1:8000/api/documentation`
+[API Documentation](http://127.0.0.1:8000/api/documentation)
+
+## Request Body Configuration
+
+You can configure for provided model's field level configuration.
+
+```shell
+php artisan apitoolz:request Sale --field=sale_date --searchable=false --fillable=false
+```
+
+If you want to reset defalut field configuration,
+
+```shell
+php artisan apitoolz:request Sale --field=sale_date --reset
+```
 
 ## Model Relationship
 
