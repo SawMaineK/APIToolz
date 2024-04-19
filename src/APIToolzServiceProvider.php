@@ -8,6 +8,7 @@ use Sawmainek\Apitoolz\Console\DatatableGenerator;
 use Sawmainek\Apitoolz\Console\RequestBodyConfigGenerator;
 use Sawmainek\Apitoolz\Console\ResponseConfigGenerator;
 use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
+use Sawmainek\Apitoolz\Console\ModelExportGenerator;
 use Sawmainek\Apitoolz\Console\DestriesGenerator;
 
 
@@ -36,6 +37,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:relation', function ($app) {
             return $app->make(ModelRelationGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:export', function ($app) {
+            return $app->make(ModelExportGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:remove', function ($app) {
@@ -67,6 +72,7 @@ class APIToolzServiceProvider extends ServiceProvider
             RequestBodyConfigGenerator::class,
             ResponseConfigGenerator::class,
             ModelRelationGenerator::class,
+            ModelExportGenerator::class,
             DestriesGenerator::class
         ]);
     }
@@ -86,6 +92,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.request',
             'command.apitoolz.response',
             'command.apitoolz.relation',
+            'command.apitoolz.export',
             'command.apitoolz.remove',
         ];
     }

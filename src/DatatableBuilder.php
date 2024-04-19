@@ -5,7 +5,7 @@ use Sawmainek\Apitoolz\APIToolzGenerator;
 
 class DatatableBuilder
 {
-    public static function build($table, $fields, $softDelete = false, $foreignKeys=[])
+    public static function build($table, $fields, $softDelete = false, $foreignKeys=[], $fileDir = "")
     {
         $codes['class'] = \Str::studly($table);
         $codes['table'] = \Str::lower($table);
@@ -31,7 +31,12 @@ class DatatableBuilder
         }
 
         try {
-            $dir = base_path("database/migrations/" . date('Y_m_d_his') . "_create_{$codes['table']}_table.php");
+            $dir = "";
+            if($fileDir != "") {
+                $dir = $fileDir;
+            } else {
+                $dir = base_path("database/migrations/" . date('Y_m_d_his') . "_create_{$codes['table']}_table.php");
+            }
             $build_migration = APIToolzGenerator::blend('database.table.create.tpl', $codes);
             file_put_contents($dir, $build_migration);
             \Artisan::call('migrate', ["--force" => true]);
@@ -89,7 +94,7 @@ class DatatableBuilder
         return  "{$column}; \n";
     }
 
-    static function toCastFieldType($type = null)
+    public static function toCastFieldType($type = null)
     {
         switch ($type) {
             case 'bigint':
