@@ -9,6 +9,7 @@ use Sawmainek\Apitoolz\Console\RequestBodyConfigGenerator;
 use Sawmainek\Apitoolz\Console\ResponseConfigGenerator;
 use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
 use Sawmainek\Apitoolz\Console\ModelExportGenerator;
+use Sawmainek\Apitoolz\Console\ModelImportGenerator;
 use Sawmainek\Apitoolz\Console\DestriesGenerator;
 
 
@@ -43,6 +44,10 @@ class APIToolzServiceProvider extends ServiceProvider
             return $app->make(ModelExportGenerator::class);
         });
 
+        $this->app->singleton('command.apitoolz:import', function ($app) {
+            return $app->make(ModelImportGenerator::class);
+        });
+
         $this->app->singleton('command.apitoolz:remove', function ($app) {
             return $app->make(DestriesGenerator::class);
         });
@@ -73,6 +78,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ResponseConfigGenerator::class,
             ModelRelationGenerator::class,
             ModelExportGenerator::class,
+            ModelImportGenerator::class,
             DestriesGenerator::class
         ]);
     }
@@ -93,6 +99,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.response',
             'command.apitoolz.relation',
             'command.apitoolz.export',
+            'command.apitoolz.import',
             'command.apitoolz.remove',
         ];
     }

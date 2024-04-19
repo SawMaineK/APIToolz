@@ -111,6 +111,8 @@ class DatatableBuilder
                 return 'string';
             case 'character':
                 return 'string';
+            case 'numeric':
+                return 'decimal';
             default:
                 return $type;
         }

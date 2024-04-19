@@ -15,7 +15,7 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 - Application user onboarding features such as `User Register, Login, Forget Password, Verification(email, OTP, and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`
 - Daily auto backup for code and database
 - Request/Process/Response logging layer (Coming Soon)
-- Export/Import model functionality (Coming Soon) via Artisan Commands
+- Export/Import model functionality via Artisan Commands
 
 ## Requirements
 
@@ -196,10 +196,22 @@ APIToolz allows you to export/import models using the `apitoolz:export|import` A
 php artisan apitoolz:export --include-data
 ```
 
-To export a provided model name:
+To export a model of provided name:
 
 ```shell
 php artisan apitoolz:export --model=Customer --include-data
+```
+
+#### Import Model
+
+```shell
+php artisan apitoolz:import --file=your_file.zip
+```
+
+To import a mdoel of provided name without data:
+
+```shell
+php artisan apitoolz:import --file=your_file.zip --model=Customer --exclude-data
 ```
 
 ## License

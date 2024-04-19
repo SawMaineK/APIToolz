@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Model extends BaseModel
 {
     use SoftDeletes;
-    
+
     protected $table = "models";
 
     protected $fillable = [
-        'title', 'desc', 'lock', 'type', 'config', 'auth', 'table', 'two_factor'
+        'name','slug','title','desc','key','type', 'config', 'auth', 'table', 'two_factor', 'lock'
     ];
 
     /**

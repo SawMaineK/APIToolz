@@ -82,7 +82,10 @@ class ModelExportGenerator extends Command
 
                 if($this->option('include-data')) {
                     $data = \DB::table($model->table)->select()->get();
-                    file_put_contents("{$zipExportPath}/data/{$model->table}_data.json", json_encode($data));
+                    $dataFile = "{$model->table}_data.json";
+                    $dataPath = "{$zipExportPath}/data/$dataFile";
+                    file_put_contents($dataPath, json_encode($data));
+                    $zip->addFile($dataPath, "data/{$dataFile}");
                 }
             }
             $zip->close();
