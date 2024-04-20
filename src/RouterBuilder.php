@@ -2,7 +2,7 @@
 
 namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
 class RouterBuilder
 {
@@ -18,8 +18,8 @@ class RouterBuilder
             $codes['alias'] = \Str::camel($model->name);
             $codes['middleware'] = $model->auth === 'true' ? "'auth:sanctum'" : "";
 
-            $task_view = []; 
-            $task_detail = []; 
+            $task_view = [];
+            $task_detail = [];
             $task_create = [];
             $task_update = [];
             $task_delete = [];

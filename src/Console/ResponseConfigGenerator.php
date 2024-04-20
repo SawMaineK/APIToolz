@@ -4,7 +4,7 @@ namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\ResponseConfigBuilder;
 
 class ResponseConfigGenerator extends Command

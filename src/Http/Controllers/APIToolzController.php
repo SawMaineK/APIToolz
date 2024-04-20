@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
 class APIToolzController extends Controller
 {
@@ -192,7 +192,7 @@ class APIToolzController extends Controller
             $files['id'] = $request->id;
             return $this->response($files);
         }
-    
+
     }
 
     public function deleteFile($path)

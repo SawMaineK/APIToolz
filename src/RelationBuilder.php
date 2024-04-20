@@ -2,7 +2,7 @@
 
 namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
 class RelationBuilder
 {
@@ -49,7 +49,7 @@ class RelationBuilder
                 echo "Abort...\n";
                 dd();
             }
-            
+
         } else {
             $config['relationships'][] = $relation;
         }
@@ -58,7 +58,7 @@ class RelationBuilder
         ModelBuilder::build($model);
     }
 
-    static function getRelation() 
+    static function getRelation()
     {
         $relation = [
             'title' => '',

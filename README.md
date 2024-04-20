@@ -14,12 +14,12 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 - Configuration options for `[response body]` including `Casting, Show/Hide, Object, Array, and more`
 - Application user onboarding features such as `User Register, Login, Forget Password, Verification(email, OTP, and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`
 - Daily auto backup for code and database
-- Request/Process/Response logging layer (Coming Soon)
+- Request/Database Query/Response logging layer (Coming Soon)
 - Export/Import model functionality via Artisan Commands
 
 ## Requirements
 
-`apitoolz` requires at least PHP 8.2 and Laravel 11.
+`AP IToolz` requires at least PHP 8.2 and Laravel 11.
 
 ## Installation (with [Composer](https://getcomposer.org))
 
@@ -51,12 +51,6 @@ php artisan install:api
 
 **Note:** Additional verification may be required.
 
-If you wish to customize views for `export Model` and more, use the following command:
-
-```shell
-php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="views"
-```
-
 ## Requirements Dependencies
 
 Install the `laravel/scout` dependency for full-text search in your models:
@@ -84,6 +78,12 @@ SCOUT_DRIVER=algolia
 SCOUT_QUEUE=true
 ALGOLIA_APP_ID=YOUR_ALGOLIA_APP_ID
 ALGOLIA_SECRET=YOUR_ALGOLIA_SECRET
+```
+
+If you want to use the database engine, you may simply set the value of the `SCOUT_DRIVER` environment variable to database:
+
+```shell
+SCOUT_DRIVER=database
 ```
 
 ## Swagger Installation for API Document
@@ -127,6 +127,20 @@ CREATE TABLE customers (
 After generating, you can check your model's Restful API via the
 
  Swagger API document at [API Documentation](http://127.0.0.1:8000/api/documentation).
+
+## Creating Datatable
+
+If you wish to create only database table, you can using the `apitoolz:datatable` Artisan command.
+
+```shell
+php artisan apitoolz:datatable customers --soft-delete
+```
+
+To remove the database table:
+
+```shell
+php artisan apitoolz:datatable customers --remove
+```
 
 ## Request Body Configuration
 
@@ -175,15 +189,13 @@ apitoolz:relation {model} {--title=} {--relation-model=}  {--relation-type=belon
 To `rebuild` your Restful API model:
 
 ```shell
-php artisan apitoolz:model Customer --table=customers --rebuild
+php artisan apitoolz:model Customer --rebuild
 ```
 
-## Remove Model
-
-To remove a created model, use the `apitoolz:remove` Artisan command:
+To `remove` your Restful API model:
 
 ```shell
-php artisan apitoolz:remove Product --model --force-delete
+php artisan apitoolz:model Product --remove --force-delete
 ```
 
 ## Export/Import Models

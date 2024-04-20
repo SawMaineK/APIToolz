@@ -4,7 +4,7 @@ namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\ModelBuilder;
 use Sawmainek\Apitoolz\DatatableBuilder;
 
@@ -20,7 +20,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth=false} {--soft-delete} {--sql=} {--force} {--rebuild}';
+    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth=false} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--force-delete}';
 
     /**
      * The console command description.
@@ -42,10 +42,12 @@ class ModelGenerator extends Command
             return;
         }
         $table = $this->option('table');
-        if($table == null)
+        if($table == null && !$this->option('rebuild') && !$this->option('remove'))
             $table = $this->ask('What is table name?');
 
-        if(!ModelConfigUtils::hasTable($table)) {
+        if(!ModelConfigUtils::hasTable($table)
+            && !$this->option('rebuild')
+            && !$this->option('remove')) {
             $create = 'yes';
             if(!$this->option('force')) {
                 $create = $this->ask("The $table table not found. Would you create $table table?(yes/no)",'yes');
@@ -59,13 +61,13 @@ class ModelGenerator extends Command
                     DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
                     $this->info("The $table table has created successfully.");
                 }
-                
+
             } else {
                 $this->info("Process abort...");
                 return;
             }
         }
- 
+
         $this->info("Provided model name is $name");
         $this->info("$name model will create with $table");
         $model = Model::where('slug', \Str::slug($name, '-'))->first();
@@ -88,6 +90,16 @@ class ModelGenerator extends Command
             if($this->option('rebuild')) {
                 ModelBuilder::build($model);
                 return $this->info("This $name model rebuild successfully.");
+            } else if($this->option('remove')) {
+                if($this->option('force-delete')) {
+                    $model->forceDelete();
+                    ModelBuilder::remove($model);
+                    return $this->info("This $name model has permanently deleted successfully.");
+                } else {
+                    $model->delete();
+                    ModelBuilder::remove($model);
+                    return $this->info("This $name model has deleted successfully.");
+                }
             } else {
                 $rebuild = $this->ask("This $name model already exist, you want to rebuild. (yes/no)", 'yes');
                 if($rebuild == 'yes' || $rebuild == 'y') {

@@ -2,7 +2,7 @@
 
 namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
 class ResponseConfigBuilder
 {

@@ -4,7 +4,7 @@ namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\RequestBodyConfigBuilder;
 
 class RequestBodyConfigGenerator extends Command
@@ -33,7 +33,7 @@ class RequestBodyConfigGenerator extends Command
     public function handle()
     {
         $this->info('Field configuration start...');
-        
+
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
         if($model) {
@@ -43,7 +43,7 @@ class RequestBodyConfigGenerator extends Command
             ];
             if($this->option('input-type')) {
                 $roles['type'] = 'required|in:text,text_number,text_tags,text_password,text_email,text_date,text_time,text_datetime,textarea,textarea_editor,select,radio,checkbox,file,hidden';
-                
+
                 // For file upload
                 if($this->option('input-type') == 'file') {
                     $roles['path_to_upload'] = 'required';
@@ -51,7 +51,7 @@ class RequestBodyConfigGenerator extends Command
                     $roles['upload_type'] = 'required|in:image,file';
                 }
             }
-            
+
             $data = [
                 'field' => $this->option('field'),
                 'label' => $this->option('label'),
@@ -68,7 +68,7 @@ class RequestBodyConfigGenerator extends Command
             ];
             $validator = \Validator::make($data, $roles);
             if ($validator->fails()) {
-               
+
                 foreach($validator->errors()->messages() as $key => $err) {
                     $this->error("- {$err[0]}");
                 }
@@ -84,7 +84,7 @@ class RequestBodyConfigGenerator extends Command
         } else {
             $this->error("This $name model not found.");
         }
-        
+
     }
 
 }

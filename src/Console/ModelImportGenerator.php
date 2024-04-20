@@ -36,7 +36,7 @@ class ModelImportGenerator extends Command
         $res = $zip->open($this->option('file'));
         $importPath = storage_path('apitoolz/imports/');
         $controllerPath     = "app/Http/Controllers";
-        $exportPath         = "app/Exports";
+        //$exportPath         = "app/Exports";
         $modelPath          = "app/Models";
         $migratePath        = "database/migrations";
         if ($res === TRUE) {
@@ -48,7 +48,7 @@ class ModelImportGenerator extends Command
             foreach($models as $model) {
                 $model = Model::updateOrCreate(['id'=>$model->id], (array)$model);
                 copy(storage_path("apitoolz/imports/$controllerPath/{$model->name}Controller.php"), base_path("$controllerPath/{$model->name}Controller.php"));
-                copy(storage_path("apitoolz/imports/$exportPath/{$model->name}Export.php"), base_path("$exportPath/{$model->name}Export.php"));
+                //copy(storage_path("apitoolz/imports/$exportPath/{$model->name}Export.php"), base_path("$exportPath/{$model->name}Export.php"));
                 copy(storage_path("apitoolz/imports/$modelPath/{$model->name}.php"), base_path("$modelPath/{$model->name}.php"));
                 $migrateFile = glob(storage_path("apitoolz/imports/$migratePath/*_create_{$model->table}_table.php"));
                 if(count($migrateFile) > 0) {

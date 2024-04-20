@@ -2,6 +2,7 @@
 
 namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Models\Model;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\RouterBuilder;
 use Sawmainek\Apitoolz\SeederBuilder;
 
@@ -238,17 +239,43 @@ class ModelBuilder
         //     file_put_contents($policyFile, $buildPolicy);
         // }
 
-        $exportFile = app_path("Exports/{$codes['model']}Export.php");
-        $buildExport = APIToolzGenerator::blend('export.tpl', $codes);
-        if ( !is_dir( app_path("Exports") ) )
-            mkdir(app_path("Exports"));
-        file_put_contents($exportFile, $buildExport);
+        // $exportFile = app_path("Exports/{$codes['model']}Export.php");
+        // $buildExport = APIToolzGenerator::blend('export.tpl', $codes);
+        // if ( !is_dir( app_path("Exports") ) )
+        //     mkdir(app_path("Exports"));
+        // file_put_contents($exportFile, $buildExport);
 
         RouterBuilder::build();
         SeederBuilder::build();
         \Artisan::call('l5-swagger:generate');
         \Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
         \Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
+    }
+
+    public static function remove(Model $model) {
+        \Artisan::call('scout:flush', ["model" => "App\\Models\\{$model->name}"]);
+
+        @unlink(app_path("Http/Controllers/{$model->name}Controller.php"));
+        @unlink(app_path("Models/{$model->name}.php"));
+        @unlink(app_path("Exports/{$model->name}Export.php"));
+        @unlink(app_path("Policies/{$model->name}Policy.php"));
+        @unlink(app_path("Mails/{$model->name}Mail.php"));
+        @unlink(app_path("Jobs/ProcessCreated{$model->name}.php"));
+        @unlink(app_path("Jobs/ProcessUpdated{$model->name}.php"));
+        @unlink(app_path("Jobs/ProcessDeleted{$model->name}.php"));
+        @unlink(app_path("Notifications/{$model->name}CreatedNotification.php"));
+        @unlink(app_path("Notifications/{$model->name}UpdatedNotification.php"));
+        @unlink(app_path("Notifications/{$model->name}DeletedNotification.php"));
+        @unlink(app_path("Events/{$model->name}CreatedEvent.php"));
+        @unlink(app_path("Events/{$model->name}UpdatedEvent.php"));
+        @unlink(app_path("Events/{$model->name}DeletedEvent.php"));
+        @unlink(base_path("resources/views/emails/{$model->slug}.blade.php"));
+        @unlink(base_path("resources/views/emails/{$model->slug}-created.blade.php"));
+        @unlink(base_path("resources/views/emails/{$model->slug}-updated.blade.php"));
+        @unlink(base_path("resources/views/emails/{$model->slug}-deleted.blade.php"));
+
+        RouterBuilder::build();
+        SeederBuilder::build();
     }
 
     static function _sort($a, $b)

@@ -17,7 +17,7 @@ class DatatableGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:datatable {table} {--soft-delete} {--sql=}';
+    protected $signature = 'apitoolz:datatable {table} {--soft-delete} {--sql=} {--remove}';
 
     /**
      * The console command description.
@@ -33,7 +33,7 @@ class DatatableGenerator extends Command
     {
         $this->info('Generating Datatable...');
         $this->warn('Do not include table\'s id, created_at, updated_at and deleted_at. It will be auto included when generating.');
-        
+
         $table = $this->argument('table');
 
         $columns = \Schema::getColumns(\Str::lower($table));
@@ -47,10 +47,13 @@ class DatatableGenerator extends Command
             DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
             $this->info("The $table table has created successfully.");
         } else {
-            \DB::unprepared("Drop Table $table;");
+            if($this->option('remove')) {
+                DatatableBuilder::remove($table);
+                return $this->error("This $table table has deleted successfully.");
+            }
             $this->error("This $table table is already exist.");
         }
-        
+
     }
 
     function askTableField()

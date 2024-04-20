@@ -1,6 +1,6 @@
 <?php
 
-namespace Sawmainek\Apitoolz;
+namespace Sawmainek\Apitoolz\Facades;
 
 class ModelConfigUtils
 {

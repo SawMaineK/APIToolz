@@ -5,7 +5,7 @@ namespace Sawmainek\Apitoolz\Console;
 use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\DatatableBuilder;
-use Sawmainek\Apitoolz\ModelConfigUtils;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
 class ModelExportGenerator extends Command
 {
@@ -57,8 +57,8 @@ class ModelExportGenerator extends Command
             foreach($models as $model) {
                 $controllerPath = "app/Http/Controllers/{$model->name}Controller.php";
                 $zip->addFile(base_path($controllerPath), $controllerPath);
-                $exportPath = "app/Exports/{$model->name}Export.php";
-                $zip->addFile(base_path($exportPath), $exportPath);
+                // $exportPath = "app/Exports/{$model->name}Export.php";
+                // $zip->addFile(base_path($exportPath), $exportPath);
                 $modelPath = "app/Models/{$model->name}.php";
                 $zip->addFile(base_path($modelPath), $modelPath);
 
