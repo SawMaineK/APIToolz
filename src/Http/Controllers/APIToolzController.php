@@ -29,16 +29,16 @@ class APIToolzController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function response($restult, $code = 200)
+    public function response($result, $code = 200)
     {
         switch ($code) {
             case 400:
                 $response['code'] = $code;
                 $response['message'] = "There is something wrong in your request.";
-                if (is_string($restult)) {
-                    $response['error']['general'] = $restult;
+                if (is_string($result)) {
+                    $response['error']['general'] = $result;
                 } else {
-                    foreach ($restult->toArray() as $key => $error) {
+                    foreach ($result->toArray() as $key => $error) {
                         $response['error'][$key] = $error[0];
                     }
                 }
@@ -46,13 +46,13 @@ class APIToolzController extends Controller
 
             case 204:
                 $response['code'] = $code;
-                $response['message'] = $restult;
+                $response['message'] = $result;
                 $code = 200;
                 break;
 
             default:
                 //TODO: transform response body
-                $response = $restult;
+                $response = $result;
                 break;
         }
         return response()->json($response, $code);
@@ -72,16 +72,15 @@ class APIToolzController extends Controller
         return $info;
     }
 
-    public function makeRoles()
+    public function makeResponse($result)
     {
-        $roles = [];
-        $forms = $this->info->config['forms'];
-        foreach ($forms as $form) {
-            if ($this->skipFields($form['field'])) {
-                $roles[$form['field']] = $form['validator'] ? $form['validator'] : '';
-            }
-        }
-        return $roles;
+        $data['data'] = $result['data'];
+        $data['per_page'] = $result['per_page'];
+        $data['current_page'] = $result['current_page'];
+        $data['previous_page'] = $result['from'];
+        $data['next_page'] = $result['to'];
+        $data['total'] = $result['total'];
+        return $data;
     }
 
     public function validateData(Request $request)

@@ -55,13 +55,19 @@ class ModelExportGenerator extends Command
             $zip->addFile("{$zipExportPath}/models.json", "models.json");
 
             foreach($models as $model) {
+                $config = ModelConfigUtils::decryptJson($model->config);
+                $requestPath = "app/Http/Requests/{$model->name}Request.php";
+                $zip->addFile(base_path($requestPath), $requestPath);
                 $controllerPath = "app/Http/Controllers/{$model->name}Controller.php";
                 $zip->addFile(base_path($controllerPath), $controllerPath);
                 // $exportPath = "app/Exports/{$model->name}Export.php";
                 // $zip->addFile(base_path($exportPath), $exportPath);
                 $modelPath = "app/Models/{$model->name}.php";
                 $zip->addFile(base_path($modelPath), $modelPath);
-
+                if($model->auth && $config['policy']) {
+                    $policyPath = "app/Policies/{$model->name}Policy.php";
+                    $zip->addFile(base_path($policyPath), $policyPath);
+                }
                 $columns = \Schema::getColumns($model->table);
                 $indexes = \Schema::getIndexes($model->table);
                 $foreignKeys = \Schema::getForeignKeys($model->table);
@@ -76,7 +82,7 @@ class ModelExportGenerator extends Command
                 }
                 $migrateTableFile = date('Y_m_d_his') . "_create_{$model->table}_table.php";
                 $migrateTablePath = "{$zipExportPath}/migrations/{$migrateTableFile}";
-                $config = ModelConfigUtils::decryptJson($model->config);
+
                 DatatableBuilder::build($model->table, $fields, $config['softdelete'], $foreignKeys, $migrateTablePath);
                 $zip->addFile($migrateTablePath, "database/migrations/{$migrateTableFile}");
 

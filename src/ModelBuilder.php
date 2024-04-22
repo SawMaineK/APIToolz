@@ -19,6 +19,8 @@ class ModelBuilder
         $codes['fillable'] = "";
         $codes['hidden'] = "";
         $codes['casts'] = "";
+        $codes['validation'] = [];
+        $codes['request_fields'] = [];
         $codes['relationships'] = [];
         $codes['index_loader'] = "";
         $codes['show_loader'] = "";
@@ -28,6 +30,7 @@ class ModelBuilder
         $codes['policy_show'] = "";
         $codes['policy_update'] = "";
         $codes['policy_delete'] = "";
+        $codes['authentication'] = $model->auth ? "security={{\"apiAuth\":{}}}," : "";
 
         $config = ModelConfigUtils::decryptJson($model->config);
         $columns = \Schema::getColumns($codes['table']);
@@ -36,12 +39,16 @@ class ModelBuilder
         $config['softdelete'] = isset($config['softdelete']) ? $config['softdelete'] : $softDelete;
         $codes['softdelete'] = $config['softdelete'] == true ? "use SoftDeletes;" : "";
 
+
         $config['forms'] = isset($config['forms']) ? $config['forms'] : [];
         $config['grid'] = isset($config['grid']) ? $config['grid'] : [];
         foreach ($columns as $i => $field) {
             $forms[] = ModelConfigUtils::getFormConfig($codes['class'], $codes['table'], $field, $config['forms'], $i);
             $grids[] = ModelConfigUtils::getGridConfig($codes['class'], $codes['table'], $field, $config['grid'], $i);
         }
+
+        $fillable = [];
+        $hidden = [];
         foreach ($forms as $form) {
             if($form['cast']) {
                 if($form['cast'] == 'decimal') {
@@ -61,22 +68,19 @@ class ModelBuilder
                     $searchable[] = "'{$form['field']}' => \$this->{$form['field']}";
                 }
             }
+            if ($form['view'] == true) {
+                $fillable[] = "'{$form['field']}'";
+                $codes['validation'][] ="\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                $request['field'] = $form['field'];
+                $request['type'] = $form['cast'];
+                $codes['request_fields'][] = APIToolzGenerator::blend('request.field.tpl', $request);
+            }
+            if ($form['hidden'] == true) {
+                $hidden[] = "'{$form['field']}'";
+            }
         }
         $codes['casts'] = implode(", ", $casts ?? []);
         $codes['searchable'] = implode(",\n\t\t\t", $searchable ?? []);
-
-        foreach($forms as $form) {
-            if ($form['view'] == '1') {
-                $fillable[] = "'{$form['field']}'";
-            }
-        }
-
-        foreach ($grids as $grid) {
-            if ($grid['hidden'] == '1') {
-                $hidden[] = "'{$grid['field']}'";
-            }
-        }
-
         $codes['fillable'] = implode(", ", $fillable ?? []);
         $codes['hidden'] = implode(", ", $hidden ?? []);
 
@@ -228,6 +232,24 @@ class ModelBuilder
             $codes['policy_delete'] = "\$this->authorize('delete', \${$codes['alias']});";
         }
 
+        if($model->auth && $config['policy']) {
+            $policyFile = app_path("Policies/{$codes['model']}Policy.php");
+            $buildPolicy = APIToolzGenerator::blend('policy.tpl', $codes);
+            if(!file_exists($policyFile)) {
+                if ( !is_dir( app_path("Policies") ) )
+                    mkdir(app_path("Policies"), 0775, true);
+                file_put_contents($policyFile, $buildPolicy);
+            }
+        }
+
+        if(!$model->lock || ($model->lock && !isset($model->lock['locked_request']))) {
+            $requestFile = app_path("Http/Requests/{$codes['class']}Request.php");
+            $buildRequest = APIToolzGenerator::blend('request.tpl', $codes);
+            if(!is_dir(app_path("Http/Requests")))
+                mkdir(app_path("Http/Requests"),0775,true);
+            file_put_contents($requestFile, $buildRequest);
+        }
+
         if(!$model->lock || ($model->lock && !isset($model->lock['locked_controller']))) {
             $controllerFile = app_path("Http/Controllers/{$codes['class']}Controller.php");
             $buildController = APIToolzGenerator::blend('controller.tpl', $codes);
@@ -239,16 +261,6 @@ class ModelBuilder
             $modelFile = app_path("Models/{$codes['model']}.php");
             $buildModel = APIToolzGenerator::blend('model.tpl', $codes);
             file_put_contents($modelFile, $buildModel);
-        }
-
-        if($model->auth && $config['policy']) {
-            $policyFile = app_path("Policies/{$codes['model']}Policy.php");
-            $buildPolicy = APIToolzGenerator::blend('policy.tpl', $codes);
-            if(!file_exists($policyFile)) {
-                if ( !is_dir( app_path("Policies") ) )
-                    mkdir(app_path("Policies"), 0775, true);
-                file_put_contents($policyFile, $buildPolicy);
-            }
         }
 
         // $exportFile = app_path("Exports/{$codes['model']}Export.php");
@@ -271,6 +283,7 @@ class ModelBuilder
         \Artisan::call('scout:flush', ["model" => "App\\Models\\{$model->name}"]);
 
         @unlink(app_path("Http/Controllers/{$model->name}Controller.php"));
+        @unlink(app_path("Http/Requests/{$model->name}Request.php"));
         @unlink(app_path("Models/{$model->name}.php"));
         @unlink(app_path("Exports/{$model->name}Export.php"));
         @unlink(app_path("Policies/{$model->name}Policy.php"));

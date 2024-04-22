@@ -5,6 +5,10 @@ namespace Sawmainek\Apitoolz\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Mail\ResetPassword;
 use Sawmainek\Apitoolz\Models\User;
+use Sawmainek\Apitoolz\Http\Requests\LoginRequest;
+use Sawmainek\Apitoolz\Http\Requests\RegisterRequest;
+use Sawmainek\Apitoolz\Http\Requests\ProfileRequest;
+use Sawmainek\Apitoolz\Http\Requests\ChangePasswordRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -19,33 +23,18 @@ class AuthController extends APIToolzController
      *     @OA\RequestBody(
      *          required=true,
      *          description = "Login Request",
-     *          @OA\JsonContent(ref="#/components/schemas/User")
+     *          @OA\JsonContent(ref="#/components/schemas/LoginRequest")
      *     ),
-     *     @OA\Response(response=200, description="Successful operation", @OA\JsonContent(ref="#/components/schemas/User")),
+     *     @OA\Response(response=200, description="Successful operation"),
      *     @OA\Response(response=400, description="Invalid request")
      * )
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $roles = [
-            'password' => ['required', 'string', 'min:6']
-        ];
-
-        if ($request->phone) {
-            $roles['phone'] = ['required', 'string'];
-        }
-
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-
         $credentials = $request->only('email', 'phone', 'password');
-
         if (\Auth::attempt($credentials)) {
             $user = User::find(\Auth::user()->id);
             $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
@@ -54,42 +43,33 @@ class AuthController extends APIToolzController
         return $this->response("The username and password are incorrect.", 400);
     }
 
-    public function register(Request $request)
+    /**
+     * Swagger API Document
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Register to your account",
+     *     tags={"Account"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          description = "Register Request",
+     *          @OA\JsonContent(ref="#/components/schemas/RegisterRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=400, description="Invalid request")
+     * )
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function register(RegisterRequest $request)
     {
-        $roles = [
-            'name' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-        ];
+        $data['name'] = $request->input('name');
+        $data['email'] = $request->input('email');
+        $data['phone'] = $request->input('phone');
+        $data['password'] = bcrypt($request->input('password'));
+        $data['gender'] = $request->input('gender');
+        $data['dob'] = $request->input('dob');
 
-        if($request->email) {
-            $roles['email'] = ['required', 'string', 'email', 'max:255', 'unique:users'];
-        }
-
-        if ($request->phone) {
-            $roles['phone'] = ['required', 'string', 'max:255', 'unique:users'];
-        }
-
-        if(!$request->email && !$request->phone) {
-            $roles['email'] = ['required', 'string', 'email', 'max:255', 'unique:users'];
-            $roles['phone'] = ['required', 'string', 'max:255', 'unique:users'];
-        }
-
-        if($request->hasFile('avatar')) {
-            $roles['avatar'] = ['required','mimes:jpeg,jpg,png','max:1024'];
-        }
-
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-
-        $data['name'] = $request->name;
-        $data['email'] = $request->email;
-        $data['phone'] = $request->phone;
-        $data['password'] = \Hash::make($request->password);
-        $data['gender'] = $request->gender;
-        $data['dob'] = $request->dob;
         if ($request->hasFile('avatar') &&  $request->file('avatar')->isValid()) {
 
             $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $request->avatar->extension();
@@ -171,7 +151,7 @@ class AuthController extends APIToolzController
 
         }
 
-        $data['token'] = \Hash::make($user->token_2fa);
+        $data['token'] = bcrypt($request->token_2fa);
         return $this->response($data);
     }
 
@@ -205,34 +185,28 @@ class AuthController extends APIToolzController
         return $this->response("The verification code is invalid.", 400);
     }
 
-    public function editProfle(Request $request)
+    /**
+     * Swagger API Document
+     * @OA\Post(
+     *     path="/api/edit-profile",
+     *     summary="Edit to your account",
+     *     tags={"Account"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          description = "Edit Request",
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=400, description="Invalid request")
+     * )
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function editProfle(ProfileRequest $request)
     {
         $user = $request->user();
-        $roles = [
-            'name' => ['required', 'string', 'max:255'],
-        ];
-
-        if ($request->email) {
-            $roles['email'] = ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)];
-        }
-
-        if ($request->phone) {
-            $roles['phone'] = ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)];
-        }
-
-        if ($request->password) {
-            $roles['password'] = ['required', 'string', 'min:6', 'confirmed'];
-        }
-
-        if($request->hasFile('avatar')) {
-            $roles['avatar'] = ['required','mimes:jpeg,jpg,png','max:1024'];
-        }
-
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
 
         if ($request->hasFile('avatar') &&  $request->file('avatar')->isValid()) {
             $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $request->avatar->extension();
@@ -246,15 +220,15 @@ class AuthController extends APIToolzController
             $user->avatar = $avatar;
         }
 
-        if($request->password) {
-            $user->password = \Hash::make($request->password);
+        if($request->input('password')) {
+            $user->password = bcrypt($request->input('password'));
         }
 
-        $user->name = $request->name ?? $user->name;
-        $user->email = $request->email ?? $user->email;
-        $user->phone = $request->phone ?? $user->phone;
-        $user->gender = $request->gender ?? $user->gender;
-        $user->dob = $request->dob ?? $user->dob;
+        $user->name = $request->input('name') ?? $user->name;
+        $user->email = $request->input('email') ?? $user->email;
+        $user->phone = $request->input('phone') ?? $user->phone;
+        $user->gender = $request->input('gender') ?? $user->gender;
+        $user->dob = $request->input('dob') ?? $user->dob;
 
         $user->save();
         return $this->response($user);
@@ -282,7 +256,7 @@ class AuthController extends APIToolzController
             }
 
             $password =  \Str::random(6);
-            $user->password = \Hash::make($password);
+            $user->password = bcrypt($password);
 
             $user->save();
 
@@ -300,24 +274,35 @@ class AuthController extends APIToolzController
         return $this->response("The verification code is invalid.", 400);
     }
 
-    public function postChangePassword(Request $request, User $user)
+    /**
+     * Swagger API Document
+     * @OA\Post(
+     *     path="/api/change-password",
+     *     summary="Change to your password",
+     *     tags={"Account"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          description = "Change Password Request",
+     *          @OA\JsonContent(ref="#/components/schemas/ChangePasswordRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=400, description="Invalid request")
+     * )
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function changePassword(ChangePasswordRequest $request)
     {
-        $roles = [
-            'current_password' => ['required', 'string', 'min:6'],
-            'password' => ['required', 'string', 'min:6', 'confirmed']
-        ];
+        $user = $request->user();
 
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-
-        if (!\Hash::check($request->current_password, $user->password)) {
+        $credentials = ['email'=>$user->email, 'password'=>$request->input('current_password')];
+        if (!\Auth::guard('web')->attempt($credentials)) {
             return $this->response("The current password is invalid.", 400);
         }
 
-        $user->password = \Hash::make($request->password);
+        $user->password = bcrypt($request->input('password'));
         $user->save();
 
         $user->tokens()->delete();

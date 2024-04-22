@@ -104,6 +104,9 @@ You can generate your model using the `apitoolz:model` Artisan command:
 php artisan apitoolz:model Product --table=products --soft-delete
 ```
 
+If you wish to create model with user `policy`, you can use the `--use-policy` Artisan command.
+**Note**: The model's table have field `user_id`.
+
 You can also generate your model with `SQL format` as follows:
 
 ```shell

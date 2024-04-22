@@ -9,25 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\User as AppUser;
 
-/**
- * @OA\Schema(
- *     description="User model",
- *     type="object",
- *     title="User model"
- * )
- */
 class User extends AppUser
 {
     use HasApiTokens;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $email;
-     /**
-     * @OA\Property(type="string")
-     */
-    public $password;
 
     /**
      * The attributes that are mass assignable.
