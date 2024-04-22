@@ -59,7 +59,7 @@ Install the `laravel/scout` dependency for full-text search in your models:
 composer require laravel/scout
 ```
 
-After installing Scout, publish the Scout configuration file using the `vendor:publish` Artisan command. This command will publish the `scout.php` configuration file to your application's `config` directory:
+After installing Scout, publish the Scout configuration file using the `vendor:publish` Artisan command.
 
 ```shell
 php artisan vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"

@@ -12,9 +12,22 @@ use App\Http\Controllers\Controller;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 
+/**
+ * @OA\Info(title="API Documentation", version="0.1")
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     description="Login with email and password to get the authentication token",
+ *     name="Token based Based",
+ *     in="header",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     securityScheme="apiAuth",
+ * )
+ */
+
 class APIToolzController extends Controller
 {
-    // use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     public function response($restult, $code = 200)
     {
@@ -83,7 +96,7 @@ class APIToolzController extends Controller
                             return false;
                         }
                     }
-                    $data[$f['field']] = $this->saveAsFile($f['file'], $request->file($f['field']));
+                    $data[$f['field']] = $this->saveAsFile($request->file($f['field']), $f['file']);
                     // merge old images with new image files
                     if(isset($data[$this->info['key']])) {
                         $model = $this->model->find($data[$this->info['key']]);
@@ -93,7 +106,7 @@ class APIToolzController extends Controller
                     }
                 } else {
                     if ($request->file($f['field'])->isValid()) {
-                        $data[$f['field']] = (object) $this->saveAsFile($f['file'], $request->file($f['field']));
+                        $data[$f['field']] = (object) $this->saveAsFile($request->file($f['field']), $f['file']);
                         //delete old image file
                         if(isset($data[$this->info['key']]) && isset($data[$f['field']])) {
                             $model = $this->model->find($data[$this->info['key']]);
@@ -136,7 +149,7 @@ class APIToolzController extends Controller
         return null;
     }
 
-    public function saveAsFile($option, $file)
+    public function saveAsFile($file, $option)
     {
         if ($option['image_multiple']) {
             if (is_array($file) && count($file) > 0) {
@@ -160,7 +173,7 @@ class APIToolzController extends Controller
             }
         } else {
             $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $file->extension();
-            $destFolder = Str::slug(env('FILESYSTEM_PREFIX', 'APIToolz'));
+            $destFolder = Str::slug(env('FILESYSTEM_PREFIX', ''));
             $storeFilePath = $destFolder . '/' . $option['path_to_upload'];
             $path = $file->storeAs($storeFilePath, $filename);
             $saveAsFile['name'] = $file->getClientOriginalName();
@@ -188,7 +201,7 @@ class APIToolzController extends Controller
             $option['save_full_path'] = false;
             $option['path_to_upload'] = 'raws';
 
-            $files = $this->saveAsFile($option, $request->file('files'));
+            $files = $this->saveAsFile($request->file('files'), $option);
             $files['id'] = $request->id;
             return $this->response($files);
         }

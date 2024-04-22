@@ -20,7 +20,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth=false} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--force-delete}';
 
     /**
      * The console command description.
@@ -69,7 +69,6 @@ class ModelGenerator extends Command
         }
 
         $this->info("Provided model name is $name");
-        $this->info("$name model will create with $table");
         $model = Model::where('slug', \Str::slug($name, '-'))->first();
         if (!$model) {
             $model = new  Model();
@@ -80,11 +79,11 @@ class ModelGenerator extends Command
             $model->table = $table;
             $model->key = ModelConfigUtils::findPrimaryKey($table);
             $model->type = $this->option('type'); //"1" for Ready Only
-            $model->auth = $this->option('auth') ?? 1;
+            $model->auth = $this->option('auth');
             $model->two_factor = 0;
             $model->save();
 
-            ModelBuilder::build($model, $this->option('soft-delete'));
+            ModelBuilder::build($model, $this->option('use-policy'), $this->option('soft-delete'));
             $this->info("This $name model has created successfully.");
         } else {
             if($this->option('rebuild')) {

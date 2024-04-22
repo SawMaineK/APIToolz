@@ -8,7 +8,7 @@ use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelBuilder
 {
-    public static function build(Model $model, $softDelete = false)
+    public static function build(Model $model, $usePolicy = false, $softDelete = false)
     {
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
@@ -23,10 +23,16 @@ class ModelBuilder
         $codes['index_loader'] = "";
         $codes['show_loader'] = "";
         $codes['notification'] = [];
+        $codes['policy_index'] = "";
+        $codes['policy_store'] = "";
+        $codes['policy_show'] = "";
+        $codes['policy_update'] = "";
+        $codes['policy_delete'] = "";
 
         $config = ModelConfigUtils::decryptJson($model->config);
         $columns = \Schema::getColumns($codes['table']);
 
+        $config['policy'] = isset($config['policy']) ? $config['policy'] : $usePolicy;
         $config['softdelete'] = isset($config['softdelete']) ? $config['softdelete'] : $softDelete;
         $codes['softdelete'] = $config['softdelete'] == true ? "use SoftDeletes;" : "";
 
@@ -214,10 +220,13 @@ class ModelBuilder
             }
         }
 
-        $model->config = ModelConfigUtils::encryptJson($config);
-        $model->update();
-
-        //$codes['policy'] = $model->auth === "true" ? "\$this->authorizeResource({$codes['model']}::class, '{$codes['alias']}');" : "";
+        if($model->auth && $config['policy']) {
+            $codes['policy_index'] = "\$this->authorize('viewAny', {$codes['model']}::class);";
+            $codes['policy_store'] = "\$this->authorize('create', {$codes['model']}::class);";
+            $codes['policy_show'] = "\$this->authorize('view', \${$codes['alias']});";
+            $codes['policy_update'] = "\$this->authorize('update', \${$codes['alias']});";
+            $codes['policy_delete'] = "\$this->authorize('delete', \${$codes['alias']});";
+        }
 
         if(!$model->lock || ($model->lock && !isset($model->lock['locked_controller']))) {
             $controllerFile = app_path("Http/Controllers/{$codes['class']}Controller.php");
@@ -232,18 +241,24 @@ class ModelBuilder
             file_put_contents($modelFile, $buildModel);
         }
 
-        // $policyFile = app_path("Policies/{$codes['model']}Policy.php");
-        // $buildPolicy = APIToolzGenerator::blend('policy.tpl', $codes);
-        // if(!file_exists($policyFile)) {
-        //     if ( !is_dir( app_path("Policies") ) );
-        //     file_put_contents($policyFile, $buildPolicy);
-        // }
+        if($model->auth && $config['policy']) {
+            $policyFile = app_path("Policies/{$codes['model']}Policy.php");
+            $buildPolicy = APIToolzGenerator::blend('policy.tpl', $codes);
+            if(!file_exists($policyFile)) {
+                if ( !is_dir( app_path("Policies") ) )
+                    mkdir(app_path("Policies"), 0775, true);
+                file_put_contents($policyFile, $buildPolicy);
+            }
+        }
 
         // $exportFile = app_path("Exports/{$codes['model']}Export.php");
         // $buildExport = APIToolzGenerator::blend('export.tpl', $codes);
         // if ( !is_dir( app_path("Exports") ) )
         //     mkdir(app_path("Exports"));
         // file_put_contents($exportFile, $buildExport);
+
+        $model->config = ModelConfigUtils::encryptJson($config);
+        $model->update();
 
         RouterBuilder::build();
         SeederBuilder::build();

@@ -16,7 +16,7 @@ class RouterBuilder
             $codes['class'] = $model->name;
             $codes['slug'] = $model->slug;
             $codes['alias'] = \Str::camel($model->name);
-            $codes['middleware'] = $model->auth === 'true' ? "'auth:sanctum'" : "";
+            $codes['middleware'] = $model->auth ? "'auth:sanctum'" : "";
 
             $task_view = [];
             $task_detail = [];
