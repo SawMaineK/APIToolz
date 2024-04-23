@@ -21,14 +21,29 @@ class APIToolzGenerator
             echo "Abort...\n";
             dd();
         }
-        $response = \Http::post(config('apitoolz.host'), [
+        $response = \Http::post(config('apitoolz.host').'/apps/v1/blend', [
             'tpl' => $str,
             'codes' => json_encode($data),
+            'key' => config('apitoolz.activated_key')
         ]);
         if($response->failed()) {
-            echo "Fail to blend model. Please contact US.\n";
-            echo "Abort...\n";
-            dd();
+            switch ($response->status()) {
+                case 400:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+                case 419:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+                default:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+            }
         }
         if($response->successful()) {
             return $response->body();

@@ -14,7 +14,7 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 - Configuration options for `[response body]` including `Casting, Show/Hide, Object, Array, and more`
 - Application user onboarding features such as `User Register, Login, Forget Password, Verification(email, OTP, and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`
 - Daily auto backup for code and database
-- Request/Database Query/Response logging layer (Coming Soon)
+- Request/Database Query/Response logging layer
 - Export/Import model functionality via Artisan Commands
 
 ## Requirements
@@ -27,76 +27,18 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 composer require sawmainek/apitoolz
 ```
 
-After installing `sawmainek/apitoolz`, publish the APIToolz configuration file using the `vendor:publish` Artisan command. This command will publish the `apitoolz.php` configuration file to your application's `config` directory:
+## Activation
+
+After installing, Activate the APIToolz using the `apitoolz:activate` Artisan command with your `purchase key` and `dns`:
 
 ```shell
-php artisan vendor:publish --provider="Sawmainek\Apitoolz\APIToolzServiceProvider" --tag="config"
+php artisan apitoolz:activate --dns=http://127.0.0.1:8000 --key="demo"
 ```
 
-Then, set the environment variables with your APIToolz `Purchase Key` and `Activated Key` credentials within your application's `.env` file:
+If you don't have the `Purchase Key`, please purchase it from [Codecanyon]().
 
-```shell
-APITOOLZ_HOST=https://apitoolz.com/api/v1/blender
-APITOOLZ_PURCHASE_KEY=YOUR_PURCHASE_KEY
-APITOOLZ_ACTIVATED_KEY=YOUR_ACTIVATED_KEY
-```
 
-If you don't have the `Purchase Key`, please purchase it from [Codecanyon](). Once you've obtained the `Purchase Key`, activate it to receive the `Activated Key` on our [APIToolz](https://apitoolz.com/apps/activation) platform.
-
-Now that you've installed `sawmainek/apitoolz`, you must run the `install:api` command to complete the installation process:
-
-```shell
-php artisan install:api
-```
-
-**Note:** Additional verification may be required.
-
-## Requirements Dependencies
-
-Install the `laravel/scout` dependency for full-text search in your models:
-
-```shell
-composer require laravel/scout
-```
-
-After installing Scout, publish the Scout configuration file using the `vendor:publish` Artisan command.
-
-```shell
-php artisan vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"
-```
-
-After installing Scout, install driver prerequisites:
-
-```shell
-composer require algolia/algoliasearch-client-php
-```
-
-Then, set the `SCOUT_DRIVER` environment variable, along with your Algolia `app_id` and `secret` credentials, within your application's `.env` file:
-
-```shell
-SCOUT_DRIVER=algolia
-SCOUT_QUEUE=true
-ALGOLIA_APP_ID=YOUR_ALGOLIA_APP_ID
-ALGOLIA_SECRET=YOUR_ALGOLIA_SECRET
-```
-
-If you want to use the database engine, you may simply set the value of the `SCOUT_DRIVER` environment variable to database:
-
-```shell
-SCOUT_DRIVER=database
-```
-
-## Swagger Installation for API Document
-
-For Swagger API documentation, run the following Artisan command:
-
-```shell
-php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
-```
-
-You can then set `L5_SWAGGER_GENERATE_ALWAYS` to `true` in your `.env` file to automatically generate your documentation.
-
-## Usage
+## Usages
 
 You can generate your model using the `apitoolz:model` Artisan command:
 

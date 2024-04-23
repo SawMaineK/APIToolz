@@ -311,4 +311,26 @@ class AuthController extends APIToolzController
         return $this->response($user);
 
     }
+
+    /**
+     * Swagger API Document
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Logout to your account",
+     *     tags={"Account"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+
+        return $this->response("Account logout has successfully.", 204);
+    }
 }
