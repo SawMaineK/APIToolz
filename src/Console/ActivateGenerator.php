@@ -17,7 +17,7 @@ class ActivateGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:activate {--dns=} {--key=demo}';
+    protected $signature = 'apitoolz:activate {--client-dns=} {--purchase-key=}';
 
     /**
      * The console command description.
@@ -38,15 +38,49 @@ class ActivateGenerator extends Command
         \Artisan::call('vendor:publish', ['--provider'=>'Sawmainek\Apitoolz\APIToolzServiceProvider','--tag' => 'config', '--force'=> true]);
 
         \Artisan::call('config:clear');
-        $dns = $this->option('dns');
+        $dns = $this->option('client-dns');
         if($dns == '') {
             $dns = $this->ask("Please set your DNS.","http://127.0.0.1:8000");
         }
         $this->info("Activate DNS={$dns}");
-        $this->info("Purchase Key={$this->option('key')}");
+        $key = $this->option('purchase-key');
+        if($key == '') {
+            $hasKey = $this->ask("Do you have purchase key?.(yes/no)","yes");
+            if($hasKey == 'yes' || $hasKey == 'y') {
+                $key = $this->ask("Please enter purchase key");
+            } else {
+                $requestDemoKey = $this->ask("Would you be interested in requesting a demo key?.(yes/no)","yes");
+                if($requestDemoKey == 'yes' || $requestDemoKey == 'y') {
+                    $email = $this->ask("Please provide your email address. We will send the demo key to you shortly.");
+                    $roles = [
+                        'email' => 'required|email'
+                    ];
+                    $validator = \Validator::make(['email'=>$email], $roles);
+                    if ($validator->fails()) {
+                        foreach($validator->errors()->messages() as $key => $err) {
+                            $this->error($err[0]);
+                        }
+                        return;
+                    }
+                    $response = \Http::post(config('apitoolz.host','http://127.0.0.1:8000').'/apps/request-demo', [
+                        'email' => $email,
+                    ]);
+                    if($response->failed()) {
+                        return $this->error("{$response->body()}");
+                    }
+                    if($response->successful()) {
+                        return $this->info("Please verify your email for the demo key. If you've received the purchase key, kindly attempt activation again using the key.");
+                    }
+                }else {
+                    return $this->warn("Activation abort...");
+                }
+
+            }
+        }
+        $this->info("Purchase Key={$key}");
         $response = \Http::post(config('apitoolz.host','http://127.0.0.1:8000').'/apps/activation', [
-            'dns' => $dns,
-            'key' => $this->option('key')
+            'client_dns' => $dns,
+            'purchase_key' => $key
         ]);
         if($response->failed()) {
             switch ($response->status()) {
@@ -61,13 +95,14 @@ class ActivateGenerator extends Command
         }
         if($response->successful()) {
             $data = json_decode($response->body(), true);
-            if($data['activated_dns'] == $dns) {
+            if($data['client_dns'] == $dns) {
                 $this->updateEnvFile([
                     "SCOUT_DRIVER" => 'database',
                     "APITOOLZ_PURCHASE_KEY" => $data['purchase_key'],
                     "APITOOLZ_ACTIVATED_KEY" => $data['activated_key'],
-                    "APITOOLZ_ACTIVATED_DNS" => $data['activated_dns']
+                    "APITOOLZ_ACTIVATED_DNS" => $data['client_dns']
                 ]);
+                return $this->info("Activation has successfully.");
             }
         }
 

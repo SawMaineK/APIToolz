@@ -57,13 +57,6 @@ class RegisterRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $request = $this->all();
-        unset($request['password']);
-        unset($request['password_confirmation']);
-        \Log::info("User register request:", [
-            'header' => $this->header(),
-            'request' => $request
-        ]);
         return true;
     }
 

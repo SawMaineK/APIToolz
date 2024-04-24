@@ -32,7 +32,7 @@ composer require sawmainek/apitoolz
 After installing, Activate the APIToolz using the `apitoolz:activate` Artisan command with your `purchase key` and `dns`:
 
 ```shell
-php artisan apitoolz:activate --dns=http://127.0.0.1:8000 --key="demo"
+php artisan apitoolz:activate --client-dns=http://127.0.0.1:8000 --purchase-key="demo"
 ```
 
 If you don't have the `Purchase Key`, please purchase it from [Codecanyon]().
