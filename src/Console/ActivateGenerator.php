@@ -32,12 +32,7 @@ class ActivateGenerator extends Command
     public function handle()
     {
         $this->info('Activating your DNS and Key...');
-        \Artisan::call('install:api --without-migration-prompt');
-        \Artisan::call('vendor:publish', ['--provider'=>'Laravel\Scout\ScoutServiceProvider']);
-        \Artisan::call('vendor:publish', ['--provider'=>'L5Swagger\L5SwaggerServiceProvider']);
-        \Artisan::call('vendor:publish', ['--provider'=>'Sawmainek\Apitoolz\APIToolzServiceProvider','--tag' => 'config', '--force'=> true]);
 
-        \Artisan::call('config:clear');
         $dns = $this->option('client-dns');
         if($dns == '') {
             $dns = $this->ask("Please set your DNS.","http://127.0.0.1:8000");
@@ -69,7 +64,7 @@ class ActivateGenerator extends Command
                         return $this->error("{$response->body()}");
                     }
                     if($response->successful()) {
-                        return $this->info("Please verify your email for the demo key. If you've received the purchase key, kindly attempt activation again using the key.");
+                        return $this->info("Please check your email for the demo key. If you've received the purchase key, kindly attempt activation again using the --purchase-key=****.");
                     }
                 }else {
                     return $this->warn("Activation abort...");
@@ -102,7 +97,15 @@ class ActivateGenerator extends Command
                     "APITOOLZ_ACTIVATED_KEY" => $data['activated_key'],
                     "APITOOLZ_ACTIVATED_DNS" => $data['client_dns']
                 ]);
-                return $this->info("Activation has successfully.");
+
+                \Artisan::call('install:api --without-migration-prompt');
+                \Artisan::call('vendor:publish', ['--provider'=>'Laravel\Scout\ScoutServiceProvider']);
+                \Artisan::call('vendor:publish', ['--provider'=>'L5Swagger\L5SwaggerServiceProvider']);
+                \Artisan::call('vendor:publish', ['--provider'=>'Sawmainek\Apitoolz\APIToolzServiceProvider','--tag' => 'config', '--force'=> true]);
+
+                \Artisan::call('config:clear');
+
+                return $this->info("Activation has successfully. Now, you can create model using the `apitoolz:model`");
             }
         }
 

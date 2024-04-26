@@ -7,6 +7,7 @@ use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\ModelBuilder;
 use Sawmainek\Apitoolz\DatatableBuilder;
+use Sawmainek\Apitoolz\APIToolzGenerator;
 
 class ModelGenerator extends Command
 {
@@ -20,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
 
     /**
      * The console command description.
@@ -37,15 +38,18 @@ class ModelGenerator extends Command
         $this->info('Generating Restful API...');
 
         $name = $this->argument('model');
+        $this->info("Provided model name is $name");
+
         if(ModelConfigUtils::checkAvailableName($name)) {
             $this->error("This model name [$name] can not use.");
             return;
         }
+
         $table = $this->option('table');
         if($table == null && !$this->option('rebuild') && !$this->option('remove'))
             $table = $this->ask('What is table name?');
 
-        if(!ModelConfigUtils::hasTable($table)
+        if(!\Schema::hasTable($table)
             && !$this->option('rebuild')
             && !$this->option('remove')) {
             $create = 'yes';
@@ -57,9 +61,20 @@ class ModelGenerator extends Command
                     DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
                     $this->info("The $table table has created successfully.");
                 } else {
-                    $fields = $this->askTableField();
-                    DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
-                    $this->info("The $table table has created successfully.");
+                    $askAi = $this->ask("Would you like to create $table table with our AI? (yes/no)", 'yes');
+                    if($askAi) {
+                        $results = APIToolzGenerator::askSolution("Give create SQL table for $table, table names as $table.");
+                        if($results->{$table}) {
+                            DatatableBuilder::buildWithSql($table, $results->{$table}->tables[0], $this->option('soft-delete'));
+                            $this->info("The $table table has created successfully.");
+                        } else{
+                            return $this->error("Sorry, We could not create for $table table.");
+                        }
+                    } else {
+                        $fields = $this->askTableField();
+                        DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
+                        $this->info("The $table table has created successfully.");
+                    }
                 }
 
             } else {
@@ -68,13 +83,15 @@ class ModelGenerator extends Command
             }
         }
 
-        $this->info("Provided model name is $name");
-        $model = Model::where('slug', \Str::slug($name, '-'))->first();
+        $model = Model::where('name', \Str::studly($name, '-'))->first();
         if (!$model) {
+            if($this->option('remove')) {
+                return $this->warn("This $name model is alreay deleted.");
+            }
             $model = new  Model();
             $model->name = \Str::studly($name);
             $model->slug = \Str::slug($name, '-');
-            $model->title = $name;
+            $model->title = \Str::title($name);
             $model->desc = "";
             $model->table = $table;
             $model->key = ModelConfigUtils::findPrimaryKey($table);
@@ -90,15 +107,15 @@ class ModelGenerator extends Command
                 ModelBuilder::build($model);
                 return $this->info("This $name model rebuild successfully.");
             } else if($this->option('remove')) {
+                if($this->option('remove-table'))
+                    DatatableBuilder::remove($model->table);
                 if($this->option('force-delete')) {
                     $model->forceDelete();
-                    ModelBuilder::remove($model);
-                    return $this->info("This $name model has permanently deleted successfully.");
                 } else {
                     $model->delete();
-                    ModelBuilder::remove($model);
-                    return $this->info("This $name model has deleted successfully.");
                 }
+                ModelBuilder::remove($model);
+                return $this->info("This $name model has deleted successfully.");
             } else {
                 $rebuild = $this->ask("This $name model already exist, you want to rebuild. (yes/no)", 'yes');
                 if($rebuild == 'yes' || $rebuild == 'y') {

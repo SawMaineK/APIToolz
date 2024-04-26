@@ -16,6 +16,7 @@ use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
 use Sawmainek\Apitoolz\Console\ModelExportGenerator;
 use Sawmainek\Apitoolz\Console\ModelImportGenerator;
 use Sawmainek\Apitoolz\Console\ActivateGenerator;
+use Sawmainek\Apitoolz\Console\OpenAIGenerator;
 
 
 class APIToolzServiceProvider extends ServiceProvider
@@ -55,6 +56,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:activate', function ($app) {
             return $app->make(ActivateGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:ai', function ($app) {
+            return $app->make(OpenAIGenerator::class);
         });
     }
 
@@ -113,7 +118,8 @@ class APIToolzServiceProvider extends ServiceProvider
             ModelRelationGenerator::class,
             ModelExportGenerator::class,
             ModelImportGenerator::class,
-            ActivateGenerator::class
+            ActivateGenerator::class,
+            OpenAIGenerator::class
         ]);
     }
 

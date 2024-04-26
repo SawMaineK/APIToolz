@@ -77,7 +77,7 @@ class DatatableBuilder
     public static function remove($table)
     {
         \DB::unprepared("Drop Table $table;");
-        $migrations = glob(base_path("database/migrations/$migratePath/*_{$model->table}_table.php"));
+        $migrations = glob(base_path("database/migrations/*_{$table}_table.php"));
         foreach($migrations as $filePath) {
             @unlink($filePath);
         }

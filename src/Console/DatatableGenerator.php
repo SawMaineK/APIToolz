@@ -36,8 +36,7 @@ class DatatableGenerator extends Command
 
         $table = $this->argument('table');
 
-        $columns = \Schema::getColumns(\Str::lower($table));
-        if (count($columns) == 0) {
+        if (!\Schema::hasTable(\Str::lower($table))) {
             if($this->option('sql') != '') {
                 DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
                 $this->info("The $table table has created successfully.");

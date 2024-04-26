@@ -4,6 +4,7 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 
 ## Features
 
+- Create your solution with AI
 - Create database table migrations via Artisan Commands
 - Generate Restful APIs with `Create Table SQL` via Artisan Commands
 - Swagger API documentation
@@ -39,6 +40,12 @@ If you don't have the `Purchase Key`, please purchase it from [Codecanyon]().
 
 
 ## Usages
+
+Now, Create your solution with AI quickly. then publish your solution.
+
+```shell
+php artisan apitoolz:ai --requirement="For POS system, include sale order, and cashier"
+```
 
 You can generate your model using the `apitoolz:model` Artisan command:
 
@@ -137,10 +144,10 @@ To `rebuild` your Restful API model:
 php artisan apitoolz:model Customer --rebuild
 ```
 
-To `remove` your Restful API model:
+To `remove` your model:
 
 ```shell
-php artisan apitoolz:model Product --remove --force-delete
+php artisan apitoolz:model Product --remove --remove-table
 ```
 
 ## Export/Import Models
