@@ -17,7 +17,7 @@ class DatatableGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:datatable {table} {--soft-delete} {--sql=} {--remove}';
+    protected $signature = 'apitoolz:datatable {table} {--sql=} {--add-field=} {--update-field=} {--rename=} {--drop-field=} {--type=string} {--not-null} {--default=} {--field-after=id} {--soft-delete} {--remove}';
 
     /**
      * The console command description.
@@ -46,9 +46,33 @@ class DatatableGenerator extends Command
             DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
             $this->info("The $table table has created successfully.");
         } else {
-            if($this->option('remove')) {
+            if($this->option('add-field') != "") {
+                DatatableBuilder::addField($table, [
+                    'name' => $this->option('add-field'),
+                    'type' => $this->option('type'),
+                    'default' => $this->option('default'),
+                    'null' => !$this->option('not-null'),
+                    'after' => $this->option('field-after')
+                ]);
+                return $this->info("The $table table's {$this->option('update-field')} field has created successfully.");
+            }
+            else if($this->option('update-field') != "") {
+                DatatableBuilder::updateField($table, $this->option('update-field'),[
+                    'name' => $this->option('rename') != '' ? $this->option('rename') : $this->option('update-field'),
+                    'type' => $this->option('type'),
+                    'default' => $this->option('default'),
+                    'null' => !$this->option('not-null'),
+                    'after' => $this->option('field-after')
+                ]);
+                return $this->info("The $table table's {$this->option('update-field')} field has updated successfully.");
+            }
+            else if($this->option('drop-field') != "") {
+                DatatableBuilder::dropField($table, $this->option('drop-field'));
+                return $this->info("The $table table's {$this->option('drop-field')} field has deleted successfully.");
+            }
+            else if($this->option('remove')) {
                 DatatableBuilder::remove($table);
-                return $this->error("This $table table has deleted successfully.");
+                return $this->info("This $table table has deleted successfully.");
             }
             $this->error("This $table table is already exist.");
         }

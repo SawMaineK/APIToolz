@@ -49,7 +49,7 @@ class OpenAIGenerator extends Command
                     '--force' => true
                 ]);
                 if(\Schema::hasTable($table)) {
-                    if($this->option('dummy-data') && $value->data) {
+                    if($this->option('dummy-data') && isset($value->data)) {
                         foreach($value->data as $row) {
                             \DB::unprepared($row);
                         }

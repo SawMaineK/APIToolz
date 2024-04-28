@@ -46,6 +46,7 @@ class DatatableBuilder
             echo "Abort...\n";
             dd();
         }
+        return 1;
     }
 
     public static function buildWithSql($table, $sql, $softDelete = false)
@@ -72,6 +73,102 @@ class DatatableBuilder
             echo "Abort...\n";
             dd();
         }
+        return 1;
+    }
+
+    public static function addField($table, $field = [])
+    {
+        $columns = \Schema::getColumns(\Str::lower($table));
+        if (count($columns) >= 1) {
+            $codes['title'] = \Str::studly($field['name']);
+            $codes['class'] = \Str::studly($table);
+            $codes['table'] = \Str::lower($table);
+            $codes['column'] = $field['name'];
+            $codes['field'] = self::getFieldMigrate($field['name'], [
+                'type' => $field['type'],
+                'default' => isset($field['default']) ? $field['default'] : null,
+                'null' => isset($field['null']) ? $field['null'] : null,
+            ], $field['after']);
+
+            try {
+                $dir = base_path("database/migrations/" . date('Y_m_d_his') . "_add_{$codes['column']}_to_{$codes['table']}_table.php");
+                $build_migration = APIToolzGenerator::blend('database.field.add.tpl', $codes);
+                file_put_contents($dir, $build_migration);
+
+                \Artisan::call('migrate', ["--force" => true]);
+            } catch (\Exception $e) {
+                @unlink($dir);
+                echo "{$e->getMessage()}\n";
+                echo "Abort...\n";
+                dd();
+            }
+        } else {
+            echo "This {$table} table is don\'t exist.\n";
+            echo "Abort...\n";
+            dd();
+        }
+        return 1;
+    }
+
+    public static function updateField($table, $name = "", $field = [])
+    {
+        $columns = \Schema::getColumns(\Str::lower($table));
+        if (count($columns) >= 1) {
+            $codes['title'] = \Str::studly($name);
+            $codes['class'] = \Str::studly($table);
+            $codes['table'] = \Str::lower($table);
+            $codes['rename'] = $field['name'] != $name ? "\t\t\t\$table->renameColumn('{$name}', '{$field['name']}');" : "";
+            $codes['field'] = self::getFieldMigrate($name, [
+                'type' => $field['type'],
+                'default' => isset($field['default']) ? $field['default'] : null,
+                'null' => isset($field['null']) ? $field['null'] : null,
+            ], $field['after'], true);
+            try {
+                $dir = base_path("database/migrations/" . date('Y_m_d_his') . "_update_{$name}_field_in_{$table}_table.php");
+                $build_migration = APIToolzGenerator::blend('database.field.edit.tpl', $codes);
+                file_put_contents($dir, $build_migration);
+                \Artisan::call('migrate', ["--force" => true]);
+            } catch (\Exception $e) {
+                @unlink($dir);
+                echo "{$e->getMessage()}\n";
+                echo "Abort...\n";
+                dd();
+            }
+        } else {
+            echo "This {$table} table is don\'t exist.\n";
+            echo "Abort...\n";
+            dd();
+        }
+        return 1;
+    }
+
+    public static function dropField($table, $field = "")
+    {
+        $columns = \Schema::getColumns(\Str::lower($table));
+        if (count($columns) >= 1) {
+            $codes['title'] = \Str::studly($field);
+            $codes['class'] = \Str::studly($table);
+            $codes['table'] = \Str::lower($table);
+            $codes['column'] = $field;
+
+            try {
+                $dir = base_path("database/migrations/" . date('Y_m_d_his') . "_drop_{$codes['column']}_from_{$codes['table']}_table.php");
+                $build_migration = APIToolzGenerator::blend("database.field.drop.tpl", $codes);
+                file_put_contents($dir, $build_migration);
+
+                \Artisan::call('migrate', ["--force" => true]);
+            } catch (\Exception $e) {
+                @unlink($dir);
+                echo "{$e->getMessage()}\n";
+                echo "Abort...\n";
+                dd();
+            }
+        } else {
+            echo "This {$table} table is don\'t exist.\n";
+            echo "Abort...\n";
+            dd();
+        }
+        return 1;
     }
 
     public static function remove($table)
@@ -87,7 +184,7 @@ class DatatableBuilder
     {
         $column = "\t\t\t\$table->{$option['type']}('{$field}')";
         if ($option['default'] != "") {
-            $column = "{$column}->default({$option['default']})";
+            $column = "{$column}->default('{$option['default']}')";
         }
         if ($option['null'] == 'yes' || $option['null'] == 'y') {
             $column = "{$column}->nullable()";
