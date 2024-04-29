@@ -17,6 +17,7 @@ use Sawmainek\Apitoolz\Console\ModelExportGenerator;
 use Sawmainek\Apitoolz\Console\ModelImportGenerator;
 use Sawmainek\Apitoolz\Console\ActivateGenerator;
 use Sawmainek\Apitoolz\Console\OpenAIGenerator;
+use Sawmainek\Apitoolz\Console\ModelCleanUpGenerator;
 
 
 class APIToolzServiceProvider extends ServiceProvider
@@ -58,6 +59,10 @@ class APIToolzServiceProvider extends ServiceProvider
             return $app->make(ActivateGenerator::class);
         });
 
+        $this->app->singleton('command.apitoolz:clean', function ($app) {
+            return $app->make(ModelCleanUpGenerator::class);
+        });
+
         $this->app->singleton('command.apitoolz:ai', function ($app) {
             return $app->make(OpenAIGenerator::class);
         });
@@ -88,9 +93,9 @@ class APIToolzServiceProvider extends ServiceProvider
                 $request = $this->app->request;
                 \Log::warning("[DB Query]  {$request->method()}::/{$request->path()} >>",[
                     'request_id'=>$request->header()['x-request-id'][0] ?? "",
-                    'sql' => $query->sql,
-                    'binding' => $query->bindings,
-                    'time' => $query->time,
+                    'sql' => $event->sql,
+                    'binding' => $event->bindings,
+                    'time' => $event->time,
                 ]);
             });
         }
@@ -119,6 +124,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ModelExportGenerator::class,
             ModelImportGenerator::class,
             ActivateGenerator::class,
+            ModelCleanUpGenerator::class,
             OpenAIGenerator::class
         ]);
     }
@@ -140,7 +146,9 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.relation',
             'command.apitoolz.export',
             'command.apitoolz.import',
-            'command.apitoolz.activate'
+            'command.apitoolz.activate',
+            'command.apitoolz.clean',
+            'command.apitoolz.ai'
         ];
     }
 }

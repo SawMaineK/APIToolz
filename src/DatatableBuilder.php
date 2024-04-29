@@ -54,7 +54,6 @@ class DatatableBuilder
         try {
             \DB::unprepared($sql);
             $columns = \Schema::getColumns(\Str::lower($table));
-            $indexes = \Schema::getIndexes(\Str::lower($table));
             $foreignKeys = \Schema::getForeignKeys(\Str::lower($table));
             $fields = [];
             foreach($columns as $col) {
@@ -68,7 +67,6 @@ class DatatableBuilder
             \DB::unprepared("DROP table $table;");
             self::build($table, $fields, $softDelete, $foreignKeys);
         } catch (\Exception $e) {
-            @unlink($dir);
             echo "{$e->getMessage()}\n";
             echo "Abort...\n";
             dd();

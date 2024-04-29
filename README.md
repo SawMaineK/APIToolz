@@ -94,7 +94,7 @@ To remove the database table:
 php artisan apitoolz:datatable customers --remove
 ```
 
-If you wish to add more field, update and drop, you can complete using the `add-field=`, `update-field=`, and `drop-field=`.
+If you wish to add more field, update and drop, you can complete using the following option with `add-field=`, `update-field=`, and `drop-field=` on Artisan command.
 
 ```shell
 php artisan apitoolz:datatable customers --add-field=gender --type=string --field-after=email --not-null --default=other
