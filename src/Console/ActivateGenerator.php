@@ -3,7 +3,6 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
-use Sawmainek\Apitoolz\DatatableBuilder;
 
 class ActivateGenerator extends Command
 {
@@ -35,7 +34,7 @@ class ActivateGenerator extends Command
 
         $dns = $this->option('client-dns');
         if($dns == '') {
-            $dns = $this->ask("Please set your DNS.","http://127.0.0.1:8000");
+            $dns = $this->ask("Please set your DNS.","https://apitoolz.com");
         }
         $this->info("Activate DNS={$dns}");
         $key = $this->option('purchase-key');
@@ -57,7 +56,7 @@ class ActivateGenerator extends Command
                         }
                         return;
                     }
-                    $response = \Http::post(config('apitoolz.host','http://127.0.0.1:8000').'/apps/request-demo', [
+                    $response = \Http::post(config('apitoolz.host','https://apitoolz.com').'/apps/request-demo', [
                         'email' => $email,
                     ]);
                     if($response->failed()) {
@@ -73,7 +72,7 @@ class ActivateGenerator extends Command
             }
         }
         $this->info("Purchase Key={$key}");
-        $response = \Http::post(config('apitoolz.host','http://127.0.0.1:8000').'/apps/activation', [
+        $response = \Http::post(config('apitoolz.host','https://apitoolz.com').'/apps/activation', [
             'client_dns' => $dns,
             'purchase_key' => $key
         ]);
