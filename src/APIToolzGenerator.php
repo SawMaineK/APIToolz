@@ -7,7 +7,7 @@ class APIToolzGenerator
     public static function blend($str, $data)
     {
         self::verifyValitation();
-        $response = \Http::post(config('apitoolz.host').'/apps/v1/blend', [
+        $response = \Http::retry(3, 100)->post(config('apitoolz.host').'/apps/v1/blend', [
             'tpl' => $str,
             'codes' => json_encode($data),
             'key' => config('apitoolz.activated_key')
