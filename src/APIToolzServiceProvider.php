@@ -108,6 +108,10 @@ class APIToolzServiceProvider extends ServiceProvider
             $this->publishes([
               __DIR__.'/../resources/views' => resource_path('views/vendor/apitoolz'),
             ], 'views');
+            // Publish ui views
+            $this->publishes([
+                __DIR__.'/../resources/vite/public/media' => public_path('media'),
+            ], 'apitoolz-ui');
             // Publish config
             $this->publishes([
                 __DIR__.'/../config/config.php' => config_path('apitoolz.php'),

@@ -1,0 +1,39 @@
+{
+  "name": "apitoolz",
+  "version": "1.0.0",
+  "description": "APIToolz rapidly generates RESTful APIs within seconds based on a provided model, allowing you to seamlessly share your RESTful API documentation with frontend developers.",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.4",
+    "@storybook/addon-essentials": "^8.5.0",
+    "@storybook/addon-interactions": "^8.5.0",
+    "@storybook/addon-onboarding": "^8.5.0",
+    "@storybook/blocks": "^8.5.0",
+    "@storybook/builder-vite": "^8.5.0",
+    "@storybook/react": "^8.5.0",
+    "@storybook/react-vite": "^8.5.0",
+    "@storybook/test": "^8.5.0",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "storybook": "^8.5.0",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.10"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4"
+  }
+}
