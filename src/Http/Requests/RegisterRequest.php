@@ -7,50 +7,8 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * @OA\Schema(
- *     description="Register Request",
- *     type="object",
- *     title="Register Request"
- * )
- */
 class RegisterRequest extends FormRequest
 {
-    /**
-     * @OA\Property(type="string")
-     */
-    public $name;
-
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $email;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $phone;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password_confirmation;
-
-    /**
-     * @OA\Property(type="date")
-     */
-    public $dob;
-
-    /**
-     * @OA\Property(type="string", enum={"male", "female"})
-     */
-    public $gender;
 
     /**
      * Determine if the user is authorized to make this request.

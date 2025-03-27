@@ -7,29 +7,9 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * @OA\Schema(
- *     description="Login Request",
- *     type="object",
- *     title="Login Request"
- * )
- */
 class LoginRequest extends FormRequest
 {
 
-    /**
-     * @OA\Property(type="string")
-     */
-    public $email;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password;
-
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;

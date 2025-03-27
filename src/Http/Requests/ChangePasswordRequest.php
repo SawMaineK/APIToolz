@@ -7,34 +7,8 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * @OA\Schema(
- *     description="Change Password Request",
- *     type="object",
- *     title="Change Password Request"
- * )
- */
 class ChangePasswordRequest extends FormRequest
 {
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $current_password;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password_confirmation;
-
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
@@ -48,10 +22,20 @@ class ChangePasswordRequest extends FormRequest
     public function rules(): array
     {
         $roles = [
-            'current_password' => ['required', 'string', 'min:6'],
-            'password' => ['required', 'string', 'min:6', 'confirmed']
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
         ];
         return $roles;
+    }
+
+    public function messages()
+    {
+        return [
+            'current_password.required' => 'Current password is required.',
+            'new_password.required' => 'New password is required.',
+            'new_password.min' => 'New password must be at least 8 characters long.',
+            'new_password.confirmed' => 'New password confirmation does not match.',
+        ];
     }
 
     /**

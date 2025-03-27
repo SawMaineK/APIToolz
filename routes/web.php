@@ -3,11 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use Sawmainek\Apitoolz\Http\Controllers\FileStorageController;
 
-Route::get('/apitoolz', function() {
-    return view("apitoolz::app");
+Route::prefix('apitoolz')->group(function () {
+    Route::view('/{path?}', 'apitoolz::app');
+    Route::view('/{path?}/{app?}', 'apitoolz::app');
+    Route::view('/{path?}/{app?}/{module?}', 'apitoolz::app');
+    Route::view('/{path?}/{app?}/{module?}/{page?}', 'apitoolz::app');
+    Route::view('/{path?}/{app?}/{module?}/{page?}/{action?}', 'apitoolz::app');
+
+    Route::get('/img/{path}', [FileStorageController::class, 'image'])->where('path', '.*');
+    Route::get('/file/{path}', [FileStorageController::class, 'file'])->where('path', '.*');
 });
-Route::get('/apitoolz/auth/login', function() {
-    return view("apitoolz::app");
-});
-Route::get('/img/{path}', [FileStorageController::class, 'image'])->where('path', '.*');
-Route::get('/file/{path}', [FileStorageController::class, 'file'])->where('path', '.*');

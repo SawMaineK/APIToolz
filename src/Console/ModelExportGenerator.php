@@ -58,8 +58,12 @@ class ModelExportGenerator extends Command
                 $config = ModelConfigUtils::decryptJson($model->config);
                 $requestPath = "app/Http/Requests/{$model->name}Request.php";
                 $zip->addFile(base_path($requestPath), $requestPath);
+                $resourcePath = "app/Http/Resources/{$model->name}Resource.php";
+                $zip->addFile(base_path($resourcePath), $resourcePath);
                 $controllerPath = "app/Http/Controllers/{$model->name}Controller.php";
                 $zip->addFile(base_path($controllerPath), $controllerPath);
+                $servicePath = "app/Services/{$model->name}Service.php";
+                $zip->addFile(base_path($servicePath), $servicePath);
                 // $exportPath = "app/Exports/{$model->name}Export.php";
                 // $zip->addFile(base_path($exportPath), $exportPath);
                 $modelPath = "app/Models/{$model->name}.php";

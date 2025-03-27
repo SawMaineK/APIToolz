@@ -8,50 +8,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
-/**
- * @OA\Schema(
- *     description="Profile Request",
- *     type="object",
- *     title="Profile Request"
- * )
- */
 class ProfileRequest extends FormRequest
 {
-    /**
-     * @OA\Property(type="string")
-     */
-    public $name;
-
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $email;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $phone;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password;
-
-    /**
-     * @OA\Property(type="string")
-     */
-    public $password_confirmation;
-
-    /**
-     * @OA\Property(type="date")
-     */
-    public $dob;
-
-    /**
-     * @OA\Property(type="string", enum={"male", "female"})
-     */
-    public $gender;
 
     /**
      * Determine if the user is authorized to make this request.

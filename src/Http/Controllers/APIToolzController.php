@@ -15,13 +15,12 @@ use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 /**
  * @OA\Info(title="API Documentation", version="0.1")
  * @OA\SecurityScheme(
+ *     securityScheme="apiAuth",
  *     type="http",
  *     description="Login with email and password to get the authentication token",
- *     name="Token based Based",
- *     in="header",
+ *     name="Token Based Authentication",
  *     scheme="bearer",
- *     bearerFormat="JWT",
- *     securityScheme="apiAuth",
+ *     bearerFormat="JWT"
  * )
  */
 
@@ -38,8 +37,12 @@ class APIToolzController extends Controller
                 if (is_string($result)) {
                     $response['error']['general'] = $result;
                 } else {
-                    foreach ($result->toArray() as $key => $error) {
-                        $response['error'][$key] = $error[0];
+                    if(is_array($result)) {
+                        $response = $result;
+                    } else {
+                        foreach ($result->toArray() as $key => $error) {
+                            $response['error'][$key] = $error[0];
+                        }
                     }
                 }
                 break;

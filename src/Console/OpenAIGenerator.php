@@ -17,7 +17,7 @@ class OpenAIGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:ai {--requirement=} {--dummy-data}';
+    protected $signature = 'apitoolz:use-ai {--requirement=} {--dummy-data}';
 
     /**
      * The console command description.

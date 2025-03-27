@@ -1,0 +1,21 @@
+/* Tailwind core */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Demos */
+@import "./demos/demo1";
+
+/* Shadcn UI */
+@import "./shadcn.ui";
+
+
+.form-array .table .form-label {
+    display: none;
+}
+.form-array .table .checkbox span {
+    display: none;
+}
+.form-array .table .mb-4,.mb-2 {
+    margin-bottom: 0px !important;
+}

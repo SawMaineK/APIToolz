@@ -37,7 +37,9 @@ class ModelImportGenerator extends Command
         $res = $zip->open($this->option('file'));
         $importPath = storage_path('apitoolz/imports/');
         $requestPath = "app/Http/Requests";
+        $resourcePath = "app/Http/Resources";
         $controllerPath = "app/Http/Controllers";
+        $servicePath = "app/Services";
         //$exportPath = "app/Exports";
         $modelPath = "app/Models";
         $policyPath = "app/Policies";
@@ -52,7 +54,9 @@ class ModelImportGenerator extends Command
             foreach($models as $model) {
                 $model = Model::updateOrCreate(['id'=>$model->id], (array)$model);
                 copy(storage_path("apitoolz/imports/$requestPath/{$model->name}Request.php"), base_path("$requestPath/{$model->name}Request.php"));
+                copy(storage_path("apitoolz/imports/$resourcePath/{$model->name}Resource.php"), base_path("$resourcePath/{$model->name}Resource.php"));
                 copy(storage_path("apitoolz/imports/$controllerPath/{$model->name}Controller.php"), base_path("$controllerPath/{$model->name}Controller.php"));
+                copy(storage_path("apitoolz/imports/$servicePath/{$model->name}Service.php"), base_path("$servicePath/{$model->name}Service.php"));
                 //copy(storage_path("apitoolz/imports/$exportPath/{$model->name}Export.php"), base_path("$exportPath/{$model->name}Export.php"));
                 copy(storage_path("apitoolz/imports/$modelPath/{$model->name}.php"), base_path("$modelPath/{$model->name}.php"));
                 $migrateFile = glob(storage_path("apitoolz/imports/$migratePath/*_create_{$model->table}_table.php"));

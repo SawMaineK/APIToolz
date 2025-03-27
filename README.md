@@ -20,12 +20,29 @@ APIToolz rapidly generates RESTful APIs within seconds based on a provided model
 
 ## Requirements
 
-`AP IToolz` requires at least PHP 8.2 and Laravel 11.
+`APIToolz` requires at least PHP 8.2 and Laravel 11.
 
 ## Installation (with [Composer](https://getcomposer.org))
 
 ```shell
 composer require sawmainek/apitoolz
+```
+Need to publish vendor and migrate database.
+
+```shell
+php artisan vendor:publish --provider=Sawmainek\Apitoolz\APIToolzServiceProvider
+
+php artisan migrate
+```
+
+Add/Update .env 
+```shell
+AUTH_PASSWORD_RESET_TOKEN_TABLE=password_resets
+
+SCOUT_DRIVER=database
+SCOUT_QUEUE=true
+ALGOLIA_APP_ID=QAXM1M4SXJ
+ALGOLIA_SECRET=ad87399845ffaeace097323b423b511d
 ```
 
 ## Activation

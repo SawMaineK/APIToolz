@@ -20,7 +20,6 @@ class ModelBuilder
         $codes['hidden'] = "";
         $codes['casts'] = "";
         $codes['validation'] = [];
-        $codes['request_fields'] = [];
         $codes['relationships'] = [];
         $codes['index_loader'] = "";
         $codes['show_loader'] = "";
@@ -31,6 +30,8 @@ class ModelBuilder
         $codes['policy_update'] = "";
         $codes['policy_delete'] = "";
         $codes['authentication'] = $model->auth ? "security={{\"apiAuth\":{}}}," : "";
+        $codes['schema_requset'] = OASchemaBuilder::generateSchema($model->table, $model->name);
+        $codes['schema_resource'] = OASchemaBuilder::generateSchema($model->table, $model->name, true);
 
         $config = ModelConfigUtils::decryptJson($model->config);
         $columns = \Schema::getColumns($codes['table']);
@@ -47,8 +48,9 @@ class ModelBuilder
             $grids[] = ModelConfigUtils::getGridConfig($codes['class'], $codes['table'], $field, $config['grid'], $i);
         }
 
-        $fillable = [];
-        $hidden = [];
+        $fillable   = [];
+        $search     = [];
+        $hidden     = [];
         foreach ($forms as $form) {
             if($form['cast']) {
                 if($form['cast'] == 'decimal') {
@@ -70,18 +72,22 @@ class ModelBuilder
             }
             if ($form['view'] == true) {
                 $fillable[] = "'{$form['field']}'";
+                $search[]   = "'{$form['field']}'";
+                $resource[] = "'{$form['field']}' => \$this->{$form['field']}";
                 $codes['validation'][] ="\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
                 $request['field'] = $form['field'];
                 $request['type'] = $form['cast'];
-                $codes['request_fields'][] = APIToolzGenerator::blend('request.field.tpl', $request);
             }
+            unset($codes['validation'][0]);
             if ($form['hidden'] == true) {
                 $hidden[] = "'{$form['field']}'";
             }
         }
+
         $codes['casts'] = implode(", ", $casts ?? []);
         $codes['searchable'] = implode(",\n\t\t\t", $searchable ?? []);
         $codes['fillable'] = implode(", ", $fillable ?? []);
+        $codes['search'] = implode(", ", $search ?? []);
         $codes['hidden'] = implode(", ", $hidden ?? []);
 
         usort($forms, "self::_sort");
@@ -98,6 +104,12 @@ class ModelBuilder
                     $codes['relationships'][] = APIToolzGenerator::blend('relationship.tpl', $relation);
                 }
 
+                if($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany') {
+                    $resource[] = "'{$relation['title']}' => {$relation['model']}Resource::collection(\$this->{$relation['title']})";
+                } else {
+                    $resource[] = "'{$relation['title']}' => new {$relation['model']}Resource(\$this->{$relation['title']})";
+                }
+
                 if(isset($relation['sub']) && explode(',',$relation['sub']) > 0) {
                     foreach(explode(',',$relation['sub']) as $sub) {
                         $loader[] = "'{$relation['title']}.{$sub}'";
@@ -107,9 +119,11 @@ class ModelBuilder
                 }
             }
             $relations = implode(', ', $loader);
-            $codes['index_loader'] = "\$result->load({$relations});";
-            $codes['show_loader'] = "\${$codes['alias']}->load({$relations});";
+            $codes['index_loader'] = "\$query->with([{$relations}]);";
+            $codes['show_loader'] = "\${$codes['alias']}->with([{$relations}]);";
         }
+        $codes['resources'] = implode(",\n\t\t\t", $resource ?? []);
+
         $codes['subject'] = "";
         $codes['receivers'] = [];
         $codes['create_notification'] = "";
@@ -208,7 +222,7 @@ class ModelBuilder
                     $codes['update_event'] = "broadcast(new \\App\\Events\\{$codes['class']}UpdatedEvent(\${$codes['alias']}));\n";
                     $eventFile = app_path("Events/{$codes['class']}UpdatedEvent.php");
                     if (!$model->lock || ($model->lock && !isset($model->lock['locked_notification']))) {
-                        file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
+                        //file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
                     }
                 }
 
@@ -218,7 +232,7 @@ class ModelBuilder
                     $codes['delete_event'] = "broadcast(new \\App\\Events\\{$codes['class']}DeletedEvent(\${$codes['alias']}));\n";
                     $eventFile = app_path("Events/{$codes['class']}DeletedEvent.php");
                     if (!$model->lock || ($model->lock && !isset($model->lock['locked_notification']))) {
-                        file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
+                        //file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
                     }
                 }
             }
@@ -248,6 +262,22 @@ class ModelBuilder
             if(!is_dir(app_path("Http/Requests")))
                 mkdir(app_path("Http/Requests"),0775,true);
             file_put_contents($requestFile, $buildRequest);
+        }
+
+        if(!$model->lock || ($model->lock && !isset($model->lock['locked_resource']))) {
+            $resourceFile = app_path("Http/Resources/{$codes['class']}Resource.php");
+            $buildResource = APIToolzGenerator::blend('resource.tpl', $codes);
+            if(!is_dir(app_path("Http/Resources")))
+                mkdir(app_path("Http/Resources"),0775,true);
+            file_put_contents($resourceFile, $buildResource);
+        }
+
+        if(!$model->lock || ($model->lock && !isset($model->lock['locked_service']))) {
+            $serviceFile = app_path(path: "Services/{$codes['class']}Service.php");
+            $buildService = APIToolzGenerator::blend('service.tpl', $codes);
+            if(!is_dir(app_path("Services")))
+                mkdir(app_path("Services"),0775,true);
+            file_put_contents($serviceFile, $buildService);
         }
 
         if(!$model->lock || ($model->lock && !isset($model->lock['locked_controller']))) {
@@ -280,10 +310,12 @@ class ModelBuilder
     }
 
     public static function remove(Model $model) {
-        \Artisan::call('scout:flush', ["model" => "App\\Models\\{$model->name}"]);
+        //\Artisan::call('scout:flush', ["model" => "App\\Models\\{$model->name}"]);
 
         @unlink(app_path("Http/Controllers/{$model->name}Controller.php"));
         @unlink(app_path("Http/Requests/{$model->name}Request.php"));
+        @unlink(app_path("Http/Resources/{$model->name}Resource.php"));
+        @unlink(app_path("Services/{$model->name}Service.php"));
         @unlink(app_path("Models/{$model->name}.php"));
         @unlink(app_path("Exports/{$model->name}Export.php"));
         @unlink(app_path("Policies/{$model->name}Policy.php"));

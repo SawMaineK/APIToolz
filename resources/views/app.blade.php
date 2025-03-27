@@ -16,6 +16,6 @@
   </head>
   <body class="antialiased flex h-full text-base text-gray-700" style="overflow:visible !important; margin-right:0 !important; position:static !important;">
     <div class="flex grow" id="root"></div>
-    @vite('vendor/sawmainek/apitoolz/resources/vite/src/main.tsx')
+    @vite('vendor/sawmainek/apitoolz/resources/js/src/main.tsx')
   </body>
 </html>

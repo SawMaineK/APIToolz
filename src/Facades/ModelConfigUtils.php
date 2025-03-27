@@ -84,7 +84,7 @@ class ModelConfigUtils
             "label" => \Str::title(str_replace('_', ' ', $field)),
             'validator' => $type != 'hidden' && !$null ? 'required' : '',
             'hidden' => false,
-            'view' => $field == 'id' || $field == 'created_at' || $field == 'updated_at' || $field == 'deleted_at' ? false : true,
+            'view' => $field == 'deleted_at' ? false : true,
             'add' => $field == 'deleted_at' ? false : true,
             'edit' => $field == 'deleted_at' ? false : true,
             'search' => $field == 'deleted_at' ? false : true,

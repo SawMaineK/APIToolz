@@ -2,335 +2,324 @@
 
 namespace Sawmainek\Apitoolz\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Mail\ResetPassword;
-use Sawmainek\Apitoolz\Models\User;
+use Sawmainek\Apitoolz\Http\Requests\ForgotPasswordRequest;
+use Sawmainek\Apitoolz\Services\AuthService;
+use Sawmainek\Apitoolz\Services\PasswordResetService;
+use Sawmainek\Apitoolz\Services\TwoFactorAuthService;
 use Sawmainek\Apitoolz\Http\Requests\LoginRequest;
 use Sawmainek\Apitoolz\Http\Requests\RegisterRequest;
 use Sawmainek\Apitoolz\Http\Requests\ProfileRequest;
 use Sawmainek\Apitoolz\Http\Requests\ChangePasswordRequest;
+use Sawmainek\Apitoolz\Http\Requests\ResetPasswordRequest;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use OpenApi\Annotations as OA;
 
 class AuthController extends APIToolzController
 {
+    protected $authService;
+    protected $passwordResetService;
+    protected $twoFactorAuthService;
+
+    public function __construct(AuthService $authService, PasswordResetService $passwordResetService, TwoFactorAuthService $twoFactorAuthService)
+    {
+        $this->authService = $authService;
+        $this->passwordResetService = $passwordResetService;
+        $this->twoFactorAuthService = $twoFactorAuthService;
+    }
+
     /**
-     * Swagger API Document
      * @OA\Post(
      *     path="/api/login",
      *     summary="Login to your account",
      *     tags={"Account"},
      *     @OA\RequestBody(
      *          required=true,
-     *          description = "Login Request",
      *          @OA\JsonContent(ref="#/components/schemas/LoginRequest")
      *     ),
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=400, description="Invalid request")
+     *     @OA\Response(response=200, description="Successful login", @OA\JsonContent(ref="#/components/schemas/UserResponse")),
+     *     @OA\Response(response=202, description="2FA Required", @OA\JsonContent()),
+     *     @OA\Response(response=400, description="Invalid credentials"),
+     *     @OA\Response(response=429, description="Too many OTP requests"),
+     *     @OA\Response(response=500, description="Server error")
      * )
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function login(LoginRequest $request)
     {
-        $credentials = $request->only('email', 'phone', 'password');
-        if (\Auth::attempt($credentials)) {
-            $user = User::find(\Auth::user()->id);
-            $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
-            return $this->response($user);
+        Log::info("Processing login request.");
+
+        try {
+            $user = $this->authService->login($request->only('email', 'phone', 'password'));
+
+            if (!$user) {
+                return $this->response(['message' => 'Invalid credentials.'], 400);
+            }
+
+            if ($user->is_2fa_enabled) {
+                Log::info("2FA required for user: " . $user->email);
+
+                $otpResponse = $this->twoFactorAuthService->sendOTP($user);
+
+                // If the OTP service returns an error response, return it immediately
+                if ($otpResponse->getStatusCode() !== 200) {
+                    return $otpResponse;
+                }
+
+                return $this->response([
+                    'message' => '2FA required',
+                    'requires_2fa' => true
+                ], 202);
+            }
+
+            Log::info("Login successful for user: " . $user->email);
+            return $this->response(['message' => 'Login successful', 'data' => $user]);
+        } catch (\Exception $e) {
+            Log::error("Login error: " . $e->getMessage());
+            return $this->response(['message' => 'An error occurred while logging in.'], 500);
         }
-        return $this->response("The username and password are incorrect.", 400);
     }
 
     /**
-     * Swagger API Document
      * @OA\Post(
      *     path="/api/register",
-     *     summary="Register to your account",
+     *     summary="Register a new user",
      *     tags={"Account"},
      *     @OA\RequestBody(
      *          required=true,
-     *          description = "Register Request",
      *          @OA\JsonContent(ref="#/components/schemas/RegisterRequest")
      *     ),
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=400, description="Invalid request")
+     *     @OA\Response(response=201, description="User registered", @OA\JsonContent(ref="#/components/schemas/UserResponse")),
+     *     @OA\Response(response=400, description="Invalid data"),
+     *     @OA\Response(response=500, description="Server error")
      * )
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function register(RegisterRequest $request)
     {
-        $data['name'] = $request->input('name');
-        $data['email'] = $request->input('email');
-        $data['phone'] = $request->input('phone');
-        $data['password'] = bcrypt($request->input('password'));
-        $data['gender'] = $request->input('gender');
-        $data['dob'] = $request->input('dob');
+        Log::info("Processing registration request.");
 
-        if ($request->hasFile('avatar') &&  $request->file('avatar')->isValid()) {
+        try {
+            $user = $this->authService->register($request->all(), $request);
 
-            $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $request->avatar->extension();
-            $avatar = $this->saveAsFile($request->file('avatar'), array(
-                'image_multiple' => false,
-                'save_full_path' => false,
-                'path_to_upload' => 'users',
-                'upload_type' => 'image',
-                'upload_max_size' => '1',
-            ));
-            $data['avatar'] = $avatar;
+            return $this->response([
+                'message' => 'User registered successfully',
+                'data' => $user
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error("Registration error: " . $e->getMessage());
+            return $this->response(['message' => 'An error occurred during registration.'], 500);
         }
-        $user = User::create($data);
-
-        return $this->response($user);
     }
 
     /**
-     * Swagger API Document
-     * @OA\Get(
-     *     path="/api/user",
-     *     summary="Get the authenticated user",
+     * @OA\Post(
+     *     path="/api/edit-profile",
+     *     summary="Update user profile",
      *     tags={"Account"},
      *     security={{"apiAuth":{}}},
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Profile updated successfully", @OA\JsonContent(ref="#/components/schemas/UserResponse")),
+     *     @OA\Response(response=400, description="Invalid request"),
+     *     @OA\Response(response=500, description="Server error")
      * )
-     *
-     * Display the specified resource.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
+     */
+    public function editProfile(ProfileRequest $request)
+    {
+        $user = $request->user();
+
+        try {
+            Log::info("Profile update request received for user ID: {$user->id}");
+
+            $updatedUser = $this->authService->editProfile($user, $request->all());
+
+            return $this->response([
+                'message' => 'Profile updated successfully',
+                'data' => $updatedUser
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error updating profile for user ID: {$user->id}", ['error' => $e->getMessage()]);
+            return $this->response(['message' => 'Something went wrong'], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/user",
+     *     summary="Get authenticated user",
+     *     tags={"Account"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\Response(response=200, description="Authenticated user details", @OA\JsonContent(ref="#/components/schemas/UserResponse")),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function show(Request $request)
     {
-        $user = $request->user();
-        if($user) {
-            $data = User::find($user->id);
-            return $this->response($data);
-        }
-        return $this->response("Invalid user access.", 400);
-    }
+        Log::info("Fetching authenticated user.");
 
-    public function getVerificationCode(Request $request, $type)
-    {
-        $roles = [];
+        try {
+            $user = $this->authService->getUser($request);
 
-        if($type == 'email') {
-            $roles['email'] = ['required', 'string', 'email', 'exists:users,email'];
-        }
-
-        if($type == 'phone') {
-            $roles['phone'] = ['required', 'string', 'exists:users,phone'];
-        }
-
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-        $timeout = env('2FACTOR_TIMEOUT');
-        if($request->timeout && $request->timeout > 0) {
-            $timeout = $request->timeout;
-        }
-        if($type == 'email') {
-            $user = User::where('email', $request->email)->first();
-            $user->token_2fa_expiry = \Carbon\Carbon::now()->addMinutes($timeout);
-            $user->token_2fa = mt_rand(1000, 9999);
-            $user->save();
-            $send['to'] = [ 'email' => $user->email ];
-            //Mail::to($send)->send(new TwoFactor($user));
-        }
-
-        if($type == 'phone') {
-            $user = User::where('phone', $request->phone)->first();
-            $user->token_2fa_expiry = \Carbon\Carbon::now()->addMinutes($timeout);
-            $user->token_2fa = mt_rand(1000, 9999);
-            $user->save();
-
-        }
-
-        $data['token'] = bcrypt($request->token_2fa);
-        return $this->response($data);
-    }
-
-    public function postVerifyPhoneEmail(Request $request)
-    {
-        $roles = [
-            'code' => ['required', 'string', 'min:4', 'exists:users,token_2fa'],
-            'token' => ['required', 'string']
-        ];
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-        if (!\Hash::check($request->code, $request->token)) {
-            return $this->response("The token and code are invalid.", 400);
-        }
-        $user = User::where('token_2fa', $request->code)->first();
-        if($user) {
-            // Check code is expired?
-            if ($user->token_2fa_expiry < \Carbon\Carbon::now()) {
-                return $this->response("The verification code has expired.", 400);
+            if ($user) {
+                return $this->response([
+                    'message' => 'User details fetched successfully',
+                    'data' => $user
+                ]);
             }
-            $user->token_2fa_expiry = \Carbon\Carbon::now()->addDays(env('2FACTOR_LIFETIME'));
-            $user->save();
 
-            $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
-            return $this->response($user);
-
+            return $this->response(['message' => 'Invalid user access.'], 400);
+        } catch (\Exception $e) {
+            Log::error("Error fetching user: " . $e->getMessage());
+            return $this->response(['message' => 'An error occurred while fetching user details.'], 500);
         }
-        return $this->response("The verification code is invalid.", 400);
     }
 
     /**
-     * Swagger API Document
-     * @OA\Post(
-     *     path="/api/edit-profile",
-     *     summary="Edit to your account",
-     *     tags={"Account"},
-     *     security={{"apiAuth":{}}},
-     *     @OA\RequestBody(
-     *          required=true,
-     *          description = "Edit Request",
-     *          @OA\JsonContent(ref="#/components/schemas/ProfileRequest")
-     *     ),
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=400, description="Invalid request")
-     * )
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function editProfle(ProfileRequest $request)
-    {
-        $user = $request->user();
-
-        if ($request->hasFile('avatar') &&  $request->file('avatar')->isValid()) {
-            $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $request->avatar->extension();
-            $avatar = $this->saveAsFile($request->file('avatar'), array(
-                'image_multiple' => false,
-                'save_full_path' => false,
-                'path_to_upload' => 'users',
-                'upload_type' => 'image',
-                'upload_max_size' => '1',
-            ));
-            $user->avatar = $avatar;
-        }
-
-        if($request->input('password')) {
-            $user->password = bcrypt($request->input('password'));
-        }
-
-        $user->name = $request->input('name') ?? $user->name;
-        $user->email = $request->input('email') ?? $user->email;
-        $user->phone = $request->input('phone') ?? $user->phone;
-        $user->gender = $request->input('gender') ?? $user->gender;
-        $user->dob = $request->input('dob') ?? $user->dob;
-
-        $user->save();
-        return $this->response($user);
-    }
-
-    public function postResetPassword(Request $request)
-    {
-        $roles = [
-            'code' => ['required', 'string', 'min:4', 'exists:users,token_2fa'],
-            'token' => ['required', 'string']
-        ];
-        $validator = \Validator::make($request->all(), $roles);
-
-        if ($validator->fails()) {
-            return  $this->response($validator->errors(), 400);
-        }
-        if (!\Hash::check($request->code, $request->token)) {
-            return $this->response("The token and code are invalid.", 400);
-        }
-        $user = User::where('token_2fa', $request->code)->first();
-        if ($user) {
-            // Check code is expired?
-            if ($user->token_2fa_expiry < \Carbon\Carbon::now()) {
-                return $this->response("The verification code has expired.", 400);
-            }
-
-            $password =  \Str::random(6);
-            $user->password = bcrypt($password);
-
-            $user->save();
-
-            if($user->email) {
-                $send['to'] = ['email' => $user->email];
-                //\Mail::to($send)->send(new ResetPassword($user, $password));
-            }
-            if ($user->phone) {
-                //Send News Passsword your own sms priveder
-            }
-
-            $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
-            return $this->response($user);
-        }
-        return $this->response("The verification code is invalid.", 400);
-    }
-
-    /**
-     * Swagger API Document
      * @OA\Post(
      *     path="/api/change-password",
-     *     summary="Change to your password",
+     *     summary="Change user password",
      *     tags={"Account"},
      *     security={{"apiAuth":{}}},
      *     @OA\RequestBody(
      *          required=true,
-     *          description = "Change Password Request",
      *          @OA\JsonContent(ref="#/components/schemas/ChangePasswordRequest")
      *     ),
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=400, description="Invalid request")
+     *     @OA\Response(response=200, description="Password changed successfully", @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="message", type="string", example="Password changed successfully")
+     *     )),
+     *     @OA\Response(response=400, description="Invalid request"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=429, description="Too many requests"),
+     *     @OA\Response(response=500, description="Server error")
      * )
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function changePassword(ChangePasswordRequest $request)
     {
         $user = $request->user();
+        $rateLimitKey = 'change-password:' . $user->id;
 
-        $credentials = ['email'=>$user->email, 'password'=>$request->input('current_password')];
-        if (!\Auth::guard('web')->attempt($credentials)) {
-            return $this->response("The current password is invalid.", 400);
+        // Check if user exceeded rate limit
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) { // Allow max 5 attempts per 10 minutes
+            Log::warning("Too many password change attempts for user ID: {$user->id}");
+            return response()->json([
+                'message' => 'Too many requests. Please try again later.'
+            ], 429);
         }
 
-        $user->password = bcrypt($request->input('password'));
-        $user->save();
+        // Increment attempt count
+        RateLimiter::hit($rateLimitKey, 600); // Lock for 10 minutes
 
-        $user->tokens()->delete();
-        $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
+        Log::info("Received change password request for user ID: {$user->id}");
 
-        return $this->response($user);
+        try {
+            $result = $this->authService->changePassword($user, $request->validated());
 
+            if ($result['success']) {
+                Log::info("Password successfully changed for user ID: {$user->id}");
+
+                // Clear rate limit on success
+                RateLimiter::clear($rateLimitKey);
+
+                return response()->json(['message' => 'Password changed successfully'], 200);
+            } else {
+                Log::warning("Failed password change attempt for user ID: {$user->id} - Incorrect current password.");
+                return response()->json(['message' => 'Current password is incorrect'], 400);
+            }
+        } catch (\Exception $e) {
+            Log::error("Error changing password for user ID: {$user->id}", ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Something went wrong'], 500);
+        }
     }
 
     /**
-     * Swagger API Document
+     * @OA\Post(
+     *     path="/api/forgot-password",
+     *     summary="Request password reset link",
+     *     tags={"Account"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(ref="#/components/schemas/ForgotPasswordRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Password reset link sent"),
+     *     @OA\Response(response=400, description="Invalid email"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        try {
+            Log::info("Password reset request received for email: {$request->email}");
+
+            // Call service to send the reset link
+            $response = $this->passwordResetService->sendResetLink($request->email);
+
+            return response()->json(['message' => $response['message']], $response['status']);
+        } catch (\Exception $e) {
+            Log::error("Error in password reset request for email: {$request->email}", ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Something went wrong while processing your request.'], 500);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/reset-password",
+     *     summary="Reset password using token",
+     *     tags={"Account"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(ref="#/components/schemas/ResetPasswordRequest")
+     *     ),
+     *     @OA\Response(response=200, description="Password reset successful"),
+     *     @OA\Response(response=400, description="Invalid token or email"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        try {
+            // Use the validated data from ResetPasswordRequest
+            $data = $request->validated();
+
+            Log::info("Processing password reset for email: {$request->email}");
+
+            // Call service to reset the password
+            $response = $this->passwordResetService->resetPassword($data);
+
+            return response()->json(['message' => $response['message']], $response['status']);
+        } catch (\Exception $e) {
+            Log::error("Error in password reset for email: {$request->email}", ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Invalid token or email provided.'], 400);
+        }
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/logout",
-     *     summary="Logout to your account",
+     *     summary="Logout user",
      *     tags={"Account"},
      *     security={{"apiAuth":{}}},
-     *     @OA\Response(response=200, description="Successful operation"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(response=204, description="Logout successful"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=500, description="Server error")
      * )
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function logout(Request $request)
     {
-        $user = $request->user();
-        $user->currentAccessToken()->delete();
+        Log::info("Processing logout request.");
 
-        return $this->response("Account logout has successfully.", 204);
+        try {
+            $message = $this->authService->logout($request);
+
+            return $this->response([
+                'message' => $message
+            ], 204);
+        } catch (\Exception $e) {
+            Log::error("Logout error: " . $e->getMessage());
+            return $this->response(['message' => 'An error occurred while logging out.'], 500);
+        }
     }
 }

@@ -12,10 +12,10 @@ class ResponseConfigBuilder
         foreach ($config['grid'] as $i => $grid) {
             if($grid['field'] == $request['field']) {
                 if($reset) {
-                    $columns = \Schema::getColumns($form['alias']);
-                    $fieldIndex = array_search($form['field'], array_column($columns, 'name'));
+                    $columns = \Schema::getColumns($grid['alias']);
+                    $fieldIndex = array_search($grid['field'], array_column($columns, 'name'));
                     $column = $columns[$fieldIndex];
-                    $config['grid'][$i] = ModelConfigUtils::getGridConfig($form['class'], $form['alias'], $column, $config['grid'], $i, true);
+                    $config['grid'][$i] = ModelConfigUtils::getGridConfig($grid['class'], $grid['alias'], $column, $config['grid'], $i, true);
                 } else {
                     $config['grid'][$i]['label'] = $request['label'] ?? $grid['label'];
                     $config['grid'][$i]['format_as'] = $request['format_as'] ?? $grid['format_as'];
