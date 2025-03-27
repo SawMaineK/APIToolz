@@ -105,22 +105,21 @@ class APIToolzServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'apitoolz');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         if ($this->app->runningInConsole()) {
+            // Publish config
+            $this->publishes([
+                __DIR__.'/../config/config.php' => config_path('apitoolz.php'),
+                __DIR__.'/../config/swagger.php' => config_path('l5-swagger.php'),
+            ], 'apitoolz-config');
             // Publish views
             $this->publishes([
               __DIR__.'/../resources/views' => resource_path('views/vendor/apitoolz'),
-            ], 'views');
+            ], 'apitoolz-views');
             // Publish ui views
             $this->publishes([
                 __DIR__.'/../dist/media' => public_path('media'),
                 __DIR__.'/../dist/assets' => public_path('assets'),
                 __DIR__.'/../dist/index.html' => resource_path('views/vendor/apitoolz/app.blade.php'),
             ], 'apitoolz-ui');
-            // Publish config
-            $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('apitoolz.php'),
-                __DIR__.'/../config/swagger.php' => config_path('l5-swagger.php'),
-            ], 'config');
-
             $this->addProviderToBootstrap();
         }
         // Register the command if we are using the application via the CLI
