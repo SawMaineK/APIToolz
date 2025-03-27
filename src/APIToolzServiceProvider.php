@@ -164,6 +164,11 @@ class APIToolzServiceProvider extends ServiceProvider
     protected function addProviderToBootstrap()
     {
         $providersFile = base_path('bootstrap/providers.php');
+        $apiFile = base_path('routes/api.php');
+
+        if(!file_exists($apiFile)) {
+            file_put_contents($apiFile, "<?php\n\n");
+        }
 
         if (file_exists($providersFile)) {
             $providers = require $providersFile;
