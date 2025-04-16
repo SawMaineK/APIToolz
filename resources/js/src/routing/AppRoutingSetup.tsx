@@ -12,8 +12,10 @@ import { DataTablePage } from '@/pages/model/datatable/DataTablePage';
 import { CreatePage } from '@/pages/model/form/CreatePage';
 import { ModelsPage } from '@/pages/model/ModelsPage';
 import { SettingsPage } from '@/pages/model/settings/SettingsPage';
+import { UsersPage } from '@/pages/users/UsersPage';
+import { RolesPage } from '@/pages/roles/RolesPage';
 const getLayout = (): ReactElement => {
-  const layout = localStorage.getItem('selectedLayout') || 'demo3';
+  const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
   switch (layout) {
     case 'demo2':
@@ -34,6 +36,8 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/apitoolz/model/:id" element={<DataTablePage />} />
           <Route path="/apitoolz/model/:id/create" element={<CreatePage />} />
           <Route path="/apitoolz/model/:id/settings/:page" element={<SettingsPage />} />
+          <Route path="/apitoolz/users" element={<UsersPage />} />
+          <Route path="/apitoolz/roles" element={<RolesPage />} />
         </Route>
       </Route>
       <Route path="/apitoolz/error/*" element={<ErrorsRouting />} />

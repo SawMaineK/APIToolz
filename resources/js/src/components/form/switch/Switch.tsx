@@ -5,7 +5,7 @@ export const Switch = ({ handler, ...props }: FormSwitch) => {
     <div>
       <div className={`form-group ${props.altClass}`} style={props.style}>
         <div className={`${props.inputClass}`}>
-          <label className="switch" htmlFor={props.name}>
+          <label className="switch form-label" htmlFor={props.name}>
             <input {...handler('checkbox')} type="checkbox" id={props.name} />
             {props.label}
             {/* Required */}

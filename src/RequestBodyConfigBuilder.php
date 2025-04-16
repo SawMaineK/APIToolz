@@ -23,6 +23,7 @@ class RequestBodyConfigBuilder
                     $config['forms'][$i]['cast'] = $request['cast'] ?? $form['cast'];
                     $config['forms'][$i]['search'] = $request['search'] ?? $form['search'];
                     $config['forms'][$i]['view'] = $request['view'] ?? $form['view'];
+                    $config['forms'][$i]['width'] = $request['width'] ?? $form['width'];
                     $config['forms'][$i]['sortlist'] = $request['sortlist'] ?? $form['sortlist'];
 
                     if($request['type'] == 'file') {
@@ -80,6 +81,7 @@ class RequestBodyConfigBuilder
                             if ($request['lookup_dependency_key']) {
                                 $config['forms'][$i]['option']['is_dependency'] = true;
                                 $config['forms'][$i]['option']['lookup_dependency_key'] = $request['lookup_dependency_key'];
+                                $config['forms'][$i]['option']['lookup_filter_key'] = $request['lookup_filter_key'] ??  $request['lookup_dependency_key'];
                             } else {
                                 $config['forms'][$i]['option']['is_dependency'] = false;
                                 $config['forms'][$i]['option']['lookup_dependency_key'] = '';
@@ -110,6 +112,12 @@ class RequestBodyConfigBuilder
                         $config['forms'][$i]['option']['helptext'] = $request['helptext'];
                         $config['forms'][$i]['option']['prefix'] = $request['prefix'];
                         $config['forms'][$i]['option']['sufix'] = $request['sufix'];
+                    }
+
+                    if(isset($request['criteria_key']) && isset($request['criteria_value'])) {
+                        $config['forms'][$i]['criteria'] = array();
+                        $config['forms'][$i]['criteria']['key'] = $request['criteria_key'];
+                        $config['forms'][$i]['criteria']['value'] = $request['criteria_value'];
                     }
                 }
 

@@ -24,15 +24,13 @@ export const DateTimePickerControl = ({
   return (
     <div className="mb-4">
       <DateTimePicker {...meta} formGroup={meta.formGroup} handler={handler} />
-      {(meta.required || meta.validator) && (
-        <Error
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

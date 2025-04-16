@@ -68,7 +68,7 @@ export class BaseForm<T> {
    */
   multiple: boolean;
   options: { id: string; name: string }[] | any[];
-  options$: Observable<{ id: string; name: string }[]> | any;
+  options$: (search: string, filter: {key: string, value: string}, formGroup: any) => void | any;
   filter: { parent: string; key: string } | any; //Filter dropdown when it is?
   valueChanges$: Subject<any> | undefined;
   valueChangeEvent: (value: any, index: number, form: this, formGroup: any) => void | any;
@@ -204,7 +204,7 @@ export class BaseForm<T> {
        */
       multiple?: boolean;
       options?: { id: string; name: string }[] | any[];
-      options$?: Observable<{ id: string; name: string }[]> | any;
+      options$?: (search: string, filter: {key: string, value: string}, formGroup: any) => void | any;
       filter?: { parent: string; key: string } | any; //Filter dropdown when it is?
       valueChanges$?: Subject<any> | undefined;
       valueChangeEvent?: any;
@@ -340,7 +340,7 @@ export class BaseForm<T> {
      */
     this.multiple = options.multiple || false;
     this.options = options.options || [];
-    this.options$ = options.options$;
+    this.options$ = options.options$ || (() => {});
     this.filter = options.filter;
     this.valueChanges$ = options.valueChanges$;
     this.valueChangeEvent = options.valueChangeEvent;

@@ -22,15 +22,13 @@ export const CoderControl = ({
   return (
     <div className="mb-4">
       <Coder {...meta} handler={handler} formGroup={meta.formGroup} />
-      {(meta.required || meta.validator) && (
-        <Error
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

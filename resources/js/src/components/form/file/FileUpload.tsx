@@ -73,7 +73,7 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       {props.label && (
         <label className="block text-sm font-medium text-gray-700">
           {props.label}
@@ -138,7 +138,7 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
         <div>
           <input
             type="file"
-            className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="file-input"
             onChange={onChange}
             multiple={props.multiple}
             accept={props.acceptFiles}

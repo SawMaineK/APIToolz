@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Http\Middleware\RequestLogger;
 use Sawmainek\Apitoolz\Http\Middleware\ResponseLogger;
 use Sawmainek\Apitoolz\Console\ModelGenerator;
@@ -47,6 +49,10 @@ class APIToolzServiceProvider extends ServiceProvider
             return $app->make(ModelRelationGenerator::class);
         });
 
+        $this->app->singleton('command.apitoolz:filter', function ($app) {
+            return $app->make(ModelFilterGenerator::class);
+        });
+
         $this->app->singleton('command.apitoolz:export', function ($app) {
             return $app->make(ModelExportGenerator::class);
         });
@@ -74,8 +80,8 @@ class APIToolzServiceProvider extends ServiceProvider
     public function boot(Kernel $kernel): void
     {
         if(config('apitoolz.log.enable')) {
-            $kernel->pushMiddleware(RequestLogger::class);
-            $kernel->pushMiddleware(ResponseLogger::class);
+            $this->app[Kernel::class]->pushMiddleware(RequestLogger::class);
+            $this->app[Kernel::class]->pushMiddleware(ResponseLogger::class);
 
             DB::listen(function (QueryExecuted $query) {
                 $request = $this->app->request;
@@ -104,6 +110,7 @@ class APIToolzServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'apitoolz');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->registerSeeders();
         if ($this->app->runningInConsole()) {
             // Publish config
             $this->publishes([
@@ -129,6 +136,7 @@ class APIToolzServiceProvider extends ServiceProvider
             RequestBodyConfigGenerator::class,
             ResponseConfigGenerator::class,
             ModelRelationGenerator::class,
+            ModelFilterGenerator::class,
             ModelExportGenerator::class,
             ModelImportGenerator::class,
             ActivateGenerator::class,
@@ -152,12 +160,26 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.request',
             'command.apitoolz.response',
             'command.apitoolz.relation',
+            'command.apitoolz.filter',
             'command.apitoolz.export',
             'command.apitoolz.import',
             'command.apitoolz.activate',
             'command.apitoolz.clean',
             'command.apitoolz.ai'
         ];
+    }
+
+    /**
+     * Register seeders manually.
+     */
+    protected function registerSeeders(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $seedersPath = __DIR__ . '/../database/seeders';
+            foreach (glob($seedersPath . '/*.php') as $seederFile) {
+                require_once $seederFile;
+            }
+        }
     }
 
     protected function addProviderToBootstrap()
@@ -171,15 +193,21 @@ class APIToolzServiceProvider extends ServiceProvider
 
         if (file_exists($providersFile)) {
             $providers = require $providersFile;
-            $newProvider = \Sawmainek\Apitoolz\Providers\RouteServiceProvider::class;
+            $routeProvider = \Sawmainek\Apitoolz\Providers\RouteServiceProvider::class;
+            $permissionProvider = \Sawmainek\Apitoolz\Providers\PermissionMiddlewareServiceProvider::class;
 
-            // Check if already added
-            if (!in_array($newProvider, $providers)) {
-                $providers[] = $newProvider;
-
-                // Write back to file
-                file_put_contents($providersFile, "<?php\n\nreturn " . var_export($providers, true) . ";\n");
+            // Check if routeProvider is already added
+            if (!in_array($routeProvider, $providers)) {
+                $providers[] = $routeProvider;
             }
+
+            // Check if permissionProvider is already added
+            if (!in_array($permissionProvider, $providers)) {
+                $providers[] = $permissionProvider;
+            }
+
+            // Write back to file
+            file_put_contents($providersFile, "<?php\n\nreturn " . var_export($providers, true) . ";\n");
         }
     }
 }

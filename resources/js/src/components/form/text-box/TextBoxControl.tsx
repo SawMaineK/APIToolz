@@ -22,16 +22,13 @@ export const TextBoxControl = ({
   return (
     <div className="mb-4">
       <TextBox {...meta} handler={handler} />
-      {(meta.required || meta.validator) && (
-        <Error
-          {...meta}
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

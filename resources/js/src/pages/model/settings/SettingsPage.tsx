@@ -36,7 +36,6 @@ const SettingsPage = () => {
 
   return (
     <Fragment>
-      <PageNavbar menuConfig={menuConfig} />
       <Container>
         <Toolbar>
           <ToolbarHeading>
@@ -46,7 +45,7 @@ const SettingsPage = () => {
         </Toolbar>
       </Container>
 
-      <Container>{model && <SettingsContent data={model} page={page} />}</Container>
+      <Container>{model && <SettingsContent model={model} page={page} />}</Container>
     </Fragment>
   );
 };

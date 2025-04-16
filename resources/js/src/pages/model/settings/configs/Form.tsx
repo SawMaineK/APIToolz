@@ -10,9 +10,9 @@ import { toast } from 'sonner';
 import { BaseFormGroup } from '@/components/form/base/form-group';
 import { BaseFormArray } from '@/components/form/base/form-array';
 
-const Form = ({ data }: ModelContentProps) => {
+const Form = ({ model }: ModelContentProps) => {
   const initialValues = {
-    ...data
+    ...model
   };
 
   const formConfigLayout: BaseForm<string>[] = [
@@ -97,7 +97,7 @@ const Form = ({ data }: ModelContentProps) => {
       <div className="card-body flex flex-col gap-5 p-10">
         <div className="flex flex-col gap-5">
           <div className="mb-2.5">
-            <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">{`${data.name} Form Settings`}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">{`${model.name} Form Settings`}</h3>
           </div>
         </div>
         <FormLayout

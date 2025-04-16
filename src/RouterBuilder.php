@@ -17,6 +17,12 @@ class RouterBuilder
             $codes['slug'] = $model->slug;
             $codes['alias'] = \Str::camel($model->name);
             $codes['middleware'] = $model->auth ? "'auth:sanctum'" : "";
+            if ($model->auth && $model->roles) {
+                $roles = explode(',', $model->roles);
+                foreach($roles as $role) {
+                    $codes['middleware'] .= ",'role:{$role}'";
+                }
+            }
 
             $task_view = [];
             $task_detail = [];
@@ -38,11 +44,11 @@ class RouterBuilder
                 $codes['role.update']   = "'role:".implode('|', $task_update)."','permission:update'";
                 $codes['role.delete']   = "'role:".implode('|', $task_delete)."','permission:delete'";
             } else {
-                $codes['role.view'] = $model->auth === 'true' ? "'role:viewer','permission:view-all'" : "";
-                $codes['role.detail'] = $model->auth === 'true' ? "'role:viewer','permission:view'" : "";
-                $codes['role.create'] = $model->auth === 'true' ? "'role:viewer','permission:create'" : "";
-                $codes['role.update'] = $model->auth === 'true' ? "'role:viewer','permission:update'" : "";
-                $codes['role.delete'] = $model->auth === 'true' ? "'role:viewer','permission:delete'" : "";
+                $codes['role.view'] = $model->auth === 'true' ? "'permission:view'" : "";
+                $codes['role.detail'] = $model->auth === 'true' ? "'permission:view'" : "";
+                $codes['role.create'] = $model->auth === 'true' ? "'permission:create'" : "";
+                $codes['role.update'] = $model->auth === 'true' ? "'permission:edit'" : "";
+                $codes['role.delete'] = $model->auth === 'true' ? "'permission:delete'" : "";
             }
             // For Read Only Routes
             if($model->type == "1") {

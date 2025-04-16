@@ -70,15 +70,19 @@ class ModelBuilder
                     $searchable[] = "'{$form['field']}' => \$this->{$form['field']}";
                 }
             }
+
             if ($form['view'] == true) {
                 $fillable[] = "'{$form['field']}'";
                 $search[]   = "'{$form['field']}'";
                 $resource[] = "'{$form['field']}' => \$this->{$form['field']}";
-                $codes['validation'][] ="\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                 if($form['field'] == 'id') {
+                    $codes['validation'][] ="\t\t\t'{$form['field']}'=>'nullable|integer',\n";
+                } else {
+                    $codes['validation'][] ="\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                }
                 $request['field'] = $form['field'];
                 $request['type'] = $form['cast'];
             }
-            unset($codes['validation'][0]);
             if ($form['hidden'] == true) {
                 $hidden[] = "'{$form['field']}'";
             }

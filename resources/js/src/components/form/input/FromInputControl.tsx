@@ -22,16 +22,14 @@ export const FormInputControl = ({
   return (
     <div className="mb-4">
       <FormInput {...meta} handler={handler} />
-      {(meta.required || meta.validator) && (
-        <Error
-          display={meta.display}
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        display={meta.display}
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

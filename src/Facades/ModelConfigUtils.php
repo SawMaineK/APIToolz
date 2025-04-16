@@ -5,7 +5,7 @@ namespace Sawmainek\Apitoolz\Facades;
 class ModelConfigUtils
 {
     public static function checkAvailableName($name) {
-        $dontUseName = ['User','Role'];
+        $dontUseName = ['User'];
         return count(array_filter($dontUseName, fn($usedName) => $usedName === $name)) > 0;
     }
 
@@ -85,12 +85,14 @@ class ModelConfigUtils
             'validator' => $type != 'hidden' && !$null ? 'required' : '',
             'hidden' => false,
             'view' => $field == 'deleted_at' ? false : true,
+            'width' => '',
             'add' => $field == 'deleted_at' ? false : true,
             'edit' => $field == 'deleted_at' ? false : true,
             'search' => $field == 'deleted_at' ? false : true,
             'size'  => 'auto',
             "sortlist" => $sort,
             'format_value' => '',
+            'criteria' => null,
             'file' => array(
                 'image_multiple' => false,
                 'save_full_path' => false,

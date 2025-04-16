@@ -3,10 +3,10 @@ import { MiscFaq, MiscHelp } from '@/partials/misc';
 import { DataTable } from './DataTable';
 import { ModelContentProps } from '../_models';
 
-const DataTableContent = ({ data }: ModelContentProps) => {
+const DataTableContent = ({ model }: ModelContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <DataTable data={data} />
+      <DataTable model={model} />
 
       <MiscFaq />
 

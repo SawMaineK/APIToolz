@@ -22,15 +22,13 @@ export const FileUploadControl = ({
   return (
     <div className="mb-4">
       <FileUpload {...meta} formGroup={meta.formGroup} handler={handler} />
-      {(meta.required || meta.validator) && (
-        <Error
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

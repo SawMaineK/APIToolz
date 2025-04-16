@@ -28,15 +28,13 @@ export const DropDownControl = ({
         formLayout={meta.formLayout}
         handler={handler}
       />
-      {(meta.required || meta.validator) && (
-        <Error
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

@@ -22,15 +22,13 @@ export const FormInputGroupControl = ({
   return (
     <div className="mb-4">
       <FormInputGroup {...meta} handler={handler} />
-      {(meta.required || meta.validator) && (
-        <Error
-          touched={touched}
-          submitted={submitted}
-          dirty={dirty}
-          hasError={hasError}
-          getError={getError}
-        />
-      )}
+      <Error
+        touched={touched}
+        submitted={submitted}
+        dirty={dirty}
+        hasError={hasError}
+        getError={getError}
+      />
     </div>
   );
 };

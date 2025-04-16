@@ -61,6 +61,7 @@ const formLayout: BaseForm<string>[] = [
   new FormCheckBox({
     name: 'agree',
     label: 'I accept Terms & Conditions',
+    display: 'flex flex-col gap-1',
     inputClass: 'checkbox-sm',
     value: 'agree',
     required: true,

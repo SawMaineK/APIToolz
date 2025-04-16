@@ -25,6 +25,7 @@ return new class extends Migration
             $table->json('lock')->nullable();
             $table->string('type')->nullable();
             $table->boolean('auth')->nullable()->default(0);
+            $table->string('roles')->nullable();
             $table->boolean('two_factor')->nullable()->default(0);
             $table->timestamps();
             $table->softDeletes();

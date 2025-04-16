@@ -39,7 +39,6 @@ const DataTablePage = () => {
 
   return (
     <Fragment>
-      <PageNavbar menuConfig={menuConfig} />
       <Container>
         <Toolbar>
           <ToolbarHeading>
@@ -61,7 +60,7 @@ const DataTablePage = () => {
         </Toolbar>
       </Container>
 
-      <Container>{model && <DataTableContent data={model} />}</Container>
+      <Container>{model && <DataTableContent model={model} />}</Container>
     </Fragment>
   );
 };

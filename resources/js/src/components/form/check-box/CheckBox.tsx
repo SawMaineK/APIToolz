@@ -39,7 +39,7 @@ export const CheckBox = ({ handler, formGroup, ...props }: FormCheckBox) => {
                   checked={checked}
                   onChange={handleChange}
                 />
-                <span>{props.label}</span>
+                <span className="form-label">{props.label}</span>
               </label>
             </div>
           )}

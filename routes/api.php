@@ -1,8 +1,10 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use Sawmainek\Apitoolz\Http\Controllers\AuthController;
+use Sawmainek\Apitoolz\Http\Controllers\RoleController;
 use Sawmainek\Apitoolz\Http\Controllers\TwoFactorAuthController;
 use Sawmainek\Apitoolz\Http\Controllers\ModelController;
+use Sawmainek\Apitoolz\Http\Controllers\UsersController;
 
 Route::prefix('api')->group(function () {
     // Auth
@@ -35,4 +37,30 @@ Route::prefix('api')->group(function () {
         Route::put('/model/{id}', 'update')->middleware(['auth:sanctum']);
         Route::delete('/model/{slug}/{table}', 'destroy')->middleware(['auth:sanctum']);
     });
+
+    // User Route Group
+    Route::controller(UsersController::class)
+        ->prefix('users')->middleware(['auth:sanctum','role:admin'])
+        ->group(function () {
+            Route::get('/', 'index')->middleware(['permission:view']);
+            Route::post('/', 'store')->middleware(['permission:create']);
+            Route::get('/{user}', 'show')->middleware(['permission:view']);
+            Route::put('/{user}', 'update')->middleware(['permission:edit']);
+            Route::delete('/{user}', 'destroy')->middleware(['permission:delete']);
+            Route::put('/{user}/restore', 'restore')->middleware(['permission:delete']);
+            Route::delete('/{user}/force-destory', 'forceDestroy')->middleware(['permission:delete']);
+        });
+
+    // Role Route Group
+    Route::controller(RoleController::class)
+        ->prefix('role')->middleware(['auth:sanctum','role:admin'])
+        ->group(function () {
+            Route::get('/', 'index')->middleware([]);
+            Route::post('/', 'store')->middleware([]);
+            Route::get('/{role}', 'show')->middleware([]);
+            Route::put('/{role}', 'update')->middleware([]);
+            Route::delete('/{role}', 'destroy')->middleware([]);
+            Route::put('/{role}/restore', 'restore')->middleware([]);
+            Route::delete('/{role}/force-destory', 'forceDestroy')->middleware([]);
+        });
 });

@@ -27,7 +27,8 @@
         "laravel/scout": "^10.8",
         "darkaonline/l5-swagger": "^8.6",
         "league/glide-symfony": "^2.0",
-        "laravel/sanctum": "^4.0"
+        "laravel/sanctum": "^4.0",
+        "spatie/laravel-permission": "^6.17"
     },
     "minimum-stability": "stable"
 }

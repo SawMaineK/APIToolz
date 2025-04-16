@@ -9,11 +9,11 @@ import { ModelContentProps } from '../../_models';
 import { FormTextArea } from '@/components/form/base/form-textarea';
 import { toast } from 'sonner';
 
-const Overview = ({ data }: ModelContentProps) => {
+const Overview = ({ model }: ModelContentProps) => {
   const initialValues = {
-    title: data.title,
-    desc: data.desc,
-    auth: data.auth
+    title: model.title,
+    desc: model.desc,
+    auth: model.auth
   };
 
   const formLayout: BaseForm<string>[] = [
@@ -58,7 +58,7 @@ const Overview = ({ data }: ModelContentProps) => {
       <div className="card-body flex flex-col gap-5 p-10">
         <div className="flex flex-col gap-5">
           <div className="mb-2.5">
-            <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">{`${data.name} Overview`}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">{`${model.name} Overview`}</h3>
           </div>
         </div>
         <FormLayout

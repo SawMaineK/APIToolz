@@ -8,17 +8,11 @@ import {
   ToolbarHeading,
   ToolbarPageTitle
 } from '@/partials/toolbar';
-import { PageNavbar } from '@/partials/page_navbar';
 import { ModelsContent } from './ModelsContent';
-import { useMenus } from '@/providers';
 
 const ModelsPage = () => {
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
-
   return (
     <Fragment>
-      <PageNavbar menuConfig={menuConfig} />
       <Container>
         <Toolbar>
           <ToolbarHeading>

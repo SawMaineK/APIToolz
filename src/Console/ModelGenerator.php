@@ -21,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--auth} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
 
     /**
      * The console command description.
@@ -96,7 +96,8 @@ class ModelGenerator extends Command
             $model->table = $table;
             $model->key = ModelConfigUtils::findPrimaryKey($table);
             $model->type = $this->option('type'); //"1" for Ready Only
-            $model->auth = $this->option('auth');
+            $model->auth = $this->option('use-auth');
+            $model->roles = $this->option('use-roles');
             $model->two_factor = 0;
             $model->save();
 

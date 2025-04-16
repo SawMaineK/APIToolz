@@ -2,16 +2,21 @@
 
 namespace Sawmainek\Apitoolz\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\User as AppUser;
+use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends AppUser
 {
     use HasApiTokens;
+
+    use HasRoles;
+
+    use QueryFilterTrait;
+
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -25,7 +30,8 @@ class User extends AppUser
         'password',
         'dob',
         'gender',
-        'avatar'
+        'avatar',
+        'is_2fa_enabled',
     ];
 
     /**
@@ -49,7 +55,17 @@ class User extends AppUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'dob' => 'date',
-            'avatar' => 'object',
+            'avatar' => 'string',
+            'is_2fa_enabled' => 'boolean',
         ];
     }
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $searchable = [
+        'name', 'email', 'phone'
+    ];
 }

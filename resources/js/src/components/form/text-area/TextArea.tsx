@@ -9,7 +9,7 @@ export const TextArea = ({ handler, formGroup, ...props }: FormTextArea) => {
         style={props.style}
       >
         {props.label && (
-          <label className="form-label max-w-32">
+          <label className="form-label max-w-64">
             {props.label}
             {props.required && <span className="text-danger">*</span>}
           </label>

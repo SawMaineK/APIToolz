@@ -1,7 +1,8 @@
 import Flatpickr from 'react-flatpickr';
 import { FormGroup } from 'react-reactive-form';
-import 'flatpickr/dist/flatpickr.min.css';
 import moment from 'moment';
+import { useRef } from 'react';
+import 'flatpickr/dist/flatpickr.min.css';
 
 interface IFlatpickerProps {
   handler: any;
@@ -18,97 +19,67 @@ interface IFlatpickerProps {
 }
 
 export const Flatpicker = ({
-  handler,
   formField,
   formGroup,
   dateFormat,
   enableTime = false,
   placeholder,
   inputClass,
-  readonly,
   min,
   max
 }: IFlatpickerProps) => {
+  const flatpickrRef = useRef<any>(null);
+
   const getValue = () => {
     if (formGroup?.controls) {
-      return moment(formGroup?.controls[formField.name].value || formField?.value).format(
-        'YYYY-MM-DD HH:MM'
-      );
+      return moment(formGroup?.controls[formField.name].value || formField?.value).toDate();
     }
-    return moment(formField?.value).format('YYYY-MM-DD HH:MM');
+    return moment(formField?.value).toDate();
   };
-  return enableTime ? (
+
+  const handleChange = (selectedDates: Date[]) => {
+    const date = selectedDates[0];
+    try {
+      if (formGroup) {
+        const formatted = moment(date).format(
+          dateFormat || (enableTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD')
+        );
+        formGroup.controls[formField?.name].setValue(formatted);
+        formGroup.controls[formField?.name].markAsTouched();
+      }
+      flatpickrRef.current?.flatpickr?.close();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClose = () => {
+    try {
+      if (formGroup?.controls) {
+        formGroup.controls[formField?.name].markAsTouched();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  return (
     <Flatpickr
-      data-enable-time
+      ref={flatpickrRef}
+      data-enable-time={enableTime}
       placeholder={placeholder}
-      readOnly={readonly}
+      readOnly={false}
       value={getValue()}
       options={{
         altInput: true,
         altInputClass: `${inputClass}`,
-        enableTime: true,
+        enableTime,
         minDate: min,
         maxDate: max,
-        altFormat: 'F j, Y H:m',
-        dateFormat: 'Y-m-d h:m:s',
-        onChange([date]) {
-          try {
-            if (formGroup) {
-              formGroup.controls[formField?.name].setValue(
-                moment(date).format(dateFormat || 'Y-MM-DD h:m:s')
-              );
-              formGroup.controls[formField?.name].markAsTouched();
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        },
-        onClose([date]) {
-          try {
-            if (formGroup) {
-              formGroup.controls[formField?.name].setValue(
-                moment(date).format(dateFormat || 'Y-MM-DD h:m:s')
-              );
-              formGroup.controls[formField?.name].markAsTouched();
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      }}
-    />
-  ) : (
-    <Flatpickr
-      placeholder={placeholder}
-      readOnly={readonly}
-      value={getValue()}
-      options={{
-        altInput: true,
-        altInputClass: `${inputClass}`,
-        minDate: min,
-        maxDate: max,
-        altFormat: 'F j, Y',
-        dateFormat: 'Y-m-d',
-        onChange([date]) {
-          try {
-            if (formGroup?.controls) {
-              formGroup.controls[formField?.name].setValue(
-                moment(date).format(dateFormat || 'Y-MM-DD')
-              );
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        },
-        onClose() {
-          try {
-            if (formGroup?.controls) {
-              formGroup.controls[formField?.name].markAsTouched();
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
+        altFormat: enableTime ? 'F j, Y H:i' : 'F j, Y',
+        dateFormat: enableTime ? 'Y-m-d H:i:S' : 'Y-m-d',
+        onChange: handleChange,
+        onClose: handleClose
       }}
     />
   );

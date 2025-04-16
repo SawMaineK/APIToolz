@@ -14,7 +14,7 @@ class Model extends BaseModel
     protected $table = "models";
 
     protected $fillable = [
-        'name','slug','title','desc','key','type', 'config', 'auth', 'table', 'two_factor', 'lock'
+        'name','slug','title','desc','key','type', 'config', 'auth', 'roles', 'table', 'two_factor', 'lock'
     ];
 
     protected $casts = [

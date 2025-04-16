@@ -10,12 +10,17 @@ export interface FormField {
   validator: string;
   hidden: boolean;
   view: boolean;
+  width: string;
   add: boolean;
   edit: boolean;
   search: boolean;
   size: string;
   sortlist: number;
   format_value: string;
+  criteria: {
+    key: string;
+    value: string;
+  };
   file: {
     image_multiple: boolean;
     save_full_path: boolean;
@@ -30,12 +35,13 @@ export interface FormField {
     lookup_key: string;
     lookup_value: string;
     lookup_dependency_key: string;
+    lookup_filter_key: string;
     lookup_is_dependency_query: string;
     is_dependency: string;
     lookup_query: string;
     allow_filter_listing: string;
     typeahead: string;
-    select_multiple: string;
+    select_multiple: boolean;
     tooltip: string;
     helptext: string;
     placeholder: string;
@@ -81,9 +87,20 @@ export interface Relationship {
   table: string;
   key: string;
   display: string;
+  allow_filter: boolean;
   concat: string;
   model_slug: string;
   sub: any;
+}
+
+export interface Filter {
+  display: string;
+  key: string;
+  model: string;
+  model_slug: string;
+  query: string;
+  title: string;
+  type: string;
 }
 
 export interface ModelConfig {
@@ -92,6 +109,7 @@ export interface ModelConfig {
   forms: FormField[];
   grid: GridField[];
   relationships: Relationship[];
+  filters: Filter[];
 }
 
 export interface Model {
@@ -109,7 +127,9 @@ export interface Model {
 }
 
 export interface ModelContentProps {
-  data: Model;
-  modal?: boolean;
+  model: Model;
+  modelData?: any;
+  isModal?: boolean;
   page?: string;
+  onCreated?: (data: any) => void;
 }

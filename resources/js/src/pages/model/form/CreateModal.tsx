@@ -9,23 +9,27 @@ import {
 import { Create } from './Create';
 import { Model } from '../_models';
 
-interface IModalProfileProps {
+interface IModalProps {
   open: boolean;
-  data: Model;
+  model: Model;
+  modelData?: any;
   onOpenChange: () => void;
+  onCreated: (data: any) => void;
 }
 
-const CreateModal = ({ open, onOpenChange, data }: IModalProfileProps) => {
+const CreateModal = ({ open, model, modelData, onOpenChange, onCreated }: IModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>New {data.title}</DialogTitle>
+          <DialogTitle>
+            {modelData ? `Edit` : `New`} {model.title}
+          </DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className="grid gap-5 px-0 py-2">
+        <div className="grid gap-5 px-0 py-0">
           <DialogBody>
-            <Create data={data} modal={true} />
+            <Create model={model} modelData={modelData} onCreated={onCreated} isModal={true} />
           </DialogBody>
         </div>
       </DialogContent>

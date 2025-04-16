@@ -32,7 +32,7 @@ class ModelRelationGenerator extends Command
     public function handle()
     {
         $this->info('Adding model relation...');
-        
+
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
         if($model) {
@@ -53,7 +53,7 @@ class ModelRelationGenerator extends Command
             ];
             $validator = \Validator::make($data, $roles);
             if ($validator->fails()) {
-               
+
                 foreach($validator->errors()->messages() as $key => $err) {
                     $this->error($err[0]);
                 }
@@ -66,11 +66,11 @@ class ModelRelationGenerator extends Command
                 RelationBuilder::build($model, $data, $this->option('force'));
                 return $this->info("The {$this->option('title')} relation has created successfully.");
             }
-            
+
         } else {
             $this->error("This $name model not found.");
         }
-        
+
     }
 
 }

@@ -40,7 +40,7 @@ return [
                 */
                 'annotations' => [
                     base_path('app'),
-                    base_path('vendor/sawmainek'),
+                    base_path('vendor/sawmainek/apitoolz/src'),
                 ],
 
             ],

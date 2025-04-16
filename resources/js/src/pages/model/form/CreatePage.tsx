@@ -54,7 +54,7 @@ const CreatePage = () => {
         </Toolbar>
       </Container>
 
-      <Container>{model && <CreateContent data={model} />}</Container>
+      <Container>{model && <CreateContent model={model} />}</Container>
     </Fragment>
   );
 };

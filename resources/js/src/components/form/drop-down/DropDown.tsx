@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { debounce } from 'lodash';
 import AsyncSelect from 'react-select/async';
 import Select from 'react-select';
@@ -10,94 +10,132 @@ interface Option {
 }
 
 export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelect | any) => {
-  const values = formGroup.controls || {};
-  const filterKey = props.filter?.key || null;
-  const filterValue = useMemo(
-    () => (props.filter ? values[props.filter.parent]?.value || props.value : null),
-    [props.filter, values, props.value]
-  );
+  const values: any = formGroup.controls;
+  const filterKey = () => {
+    return props.filter ? props.filter.key : null;
+  };
+  const filterValue = () => {
+    return props.filter ? values[props.filter.parent]?.value || props.value : null;
+  };
 
-  const getDataList = useCallback(() => {
-    return props.options
-      .filter((option: any) => !props.filter || option[filterKey] === filterValue)
-      .map((option: any) => ({ value: option.id, label: option.name }));
-  }, [props.options, props.filter, filterKey, filterValue]);
-
-  const [dataList, setDataList] = useState(getDataList);
-  const [value, setValue] = useState<Option | Option[] | null>(null);
-
-  const onChange = useCallback(
-    (selectedOption: any) => {
-      const newValue = props.multiple
-        ? (selectedOption as Option[]).map((item) => item?.value)
-        : selectedOption?.value;
-
-      props.valueChanges$?.next(newValue);
-      props.valueChangeEvent?.(newValue, formGroup);
-
-      setValue(selectedOption);
-      if (formGroup.controls) {
-        formGroup.controls[props.name].setValue(newValue);
-        formGroup.markAsSubmitted();
-        formGroup.markAsUnsubmitted();
+  const getDataList = () => {
+    let list: any[] = [];
+    props.options.forEach((option: any) => {
+      if (props.filter && values && values[props.filter.parent]) {
+        if (option[filterKey()] === filterValue()) {
+          list.push({ value: option.id, label: option.name });
+        }
+      } else {
+        list.push({ value: option.id, label: option.name });
       }
-    },
-    [props, formGroup]
-  );
+    });
 
-  const getValue = useMemo(() => {
-    const selectedValues = props.multiple
-      ? dataList.filter((opt: any) => values[props.name]?.value?.includes(opt.value))
-      : dataList.find((opt: any) => opt.value === values[props.name]?.value);
+    return list;
+  };
 
-    formGroup.controls?.[props.name].setValue(
-      props.multiple ? selectedValues.map((item: any) => item.value) : selectedValues?.value || '',
-      { onlySelf: false, emitEvent: !!props.options$ }
-    );
+  const onChange = (option: any) => {
+    const value = props.multiple
+      ? (option as Option[]).map((item: Option) => item && item.value)
+      : option && (option as Option).value;
+    props.valueChanges$?.next(value);
+    if (props.valueChangeEvent) {
+      props.valueChangeEvent(value, formGroup);
+    }
+    setValue(option);
+    if (formGroup.controls) {
+      formGroup.controls[props.name].setValue(value);
+      // Refresh Form Data
+      formGroup.markAsSubmitted();
+      formGroup.markAsUnsubmitted();
+    }
+  };
 
-    return selectedValues ?? (props.multiple ? null : '');
-  }, [dataList, props.multiple, props.name, values, props.options$, formGroup]);
+  const [dataList, setDataList] = useState(getDataList() as any[]);
+
+  const getValue = (dataList: any[] = []) => {
+    if (dataList && dataList.length > 0) {
+      const value: any[] | any = props.multiple
+        ? dataList.filter(
+            (option: any) =>
+              values &&
+              values[props.name].value &&
+              values[props.name].value.indexOf(option.value) >= 0
+          )
+        : dataList.find((x: any) => x.value == formGroup.value[props.name]);
+      if (formGroup.controls) {
+        formGroup.controls[props.name].setValue(
+          props.multiple
+            ? value.length > 0
+              ? (value as Option[]).map((item: Option) => item && item.value)
+              : ''
+            : value !== undefined
+              ? value && (value as Option).value
+              : '',
+          { onlySelf: false, emitEvent: props.options$ || false }
+        );
+      }
+      return value === undefined ? (props.multiple ? null : ('' as any)) : value;
+    } else {
+      if (formGroup.controls) {
+        formGroup.controls[props.name].setValue(props.multiple ? null : ('' as any), {
+          onlySelf: false,
+          emitEvent: props.options$ || false
+        });
+      }
+      return props.multiple ? null : ('' as any);
+    }
+  };
 
   useEffect(() => {
     if (props.submitted$) {
-      props.submitted$.subscribe((submitted: boolean) => {
-        if (submitted) {
+      props.submitted$.subscribe((submited: boolean) => {
+        if (submited) {
           setValue(dataList);
+          // Refresh Form Data
           formGroup.markAsSubmitted();
           formGroup.markAsUnsubmitted();
         }
       });
     }
-  }, [props.submitted$, dataList, formGroup]);
+  }, []);
 
-  const loadOptions = useCallback(
-    debounce((inputValue: string, callback: any) => {
-      props
-        .options$(
-          inputValue,
-          props.filter ? { key: filterKey, value: filterValue } : null,
-          formGroup
-        )
-        .then((results: any[]) => {
-          setDataList(results || []);
-          callback(results || []);
-          setValue(getValue);
-          formGroup.markAsSubmitted();
-          formGroup.markAsUnsubmitted();
-        });
-    }, 1000),
-    [props.options$, props.filter, filterKey, filterValue, formGroup, getValue]
-  );
+  const wait = 1000;
+  const loadOptions: any = (inputValue: string = '', callback: any = () => {}) => {
+    props
+      .options$(
+        inputValue,
+        props.filter
+          ? {
+              key: filterKey(),
+              value: formGroup.value[props.filter?.parent] || null
+            }
+          : null,
+        formGroup
+      )
+      .then((results: any[]) => {
+        setDataList(results || []);
+        callback(results || []);
+        setValue(getValue(results || []));
+        // Refresh Form Data
+        formGroup.markAsSubmitted();
+        formGroup.markAsUnsubmitted();
+      });
+    return;
+  };
+
+  const [value, setValue] = useState(null as any);
+  const debouncedLoadOptions = debounce(loadOptions, wait);
 
   useEffect(() => {
     if (props.options$) {
-      loadOptions('', () => {});
+      props.options$ && loadOptions();
     } else {
       setDataList(getDataList());
+      // Refresh Form Data
       formGroup.markAsSubmitted();
       formGroup.markAsUnsubmitted();
     }
-  }, [filterValue]);
+  }, [filterValue()]);
 
   const styles = {
     control: (base: any, state: any) => ({
@@ -171,7 +209,7 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
         style={props.style}
       >
         {props.label && (
-          <label className="form-label max-w-32">
+          <label className="form-label max-w-64">
             {props.label}
             {props.required && <span className="text-danger">*</span>}
           </label>
