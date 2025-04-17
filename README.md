@@ -1,22 +1,23 @@
 # API Toolz
 
-APIToolz rapidly generates RESTful APIs within seconds based on a provided model, allowing you to seamlessly share your RESTful API documentation with frontend developers.
+APIToolz is a powerful tool for rapidly generating RESTful APIs in seconds. It simplifies backend development by automating API creation, database migrations, and documentation, making it easier to collaborate with frontend developers.
 
-## Features
+## Key Features
 
-- Create your solution with AI
-- Create database table migrations via Artisan Commands
-- Generate Restful APIs with `Create Table SQL` via Artisan Commands
-- Swagger API documentation
-- Full-text search functionality
-- API authentication/authorization support
-- Relationship support between two models
-- Configuration options for `[request body]` including `Validation, Cast[object, array], Full-text search enable, Fillable, Input Type(text, password, image/file upload, and more)`
-- Configuration options for `[response body]` including `Casting, Show/Hide, Object, Array, and more`
-- Application user onboarding features such as `User Register, Login, Forget Password, Verification(email, OTP, and Authenticator - coming soon), User Profile Update, Inactive/Logout Profile`
-- Daily auto backup for code and database
-- Request/Database Query/Response logging layer
-- Export/Import model functionality via Artisan Commands
+- **AI-Powered Solutions**: Generate solutions using AI for faster development.
+- **Database Table Management**: Create and manage database table migrations via Artisan commands.
+- **RESTful API Generation**: Build APIs directly from SQL table definitions or models.
+- **Swagger Documentation**: Automatically generate and share API documentation.
+- **Full-Text Search**: Enable advanced search functionality for your APIs.
+- **Authentication & Authorization**: Built-in support for secure API access.
+- **Model Relationships**: Define and manage relationships between models.
+- **Request Body Configuration**: Customize validation, casting (object/array), input types (text, password, file upload, etc.), and more.
+- **Response Body Configuration**: Control casting, visibility, and formatting of API responses.
+- **User Management**: Includes user registration, login, password recovery, email/OTP verification, and profile updates.
+- **Automated Backups**: Daily backups for both code and database.
+- **Logging**: Comprehensive logging for requests, database queries, and responses.
+- **Export/Import Models**: Easily export or import models and their data via Artisan commands.
+
 
 ## Requirements
 
