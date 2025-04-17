@@ -12,11 +12,6 @@ export const MENU_SIDEBAR: TMenuConfig = [
     path: '/apitoolz/model'
   },
   {
-    title: 'Database',
-    icon: 'data',
-    path: '/apitoolz/database'
-  },
-  {
     title: 'Users',
     icon: 'users',
     path: '/apitoolz/users'

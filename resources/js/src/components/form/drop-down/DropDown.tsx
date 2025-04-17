@@ -153,18 +153,37 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
         : props.borderColor || 'var(--tw-gray-300)',
       '&:hover': {
         borderColor: props.focusBorderColor || 'var(--tw-primary)'
-      }
+      },
+      ...(props.darkMode && {
+        color: 'var(--tw-gray-300)',
+        backgroundColor: 'var(--tw-dark-active)',
+        borderColor: state.isFocused
+          ? props.focusBorderColor || 'var(--tw-primary-dark)'
+          : props.borderColor || 'var(--tw-gray-600)'
+      })
     }),
     menu: (base: any) => ({
       ...base,
       fontSize: '0.9rem',
-      zIndex: 9999
+      zIndex: 9999,
+      backgroundColor: 'var(--tw-light)',
+      ...(props.darkMode && {
+        backgroundColor: 'var(--tw-dark)'
+      })
     }),
     option: (base: any, state: any) => ({
       ...base,
       fontSize: '0.85rem',
-      backgroundColor: state.isFocused ? 'var(--tw-light-active)' : base.backgroundColor,
-      color: state.isFocused ? 'var(--tw-gray-700)' : base.color
+      backgroundColor: state.isFocused
+        ? props.darkMode
+          ? 'var(--tw-dark-active)'
+          : 'var(--tw-light-active)'
+        : base.backgroundColor,
+      color: state.isFocused
+        ? props.darkMode
+          ? 'var(--tw-gray-300)'
+          : 'var(--tw-gray-700)'
+        : base.color
     })
   };
 

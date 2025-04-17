@@ -196,8 +196,8 @@ const Users = () => {
           </Menu>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-1'
+          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] z-1'
         }
       },
       {
@@ -213,8 +213,8 @@ const Users = () => {
           </button>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-1'
+          headerClassName: 'w-[60px] lg:sticky lg:right-0 z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-0 z-1'
         }
       }
     ];
@@ -298,7 +298,6 @@ const Users = () => {
                 />
               </div>
             </div>
-            <DataGridColumnVisibility table={table} hideTitle={true} />
           </div>
           <button
             className="btn btn-md btn-primary"

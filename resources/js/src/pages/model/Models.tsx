@@ -161,8 +161,8 @@ const Models = () => {
           </Link>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-10',
-          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-10'
+          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       },
       {
@@ -181,8 +181,8 @@ const Models = () => {
           </button>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-10',
-          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-10'
+          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       }
     ],
@@ -277,10 +277,9 @@ const Models = () => {
                 />
               </div>
             </div>
-            <DataGridColumnVisibility table={table} hideTitle={true} />
           </div>
           <button className="btn btn-md btn-primary" onClick={() => setCreateModalOpen(true)}>
-            Create New Model
+            <KeenIcon icon="plus" className="me-2" /> New Model
           </button>
         </div>
       </div>

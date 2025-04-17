@@ -38,8 +38,8 @@ const DataTable = ({ model }: ModelContentProps) => {
           </button>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white z-1'
+          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       },
       {
@@ -55,8 +55,8 @@ const DataTable = ({ model }: ModelContentProps) => {
           </button>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white z-1'
+          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       }
     );
@@ -140,7 +140,7 @@ const DataTable = ({ model }: ModelContentProps) => {
         </h3>
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <div className="flex gap-2">
-          {model.config.filters.map((filter: Filter) => {
+          {model.config?.filters?.map((filter: Filter) => {
               if (filter.type === 'select') {
                 return (
                   <FilterSelect

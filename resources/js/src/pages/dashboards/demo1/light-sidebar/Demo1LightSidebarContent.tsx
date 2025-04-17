@@ -1,4 +1,6 @@
-import { ChannelStats, EarningsChart, EntryCallout, Highlights, TeamMeeting } from './blocks';
+import { MiscFaq } from '@/partials/misc/MiscFaq';
+import { ChannelStats, EntryCallout } from './blocks';
+import { MiscHelp } from '@/partials/misc/MiscHelp';
 
 const Demo1LightSidebarContent = () => {
   return (
@@ -14,24 +16,9 @@ const Demo1LightSidebarContent = () => {
           <EntryCallout className="h-full" />
         </div>
       </div>
+      <MiscFaq />
 
-      <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <Highlights limit={3} />
-        </div>
-
-        <div className="lg:col-span-2">
-          <EarningsChart />
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <TeamMeeting />
-        </div>
-
-        <div className="lg:col-span-2"></div>
-      </div>
+      <MiscHelp />
     </div>
   );
 };

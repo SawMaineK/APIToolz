@@ -57,12 +57,10 @@ php artisan vendor:publish --tag=apitoolz-ui
 Add or update the following environment variables in your `.env` file:
 
 ```shell
-AUTH_PASSWORD_RESET_TOKEN_TABLE=password_resets
-
 SCOUT_DRIVER=database
 SCOUT_QUEUE=true
-ALGOLIA_APP_ID=QAXM1M4SXJ
-ALGOLIA_SECRET=ad87399845ffaeace097323b423b511d
+ALGOLIA_APP_ID=
+ALGOLIA_SECRET=
 ```
 
 ## Activation
@@ -70,7 +68,7 @@ ALGOLIA_SECRET=ad87399845ffaeace097323b423b511d
 Activate `APIToolz` using the `apitoolz:activate` Artisan command with your `purchase key` and `DNS`:
 
 ```shell
-php artisan apitoolz:activate --client-dns=http://127.0.0.1:8000 --purchase-key="demo"
+php artisan apitoolz:activate
 ```
 
 If you don't have a `Purchase Key`, you can purchase one from [Codecanyon](https://codecanyon.net).

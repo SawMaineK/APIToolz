@@ -11,11 +11,11 @@ const Footer = () => {
           <div className="flex order-2 md:order-1  gap-2 font-normal text-2sm">
             <span className="text-gray-500">{currentYear} &copy;</span>
             <a
-              href="https://keenthemes.com"
+              href="https://apitoolz.com"
               target="_blank"
               className="text-gray-600 hover:text-primary"
             >
-              Keenthemes Inc.
+              APIToolz
             </a>
           </div>
           <nav className="flex order-1 md:order-2 gap-4 font-normal text-2sm text-gray-600">
@@ -28,7 +28,7 @@ const Footer = () => {
             <a href={generalSettings.faqLink} target="_blank" className="hover:text-primary">
               FAQ
             </a>
-            <a href="https://devs.keenthemes.com" target="_blank" className="hover:text-primary">
+            <a href="https://devs.apitoolz.com" target="_blank" className="hover:text-primary">
               Support
             </a>
             <a href={generalSettings.licenseLink} target="_blank" className="hover:text-primary">
