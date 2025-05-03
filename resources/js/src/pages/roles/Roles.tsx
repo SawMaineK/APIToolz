@@ -17,6 +17,14 @@ import {
   Menu
 } from '@/components';
 import axios from 'axios';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle
+} from '@/partials/toolbar';
+import { Link } from 'react-router-dom';
 import { CreateRoleModal } from './CreateRoleModal';
 import { UpdateRoleModal } from './UpdateRoleModal';
 
@@ -199,7 +207,7 @@ const Roles = () => {
     }
   };
 
-  const Toolbar = () => {
+  const Filters = () => {
     const { table, setQuerySearch } = useDataGrid();
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -225,23 +233,13 @@ const Roles = () => {
                 <input
                   type="text"
                   placeholder={`Search Roles`}
-                  className="input ps-8"
+                  className="input input-sm ps-8"
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />
               </div>
             </div>
           </div>
-          <button
-            className="btn btn-md btn-primary"
-            onClick={() => {
-              setRole(null);
-              setCreateModalOpen(true);
-            }}
-          >
-            <KeenIcon icon="plus" className="me-2" />
-            Add Role
-          </button>
         </div>
       </div>
     );
@@ -254,6 +252,28 @@ const Roles = () => {
 
   return (
     <>
+      <Toolbar>
+        <ToolbarHeading>
+          <ToolbarPageTitle text="Roles" />
+          <ToolbarDescription>Manage all roles</ToolbarDescription>
+        </ToolbarHeading>
+        <ToolbarActions>
+          <Link to={'/account/home/get-started'} className="btn btn-sm btn-light">
+            <KeenIcon icon="exit-down" className="!text-base" />
+            Export
+          </Link>
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={() => {
+              setRole(null);
+              setCreateModalOpen(true);
+            }}
+          >
+            <KeenIcon icon="plus" />
+            Add Role
+          </button>
+        </ToolbarActions>
+      </Toolbar>
       <UpdateRoleModal
         open={updateModalOpen}
         data={role}
@@ -269,7 +289,7 @@ const Roles = () => {
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
         pagination={{ size: 10 }}
-        toolbar={<Toolbar />}
+        toolbar={<Filters />}
         layout={{ card: true }}
       />
     </>

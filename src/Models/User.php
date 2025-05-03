@@ -32,6 +32,8 @@ class User extends AppUser
         'gender',
         'avatar',
         'is_2fa_enabled',
+        'last_activity',
+        'is_active',
     ];
 
     /**
@@ -57,6 +59,8 @@ class User extends AppUser
             'dob' => 'date',
             'avatar' => 'string',
             'is_2fa_enabled' => 'boolean',
+            'last_activity' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 

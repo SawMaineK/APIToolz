@@ -19,7 +19,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *     @OA\Property(property="gender", type="string", example="Gender Example"),
  *     @OA\Property(property="dob", type="string", example="Dob Example"),
  *     @OA\Property(property="avatar", type="string", example="Avatar Example"),
- *     @OA\Property(property="is_2fa_enabled", type="string", example="Is_2fa_enabled Example")
+ *     @OA\Property(property="is_2fa_enabled", type="string", example="Is_2fa_enabled Example"),
+ *     @OA\Property(property="last_activity", type="string", format="date-time", example="2025-04-12 16:00:33"),
+ *     @OA\Property(property="is_active", type="boolean", example=true)
  * )
  */
 
@@ -40,8 +42,6 @@ class UsersResource extends JsonResource
 			'email_verified_at' => $this->email_verified_at,
 			'password' => $this->password,
 			'remember_token' => $this->remember_token,
-			'created_at' => $this->created_at,
-			'updated_at' => $this->updated_at,
 			'phone' => $this->phone,
 			'gender' => $this->gender,
 			'dob' => $this->dob,
@@ -49,6 +49,10 @@ class UsersResource extends JsonResource
 			'is_2fa_enabled' => $this->is_2fa_enabled,
             'roles' => $this->roles,
             'permissions' => $this->permissions,
+            'last_activity' => $this->last_activity,
+            'is_active' => $this->is_active,
+            'created_at' => $this->created_at,
+			'updated_at' => $this->updated_at
         ];
     }
 }

@@ -2,14 +2,22 @@ import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { DataGrid, DataGridColumnVisibility, useDataGrid, KeenIcon } from '@/components';
 import axios from 'axios';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle
+} from '@/partials/toolbar';
 import { Filter, ModelContentProps } from '../_models';
 import { generateColumns } from '../_helper';
 import { CreateModal } from '../form/CreateModal';
 import FilterSelect from '@/components/filter/FilterSelect';
 import { Switch } from '@/components/ui/switch';
 import FilterRadio from '@/components/filter/FilterRadio';
+import { Link } from 'react-router-dom';
 
-const DataTable = ({ model }: ModelContentProps) => {
+const DataTable = ({ model, modal }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -31,15 +39,17 @@ const DataTable = ({ model }: ModelContentProps) => {
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => {
               setModelData(row.original);
-              setCreateModalOpen(true);
+              modal.open();
             }}
           >
             <KeenIcon icon="notepad-edit" />
           </button>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
+          headerClassName:
+            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName:
+            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       },
       {
@@ -108,7 +118,7 @@ const DataTable = ({ model }: ModelContentProps) => {
     }
   };
 
-  const Toolbar = () => {
+  const Filters = () => {
     const { table, setQuerySearch } = useDataGrid();
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -133,101 +143,111 @@ const DataTable = ({ model }: ModelContentProps) => {
       }
     };
     return (
-      <div className="card-header border-b-0 px-5 flex-wrap">
-        <h3 className="card-title font-medium text-sm">
-          Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
-          {model?.slug}s
-        </h3>
-        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <div className="flex gap-2">
-          {model.config?.filters?.map((filter: Filter) => {
-              if (filter.type === 'select') {
-                return (
-                  <FilterSelect
-                    key={filter.key}
-                    filter={filter}
-                    onValueChange={(value: string) => {
-                      table.setPageIndex(0);
-                      table.setColumnFilters((old) => filterCols(old, filter.key, value));
-                    }}
+      <>
+        <div className="card-header border-b-0 px-5 flex-wrap">
+          <h3 className="card-title font-medium text-sm">
+            Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
+            {model?.slug}s
+          </h3>
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <div className="flex gap-2">
+              <div className="flex gap-6">
+                <div className="relative">
+                  <KeenIcon
+                    icon="magnifier"
+                    className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
                   />
-                );
-              }
-              if (filter.type == 'checkbox') {
-                return (
-                  <div key={filter.key} className="flex items-center">
-                    <Switch
-                      id={filter.key}
-                      defaultChecked={false}
-                      onCheckedChange={(checked) => {
+                  <input
+                    type="text"
+                    placeholder={`Search ${model.title}`}
+                    className="input input-sm ps-8"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+              </div>
+              {model.config?.filters?.map((filter: Filter) => {
+                if (filter.type === 'select') {
+                  return (
+                    <FilterSelect
+                      key={filter.key}
+                      filter={filter}
+                      onValueChange={(value: string) => {
                         table.setPageIndex(0);
-                        table.setColumnFilters((old) => filterCols(old, filter.key, checked));
+                        table.setColumnFilters((old) => filterCols(old, filter.key, value));
                       }}
                     />
-                    <label htmlFor={filter.key} className="form-label ms-2">
-                      {filter.query}
-                    </label>
-                  </div>
-                );
-              }
-              if (filter.type == 'radio') {
-                return (
-                  <FilterRadio
-                    key={filter.key}
-                    filter={filter}
-                    table={table}
-                    filterCols={filterCols}
-                  />
-                );
-              }
-              return null;
-            })}
-            <div className="flex gap-6">
-              <div className="relative">
-                <KeenIcon
-                  icon="magnifier"
-                  className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
-                />
-                <input
-                  type="text"
-                  placeholder={`Search ${model.title}`}
-                  className="input ps-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
+                  );
+                }
+                if (filter.type == 'checkbox') {
+                  return (
+                    <div key={filter.key} className="flex items-center">
+                      <Switch
+                        id={filter.key}
+                        defaultChecked={false}
+                        onCheckedChange={(checked) => {
+                          table.setPageIndex(0);
+                          table.setColumnFilters((old) => filterCols(old, filter.key, checked));
+                        }}
+                      />
+                      <label htmlFor={filter.key} className="form-label ms-2">
+                        {filter.query}
+                      </label>
+                    </div>
+                  );
+                }
+                if (filter.type == 'radio') {
+                  return (
+                    <FilterRadio
+                      key={filter.key}
+                      filter={filter}
+                      table={table}
+                      filterCols={filterCols}
+                    />
+                  );
+                }
+                return null;
+              })}
+
+              {/* <DataGridColumnVisibility table={table} hideTitle={true} /> */}
             </div>
-            {/* <DataGridColumnVisibility table={table} hideTitle={true} /> */}
           </div>
-          <button
-            className="btn btn-md btn-primary"
-            onClick={() => {
-              setModelData(null);
-              setCreateModalOpen(true);
-            }}
-          >
-            <KeenIcon icon="plus" className="me-2" />
-            Add {model.title}
-          </button>
         </div>
-      </div>
+      </>
     );
   };
 
   const onCreated = () => {
-    handleClose();
+    modal.close();
     setRefreshKey((prev) => prev + 1);
   };
 
   return (
     <>
-      <CreateModal
-        open={createModalOpen}
-        model={model}
-        modelData={modelData}
-        onCreated={onCreated}
-        onOpenChange={handleClose}
-      />
+      <Toolbar>
+        <ToolbarHeading>
+          <ToolbarPageTitle text={model?.title || ''} />
+          <ToolbarDescription>
+            {model?.desc || `Manage all your ${model?.slug || ''}`}
+          </ToolbarDescription>
+        </ToolbarHeading>
+        <ToolbarActions>
+          <Link to={''} className="btn btn-sm btn-light">
+            <KeenIcon icon="exit-down" className="!text-base" />
+            Export
+          </Link>
+          <button
+            onClick={() => {
+              setModelData(null);
+              setCreateModalOpen(true);
+            }}
+            className="btn btn-sm btn-primary"
+          >
+            <KeenIcon icon="plus" />
+            {`Add ${model?.name || ''}`}
+          </button>
+        </ToolbarActions>
+      </Toolbar>
       <DataGrid
         key={refreshKey}
         columns={columns}
@@ -236,8 +256,15 @@ const DataTable = ({ model }: ModelContentProps) => {
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
         pagination={{ size: 10 }}
-        toolbar={<Toolbar />}
+        toolbar={<Filters />}
         layout={{ card: true }}
+      />
+      <CreateModal
+        open={createModalOpen}
+        model={model}
+        modelData={modelData}
+        onCreated={onCreated}
+        onOpenChange={handleClose}
       />
     </>
   );

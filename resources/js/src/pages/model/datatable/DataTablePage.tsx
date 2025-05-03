@@ -15,10 +15,12 @@ import { useParams } from 'react-router';
 import { Model } from '../_models';
 import { KeenIcon } from '@/components/keenicons';
 import { Link } from 'react-router-dom';
+import { useModal } from '@/hooks/useModal';
 
 const DataTablePage = () => {
   const { id } = useParams();
   const fetchCalled = useRef(false);
+  const modal = useModal();
   const [model, setModel] = useState<Model | null>(null);
 
   const fetchModel = async () => {
@@ -35,24 +37,7 @@ const DataTablePage = () => {
 
   return (
     <Fragment>
-      <Container>
-        <Toolbar>
-          <ToolbarHeading>
-            <ToolbarPageTitle text={model?.title || ''} />
-            <ToolbarDescription>
-              {model?.desc || `Manage all your ${model?.slug || ''}`}
-            </ToolbarDescription>
-          </ToolbarHeading>
-          <ToolbarActions>
-            <Link to={'/account/home/get-started'} className="btn btn-sm btn-light">
-              <KeenIcon icon="exit-down" className="!text-base" />
-              Export
-            </Link>
-          </ToolbarActions>
-        </Toolbar>
-      </Container>
-
-      <Container>{model && <DataTableContent model={model} />}</Container>
+      <Container>{model && <DataTableContent model={model} modal={modal} />}</Container>
     </Fragment>
   );
 };

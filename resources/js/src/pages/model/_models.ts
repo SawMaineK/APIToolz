@@ -131,5 +131,6 @@ export interface ModelContentProps {
   modelData?: any;
   isModal?: boolean;
   page?: string;
+  modal?: any;
   onCreated?: (data: any) => void;
 }

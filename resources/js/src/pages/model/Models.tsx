@@ -9,6 +9,13 @@ import {
   DataGridRowSelectAll,
   DataGridRowSelect
 } from '@/components';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle
+} from '@/partials/toolbar';
 import axios from 'axios';
 import { Model } from './_models';
 import { ColumnDef } from '@tanstack/react-table';
@@ -161,8 +168,10 @@ const Models = () => {
           </Link>
         ),
         meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
+          headerClassName:
+            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
+          cellClassName:
+            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
       },
       {
@@ -247,7 +256,7 @@ const Models = () => {
     }
   };
 
-  const Toolbar = () => {
+  const Filters = () => {
     const { table, setQuerySearch } = useDataGrid();
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -271,16 +280,13 @@ const Models = () => {
                 <input
                   type="text"
                   placeholder={`Search Models`}
-                  className="input ps-8"
+                  className="input input-sm ps-8"
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />
               </div>
             </div>
           </div>
-          <button className="btn btn-md btn-primary" onClick={() => setCreateModalOpen(true)}>
-            <KeenIcon icon="plus" className="me-2" /> New Model
-          </button>
         </div>
       </div>
     );
@@ -288,6 +294,21 @@ const Models = () => {
 
   return (
     <>
+      <Toolbar>
+        <ToolbarHeading>
+          <ToolbarPageTitle text={`Models`} />
+          <ToolbarDescription>Manage all your API models</ToolbarDescription>
+        </ToolbarHeading>
+        <ToolbarActions>
+          <a href={`/api/documentation`} className="btn btn-sm btn-light">
+            Restful API Docs
+          </a>
+
+          <button className="btn btn-sm btn-primary" onClick={() => setCreateModalOpen(true)}>
+            <KeenIcon icon="plus" /> New Model
+          </button>
+        </ToolbarActions>
+      </Toolbar>
       <ConfirmDeleteDialog
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
@@ -302,7 +323,7 @@ const Models = () => {
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
         pagination={{ size: 10 }}
-        toolbar={<Toolbar />}
+        toolbar={<Filters />}
         layout={{ card: true }}
       />
     </>
