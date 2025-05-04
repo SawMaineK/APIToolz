@@ -458,6 +458,72 @@ Yes, if the `.zip` file contains multiple models, they will all be imported unle
 #### 4. How do I ensure data integrity during import/export?
 Always verify the file and model names before executing the commands to avoid conflicts or data loss.
 
+## How to Integrate with a Custom SMS API
+
+To integrate a custom SMS API with APIToolz, follow these steps:
+
+### Step 1: Implement the `CustomSmsService`
+
+Create a custom SMS sender class in your application by implementing the `CustomSmsService`. Below is an example:
+
+```php
+// app/Services/CustomSmsService.php
+namespace App\Services;
+
+use Sawmainek\Apitoolz\Contracts\SmsSenderInterface;
+use Illuminate\Support\Facades\Log;
+
+class CustomSmsService implements SmsSenderInterface
+{
+    public function send(string $to, string $message): void
+    {
+        // Use your preferred SMS provider (e.g., Twilio, ClickSend, etc.)
+        // Example log output for testing
+        Log::info("Sending SMS to {$to}: {$message}");
+
+        // You can integrate your SMS provider's API here
+    }
+}
+```
+
+### Step 2: Bind the Interface to Your Implementation
+
+In your `AppServiceProvider`, bind the `CustomSmsService` to your custom implementation and extend the notification channel for SMS.
+
+```php
+// app/Providers/AppServiceProvider.php
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Sawmainek\Apitoolz\Contracts\SmsSenderInterface;
+use App\Services\CustomSmsService;
+use Sawmainek\Apitoolz\Notifications\Channels\SmsChannel;
+use Illuminate\Support\Facades\Notification;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        // Bind the SmsSenderInterface to the CustomSmsService implementation
+        $this->app->bind(SmsSenderInterface::class, CustomSmsService::class);
+    }
+
+    public function boot()
+    {
+        // Extend the notification system to include the SMS channel
+        Notification::extend('sms', function ($app) {
+            return new SmsChannel($app->make(SmsSenderInterface::class));
+        });
+    }
+}
+```
+
+### Step 3: Test Your Integration
+
+Once the above steps are complete, you can test your SMS integration by sending notifications through the `sms` channel. Ensure that your custom SMS provider's API is correctly configured in the `CustomSmsService` class.
+
+This setup allows you to seamlessly integrate any SMS provider of your choice into APIToolz.
+
 ## License
 
 The Commercial Software License.

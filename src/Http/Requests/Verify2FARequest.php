@@ -1,5 +1,4 @@
 <?php
-
 namespace Sawmainek\Apitoolz\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -17,7 +16,8 @@ class Verify2FARequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'required|email|exists:users,email',
+            'email' => 'nullable|email|exists:users,email|required_without:phone',
+            'phone' => 'nullable|string|exists:users,phone|required_without:email',
             'otp' => 'required|string|min:4|max:6',
         ];
     }
@@ -25,14 +25,20 @@ class Verify2FARequest extends FormRequest
     public function messages()
     {
         return [
-            'email.required' => 'Email is required.',
+            'email.required_without' => 'Email or phone number is required.',
             'email.email' => 'A valid email is required.',
             'email.exists' => 'No account found with this email.',
+
+            'phone.required_without' => 'Phone number or email is required.',
+            'phone.string' => 'Phone number must be a valid string.',
+            'phone.exists' => 'No account found with this phone number.',
+
             'otp.required' => 'OTP is required.',
             'otp.string' => 'OTP must be a string.',
             'otp.min' => 'OTP must be at least 4 characters.',
             'otp.max' => 'OTP must not exceed 6 characters.',
-        ];    }
+        ];
+    }
 
     protected function failedValidation(Validator $validator)
     {

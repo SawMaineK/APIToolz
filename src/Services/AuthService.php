@@ -39,6 +39,17 @@ class AuthService
         }
     }
 
+    public function findByPhoneNumber(string $phoneNumber)
+    {
+        Log::info("Searching for user with phoneNumber: {$phoneNumber}");
+
+        try {
+            return User::where('phone', $phoneNumber)->first();
+        } catch (\Exception $e) {
+            Log::error("Error finding user by phoneNumber: {$e->getMessage()}");
+            return null;
+        }
+    }
     public function generateAuthToken($user)
     {
         Log::info("Generating authentication token for user.", ['user_id' => $user->id]);
@@ -57,7 +68,7 @@ class AuthService
 
     public function register(array $data, Request $request)
     {
-        Log::info("Registration request received.", ['email' => $data['email']]);
+        Log::info("Registration request received.", ['email' => $data['email'] ?? $data['phone']]);
 
         $data['password'] = bcrypt($data['password']);
 
@@ -67,6 +78,7 @@ class AuthService
         }
 
         $user = User::create($data);
+        $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
         Log::info("User registered successfully.", ['user_id' => $user->id]);
 
         return $user;

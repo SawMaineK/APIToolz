@@ -7,9 +7,12 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\User as AppUser;
 use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
 
 class User extends AppUser
 {
+    use Notifiable;
+
     use HasApiTokens;
 
     use HasRoles;

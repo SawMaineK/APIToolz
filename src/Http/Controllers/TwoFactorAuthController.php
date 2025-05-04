@@ -36,27 +36,36 @@ class TwoFactorAuthController extends APIToolzController
      */
     public function verify2FA(Verify2FARequest $request)
     {
-        Log::info("Processing 2FA verification request for email: " . $request->email);
         try {
-            $user = $this->authService->findByEmail($request->email);
+            $identifier = $request->email ?? $request->phone;
+
+            Log::info("Processing 2FA verification request for identifier: {$identifier}");
+
+            $user = $request->email
+                ? $this->authService->findByEmail($request->email)
+                : $this->authService->findByPhoneNumber($request->phone);
 
             if (!$user || !$user->is_2fa_enabled) {
-                Log::warning("Invalid 2FA verification attempt for email: " . $request->email);
+                Log::warning("Invalid 2FA verification attempt for identifier: {$identifier}");
                 return $this->response(['message' => 'Invalid request'], 400);
             }
 
             if (!$this->twoFactorAuthService->verifyOTP($user, $request->otp)) {
-                Log::warning("Invalid OTP provided for email: " . $request->email);
+                Log::warning("Invalid OTP provided for identifier: {$identifier}");
                 return $this->response(['message' => 'Invalid OTP'], 400);
             }
 
-            Log::info("2FA verified successfully for email: " . $request->email);
-            return $this->response(['message' => '2FA verified successfully', 'data' => $this->authService->generateAuthToken($user)]);
+            Log::info("2FA verified successfully for identifier: {$identifier}");
+            return $this->response([
+                'message' => '2FA verified successfully',
+                'data' => $this->authService->generateAuthToken($user)
+            ]);
         } catch (\Exception $e) {
             Log::error("2FA verification error: " . $e->getMessage());
             return $this->response(['message' => 'An error occurred during 2FA verification.'], 500);
         }
     }
+
 
     /**
      * @OA\Post(
@@ -77,21 +86,22 @@ class TwoFactorAuthController extends APIToolzController
      */
     public function resend2FA(Request $request)
     {
-        Log::info("Resend 2FA request received.", ['email' => $request->email]);
+        $identifier = $request->email ?? $request->phone;
+
+        Log::info("Resend 2FA request received.", ['identifier' => $identifier]);
 
         try {
-            // Find user by email
-            $user = $this->authService->findByEmail($request->email);
+            $user = $request->email
+                ? $this->authService->findByEmail($request->email)
+                : $this->authService->findByPhoneNumber($request->phone);
 
             if (!$user || !$user->is_2fa_enabled) {
-                Log::warning("Resend 2FA failed: User not found or 2FA not enabled.", ['email' => $request->email]);
+                Log::warning("Resend 2FA failed: User not found or 2FA not enabled.", ['identifier' => $identifier]);
                 return $this->response(['message' => 'Invalid request'], 400);
             }
 
-            // Resend OTP
             $otpResponse = $this->twoFactorAuthService->sendOTP($user);
 
-            // If sendOTP() returns an error response, return it immediately
             if ($otpResponse->getStatusCode() !== 200) {
                 return $otpResponse;
             }

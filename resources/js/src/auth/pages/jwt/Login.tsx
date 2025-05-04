@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { TwoFactorAuthError, useAuthContext } from '@/auth';
+import { useAuthContext } from '@/auth';
 import { Alert } from '@/components';
 import { FormLayout } from '@/components/form/FormLayout';
 import { BaseForm } from '@/components/form/base/base-form';
@@ -12,8 +12,8 @@ import { FormInput } from '@/components/form/base/form-input';
 import { Subject } from 'rxjs';
 
 const initialValues = {
-  email: 'demo@keenthemes.com',
-  password: 'demo1234',
+  email: '',
+  password: '',
   remember: false
 };
 

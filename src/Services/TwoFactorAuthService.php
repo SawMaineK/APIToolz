@@ -5,6 +5,7 @@ namespace Sawmainek\Apitoolz\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Sawmainek\Apitoolz\Notifications\SendOTPNotification;
 
 class TwoFactorAuthService
 {
@@ -43,9 +44,7 @@ class TwoFactorAuthService
         Cache::put($resendCountKey, Cache::get($resendCountKey, 0), now()->addMinutes(1));
 
         // Send OTP via email (or SMS if needed)
-        Mail::raw("Your 2FA OTP code is: $otp", function ($message) use ($user) {
-            $message->to($user->email)->subject('Your 2FA Code');
-        });
+        $user->notify(new SendOTPNotification($otp));
 
         Log::info("2FA OTP sent to user ID: {$user->id}");
 
