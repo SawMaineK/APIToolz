@@ -43,9 +43,7 @@ class RegisterRequest extends FormRequest
             $roles['phone'] = ['required', 'string', 'max:255', 'unique:users'];
         }
 
-        if($this->hasFile('avatar')) {
-            $roles['avatar'] = ['required','mimes:jpeg,jpg,png','max:1024'];
-        }
+        $roles['avatar'] = ['mimes:jpeg,jpg,png','max:1024'];
         return $roles;
     }
 

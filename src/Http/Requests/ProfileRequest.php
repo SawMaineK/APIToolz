@@ -43,9 +43,7 @@ class ProfileRequest extends FormRequest
             $roles['password'] = ['required', 'string', 'min:6', 'confirmed'];
         }
 
-        if($this->hasFile('avatar')) {
-            $roles['avatar'] = ['required','mimes:jpeg,jpg,png','max:1024'];
-        }
+        $roles['avatar'] = ['mimes:jpeg,jpg,png','max:1024'];
         return $roles;
     }
 

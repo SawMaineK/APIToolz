@@ -26,6 +26,10 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string', 'min:6']
         ];
 
+        if ($this->input('email')) {
+            $roles['email'] = ['required', 'email'];
+        }
+
         if ($this->input('phone')) {
             $roles['phone'] = ['required', 'string'];
         }

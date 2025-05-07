@@ -13,7 +13,7 @@ Route::prefix('api')->group(function () {
         Route::post('/login', 'login')->middleware([]);
         Route::post('/register', 'register')->middleware([]);
         Route::get('/user', 'show')->middleware(['auth:sanctum']);
-        Route::post('/edit-profile', 'editProfle')->middleware(['auth:sanctum']);
+        Route::post('/edit-profile', 'editProfile')->middleware(['auth:sanctum']);
         Route::post('/change-password', 'changePassword')->middleware(['auth:sanctum']);
         Route::post('/logout', 'logout')->middleware(['auth:sanctum']);
         Route::post('/forgot-password', 'forgotPassword');

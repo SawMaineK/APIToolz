@@ -17,7 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import FilterRadio from '@/components/filter/FilterRadio';
 import { Link } from 'react-router-dom';
 
-const DataTable = ({ model, modal }: ModelContentProps) => {
+const DataTable = ({ model }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -39,7 +39,7 @@ const DataTable = ({ model, modal }: ModelContentProps) => {
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => {
               setModelData(row.original);
-              modal.open();
+              setCreateModalOpen(true);
             }}
           >
             <KeenIcon icon="notepad-edit" />
@@ -218,7 +218,7 @@ const DataTable = ({ model, modal }: ModelContentProps) => {
   };
 
   const onCreated = () => {
-    modal.close();
+    handleClose();
     setRefreshKey((prev) => prev + 1);
   };
 

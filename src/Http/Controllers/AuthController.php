@@ -238,28 +238,40 @@ class AuthController extends APIToolzController
     /**
      * @OA\Post(
      *     path="/api/forgot-password",
-     *     summary="Request password reset link",
+     *     summary="Request password reset link via email or phone",
      *     tags={"Account"},
      *     @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(ref="#/components/schemas/ForgotPasswordRequest")
      *     ),
-     *     @OA\Response(response=200, description="Password reset link sent"),
-     *     @OA\Response(response=400, description="Invalid email"),
+     *     @OA\Response(response=200, description="Password reset link or OTP sent"),
+     *     @OA\Response(response=400, description="Invalid email or phone"),
      *     @OA\Response(response=500, description="Server error")
      * )
      */
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         try {
-            Log::info("Password reset request received for email: {$request->email}");
+            $email = $request->input('email');
+            $phone = $request->input('phone');
 
-            // Call service to send the reset link
-            $response = $this->passwordResetService->sendResetLink($request->email);
+            if ($email) {
+                Log::info("Password reset request received for email: {$email}");
+
+                // Call service to send the reset link via email
+                $response = $this->passwordResetService->sendResetLink($email);
+            } elseif ($phone) {
+                Log::info("Password reset request received for phone: {$phone}");
+
+                // Call service to send the OTP via phone
+                $response = $this->passwordResetService->sendResetOTP($phone);
+            } else {
+                return response()->json(['message' => 'Email or phone is required.'], 400);
+            }
 
             return response()->json(['message' => $response['message']], $response['status']);
         } catch (\Exception $e) {
-            Log::error("Error in password reset request for email: {$request->email}", ['error' => $e->getMessage()]);
+            Log::error("Error in password reset request", ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Something went wrong while processing your request.'], 500);
         }
     }
@@ -267,7 +279,7 @@ class AuthController extends APIToolzController
     /**
      * @OA\Post(
      *     path="/api/reset-password",
-     *     summary="Reset password using token",
+     *     summary="Reset password using token or otp with email or phone",
      *     tags={"Account"},
      *     @OA\RequestBody(
      *          required=true,

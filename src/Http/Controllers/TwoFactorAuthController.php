@@ -23,7 +23,7 @@ class TwoFactorAuthController extends APIToolzController
     /**
      * @OA\Post(
      *     path="/api/verify-2fa",
-     *     summary="Verify 2FA OTP",
+     *     summary="Verify 2FA OTP with email or phone",
      *     tags={"Two-Factor Authentication"},
      *     @OA\RequestBody(
      *          required=true,
@@ -75,8 +75,9 @@ class TwoFactorAuthController extends APIToolzController
      *     @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
-     *              required={"email"},
-     *              @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *              required={"email", "phone"},
+     *              @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *              @OA\Property(property="phone", type="string", example="+1234567890")
      *          )
      *     ),
      *     @OA\Response(response=200, description="OTP resent successfully", @OA\JsonContent()),

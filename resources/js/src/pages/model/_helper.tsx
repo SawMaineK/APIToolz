@@ -81,18 +81,18 @@ export const generateColumns = (
         if (index === 'id') {
           return <DataGridRowSelect row={info.row} />;
         }
-        if (type === 'file' && value.url) {
+        if (type === 'file' && value != null && value.url) {
           return (
             <>
               {fileOpt?.upload_type === 'image' ? (
                 <img
                   className="size-16 rounded cursor-pointer"
-                  src={`${import.meta.env.VITE_APP_IMG_URL}/img/${value.url}?w=400&h=400&fit=crop`}
+                  src={`${import.meta.env.VITE_APP_IMG_URL || ''}/img/${value.url}?w=400&h=400&fit=crop`}
                   alt={value.name}
                 />
               ) : (
                 <a
-                  href={`${import.meta.env.VITE_APP_IMG_URL}/${value.url}`}
+                  href={`${import.meta.env.VITE_APP_IMG_URL || ''}/${value.url}`}
                   target="_blank"
                   className="text-blue-500"
                 >
@@ -122,7 +122,7 @@ export const generateColumns = (
           return ``;
         }
         if (typeof value === 'boolean') {
-            return value ? 'YES' : 'NO';
+          return value ? 'YES' : 'NO';
         }
         return value || '-';
       },
