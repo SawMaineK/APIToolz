@@ -3,6 +3,7 @@
 namespace Sawmainek\Apitoolz\Http\Controllers;
 
 use Sawmainek\Apitoolz\Http\Requests\ForgotPasswordRequest;
+use Sawmainek\Apitoolz\Http\Requests\Verify2FARequest;
 use Sawmainek\Apitoolz\Services\AuthService;
 use Sawmainek\Apitoolz\Services\PasswordResetService;
 use Sawmainek\Apitoolz\Services\TwoFactorAuthService;
@@ -275,6 +276,41 @@ class AuthController extends APIToolzController
             return response()->json(['message' => 'Something went wrong while processing your request.'], 500);
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/verify-otp",
+     *     summary="Verify OTP sent to phone",
+     *     tags={"Account"},
+     *     @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"phone", "otp"},
+     *              @OA\Property(property="phone", type="string", example="+1234567890"),
+     *              @OA\Property(property="otp", type="string", example="123456")
+     *          )
+     *     ),
+    *     @OA\Response(response=200, description="OTP verified successfully", @OA\JsonContent(
+    *         type="object",
+    *         @OA\Property(property="message", type="string", example="OTP verified successfully"),
+    *         @OA\Property(property="token", type="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    *     )),
+     *     @OA\Response(response=400, description="Invalid OTP or phone number"),
+     *     @OA\Response(response=429, description="Too many attempts"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function verifyOTP(Verify2FARequest $request)
+    {
+        try {
+            $response = $this->passwordResetService->verifyOTP($request->phone, $request->otp);
+            return response()->json($response, $response['status']);
+        } catch (\Exception $e) {
+            Log::error("OTP verification failed: " . $e->getMessage());
+            return response()->json(['message' => 'Failed to verify OTP.'], 500);
+        }
+    }
+
 
     /**
      * @OA\Post(

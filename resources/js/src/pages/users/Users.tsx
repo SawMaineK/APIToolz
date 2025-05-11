@@ -426,8 +426,8 @@ const Users = () => {
                   placeholder={`Filter by Status`}
                   styles={styles}
                   defaultOptions={[
-                    { label: 'Active', value: 'true' },
-                    { label: 'Inactive', value: 'false' }
+                    { label: 'Active', value: '1' },
+                    { label: 'Inactive', value: '0' }
                   ]}
                   onChange={(selectedOption: any) => {
                     const value = selectedOption ? selectedOption.value : '';

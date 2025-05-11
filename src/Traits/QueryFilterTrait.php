@@ -68,9 +68,26 @@ trait QueryFilterTrait
             foreach ($filters as $filter) {
                 list($field, $value) = explode(':', $filter, 2);
 
+                // Special handling for roles (e.g., user.role or role)
+                if ($field === 'role') {
+                    $query->whereHas('roles', function ($q) use ($value) {
+                        $q->where('name', $value);
+                    });
+                    continue;
+                }
+
                 // Apply filters for relations (e.g. user.name)
                 if (str_contains($field, '.')) {
                     [$relation, $column] = explode('.', $field, 2);
+
+                    // Special case: user.role
+                    if ($relation === 'user' && $column === 'role') {
+                        $query->whereHas('user.roles', function ($q) use ($value) {
+                            $q->where('name', $value);
+                        });
+                        continue;
+                    }
+
                     $query->whereHas($relation, function ($q) use ($column, $value) {
                         $this->applyFilters($q, $column, $value);
                     });

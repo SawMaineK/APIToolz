@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\User as AppUser;
 use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 
@@ -75,4 +76,9 @@ class User extends AppUser
     protected $searchable = [
         'name', 'email', 'phone'
     ];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id');
+    }
 }

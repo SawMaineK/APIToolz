@@ -5,7 +5,7 @@ namespace Sawmainek\Apitoolz\Services;
 use Sawmainek\Apitoolz\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -78,6 +78,8 @@ class AuthService
         }
 
         $user = User::create($data);
+        $userRole = Role::firstOrCreate(['name' => 'user','guard_name' => 'sanctum']);
+        $user->roles()->attach($userRole);
         $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
         Log::info("User registered successfully.", ['user_id' => $user->id]);
 

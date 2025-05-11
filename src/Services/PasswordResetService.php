@@ -52,40 +52,43 @@ class PasswordResetService
         return ['message' => 'Password reset otp sent successfully.', 'status' => 200];
     }
 
+    public function verifyOTP($phone, $otp)
+    {
+        $user = User::where('phone', $phone)->first();
+        if (!$user) {
+            Log::warning("Verify otp password reset requested for non-existent phone: {$phone}");
+            return ['message' => 'Phone number not found.', 'status' => 400];
+        }
+
+        if ($this->twoFactorAuthService->verifyOTP($user, $otp)) {
+            $token = Password::getRepository()->create($user);
+            return ['message' => 'OTP verified successfully', 'token' => $token, 'status' => 200];
+        }
+
+        return ['message' => 'Invalid OTP for password reset.', 'status' => 400];
+    }
+
     public function resetPassword($data)
     {
-        if(isset($data['phone'])) {
-            $user = User::where('phone', $data['phone'])->first();
-            if (!$user) {
-                Log::warning("Password reset requested for non-existent phone: {$data['phone']}");
-                return ['message' => 'Phone number not found.', 'status' => 400];
-            }
-
-            $isValidOTP = $this->twoFactorAuthService->verifyOTP($user, $data['otp']);
-            if (!$isValidOTP) {
-                Log::error("Invalid OTP provided for phone: {$data['phone']}");
-                return ['message' => 'Invalid or expired OTP.', 'status' => 400];
-            }
-
-            $user->password = bcrypt($data['password']);
+        $response = Password::reset($data, function ($user, $password) {
+            $user->password = bcrypt($password);
             $user->save();
+        });
 
-            Log::info("Password successfully reset for phone: {$data['phone']}");
-
+        if ($response == Password::PASSWORD_RESET) {
+            if (isset($data['email'])) {
+                Log::info("Password successfully reset for email: {$data['email']}");
+            } elseif (isset($data['phone'])) {
+                Log::info("Password successfully reset for phone: {$data['phone']}");
+            }
             return ['message' => 'Password reset successful.', 'status' => 200];
         } else {
-            $response = Password::reset($data, function ($user, $password) {
-                $user->password = bcrypt($password);
-                $user->save();
-            });
-
-            if ($response == Password::PASSWORD_RESET) {
-                Log::info("Password successfully reset for email: {$data['email']}");
-                return ['message' => 'Password reset successful.', 'status' => 200];
-            } else {
+            if (isset($data['email'])) {
                 Log::error("Password reset failed for email: {$data['email']}");
-                return ['message' => 'Invalid or expired reset token.', 'status' => 400];
+            } elseif (isset($data['phone'])) {
+                Log::error("Password reset failed for phone: {$data['phone']}");
             }
+            return ['message' => 'Invalid or expired reset token.', 'status' => 400];
         }
 
     }

@@ -9,6 +9,7 @@ class UsersService
     public function get(Request $request)
     {
         $query = User::filter($request);
+
         if($request->has('aggregate')) {
             return $query;
         }
