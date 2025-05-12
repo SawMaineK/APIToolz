@@ -258,13 +258,9 @@ class AuthController extends APIToolzController
 
             if ($email) {
                 Log::info("Password reset request received for email: {$email}");
-
-                // Call service to send the reset link via email
                 $response = $this->passwordResetService->sendResetLink($email);
             } elseif ($phone) {
                 Log::info("Password reset request received for phone: {$phone}");
-
-                // Call service to send the OTP via phone
                 $response = $this->passwordResetService->sendResetOTP($phone);
             } else {
                 return response()->json(['message' => 'Email or phone is required.'], 400);
@@ -290,11 +286,11 @@ class AuthController extends APIToolzController
      *              @OA\Property(property="otp", type="string", example="123456")
      *          )
      *     ),
-    *     @OA\Response(response=200, description="OTP verified successfully", @OA\JsonContent(
-    *         type="object",
-    *         @OA\Property(property="message", type="string", example="OTP verified successfully"),
-    *         @OA\Property(property="token", type="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-    *     )),
+     *     @OA\Response(response=200, description="OTP verified successfully", @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="message", type="string", example="OTP verified successfully"),
+     *         @OA\Property(property="token", type="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+     *     )),
      *     @OA\Response(response=400, description="Invalid OTP or phone number"),
      *     @OA\Response(response=429, description="Too many attempts"),
      *     @OA\Response(response=500, description="Server error")
@@ -329,18 +325,23 @@ class AuthController extends APIToolzController
     public function resetPassword(ResetPasswordRequest $request)
     {
         try {
-            // Use the validated data from ResetPasswordRequest
             $data = $request->validated();
 
-            Log::info("Processing password reset for email: {$request->email}");
+            if (isset($data['email'])) {
+                Log::info("Processing password reset for email: {$data['email']}");
+            } elseif (isset($data['phone'])) {
+                Log::info("Processing password reset for phone: {$data['phone']}");
+            } else {
+                return response()->json(['message' => 'Email or phone is required.'], 400);
+            }
 
-            // Call service to reset the password
             $response = $this->passwordResetService->resetPassword($data);
 
             return response()->json(['message' => $response['message']], $response['status']);
         } catch (\Exception $e) {
-            Log::error("Error in password reset for email: {$request->email}", ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Invalid token or email provided.'], 400);
+            $identifier = $data['email'] ?? $data['phone'] ?? 'unknown';
+            Log::error("Error in password reset for identifier: {$identifier}", ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Invalid token, email, or phone provided.'], 400);
         }
     }
 

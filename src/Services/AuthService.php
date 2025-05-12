@@ -79,7 +79,7 @@ class AuthService
 
         $user = User::create($data);
         $userRole = Role::firstOrCreate(['name' => 'user','guard_name' => 'sanctum']);
-        $user->roles()->attach($userRole);
+        $user->roles()->attach($userRole->id, ['model_type' => User::class]);
         $user->personal_access_token = $user->createToken("{$user->name}'s Access Token")->plainTextToken;
         Log::info("User registered successfully.", ['user_id' => $user->id]);
 

@@ -61,6 +61,9 @@ class PasswordResetService
         }
 
         if ($this->twoFactorAuthService->verifyOTP($user, $otp)) {
+            if (empty($user->email)) {
+                $user->email = $user->phone;
+            }
             $token = Password::getRepository()->create($user);
             return ['message' => 'OTP verified successfully', 'token' => $token, 'status' => 200];
         }
@@ -70,10 +73,26 @@ class PasswordResetService
 
     public function resetPassword($data)
     {
-        $response = Password::reset($data, function ($user, $password) {
-            $user->password = bcrypt($password);
+        $user = isset($data['email'])
+            ? User::where('email', $data['email'])->first()
+            : User::where('phone', $data['phone'])->first();
+
+        if (!$user) {
+            return ['message' => 'User not found.', 'status' => 400];
+        }
+
+        if (empty($user->email)) {
+            $user->email = $user->phone;
+        }
+
+        $response = Password::getRepository()->exists($user, $data['token'])
+            ? Password::PASSWORD_RESET
+            : Password::INVALID_TOKEN;
+
+        if ($response == Password::PASSWORD_RESET) {
+            $user->password = bcrypt($data['password']);
             $user->save();
-        });
+        }
 
         if ($response == Password::PASSWORD_RESET) {
             if (isset($data['email'])) {
