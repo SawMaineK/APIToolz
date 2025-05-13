@@ -178,7 +178,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: modal ? `flex flex-col gap-1` : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           type: 'password',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
@@ -190,7 +190,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           type: 'email',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
@@ -202,7 +202,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           type: 'number',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
@@ -215,7 +215,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormTextArea({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           defaultLength: 3,
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
@@ -227,7 +227,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInputEditor({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -238,7 +238,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormCheckBox({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
@@ -253,7 +253,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         });
         return new FormRadioGroup({
           name: field.field,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -275,7 +275,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDate({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
@@ -288,7 +288,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDateTime({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
@@ -301,7 +301,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'file',
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           multiple: field?.file?.image_multiple,
@@ -333,8 +333,8 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           return new FormSelect({
             name: field.field,
             label: field.label,
-            display: modal ? 'flex flex-col gap-1' : '',
-            columns: modal ? '' : 'lg:w-[70%]',
+            display: 'flex flex-col gap-1',
+            columns: modal ? field.width : 'lg:w-[70%]',
             multiple: field.option.select_multiple,
             required:
               field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
@@ -358,7 +358,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           return new FormSelect({
             name: field.field,
             label: field.label,
-            display: modal ? 'flex flex-col gap-1' : '',
+            display: 'flex flex-col gap-1',
             columns: modal ? field.width : 'lg:w-[70%]',
             multiple: field.option.select_multiple,
             required:
@@ -374,7 +374,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: modal ? 'flex flex-col gap-1' : '',
+          display: 'flex flex-col gap-1',
           columns: modal ? field.width : 'lg:w-[70%]',
           placeholder: field.option?.placeholder || `Enter ${field.label}`,
           required: field.validator.includes('required'),

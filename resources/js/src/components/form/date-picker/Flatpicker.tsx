@@ -78,6 +78,7 @@ export const Flatpicker = ({
         maxDate: max,
         altFormat: enableTime ? 'F j, Y H:i' : 'F j, Y',
         dateFormat: enableTime ? 'Y-m-d H:i:S' : 'Y-m-d',
+        appendTo: document.body,
         onChange: handleChange,
         onClose: handleClose
       }}

@@ -21,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--soft-delete} {--sql=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
 
     /**
      * The console command description.
@@ -46,10 +46,11 @@ class ModelGenerator extends Command
         }
 
         $table = $this->option('table');
-        if($table == null && !$this->option('rebuild') && !$this->option('remove'))
+        if($table == null && !$this->option('update') && !$this->option('rebuild') && !$this->option('remove'))
             $table = $this->ask('What is table name?');
 
         if(!\Schema::hasTable($table)
+            && !$this->option('update')
             && !$this->option('rebuild')
             && !$this->option('remove')) {
             $create = 'yes';
@@ -104,7 +105,29 @@ class ModelGenerator extends Command
             ModelBuilder::build($model, $this->option('use-policy'), $this->option('soft-delete'));
             $this->info("This $name model has created successfully.");
         } else {
-            if($this->option('rebuild')) {
+            if($this->option('update')) {
+                if($this->option('type')) {
+                    $model->type = $this->option('type'); //"1" for Ready Only
+                }
+                if($this->option('use-auth')) {
+                    $model->auth = $this->option('use-auth');
+                }
+                if($this->option('use-roles')) {
+                    $model->roles = $this->option('use-roles');
+                }
+                if($this->option('lock')) {
+                    $lockOptions = ['request', 'controller', 'service', 'model', 'resource'];
+                    $lock = explode(",", $this->option('lock'));
+                    $model->lock = array_filter($lock, function ($item) use ($lockOptions) {
+                        return in_array($item, $lockOptions);
+                    });
+                }
+
+                $model->update();
+                ModelBuilder::build($model, $this->option('use-policy'), $this->option('soft-delete'));
+                return $this->info("This $name model update successfully.");
+            }
+            else if($this->option('rebuild')) {
                 ModelBuilder::build($model);
                 return $this->info("This $name model rebuild successfully.");
             } else if($this->option('remove')) {

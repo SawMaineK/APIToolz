@@ -15,12 +15,13 @@ import { CreateModal } from '../form/CreateModal';
 import FilterSelect from '@/components/filter/FilterSelect';
 import { Switch } from '@/components/ui/switch';
 import FilterRadio from '@/components/filter/FilterRadio';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const DataTable = ({ model }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const navigate = useNavigate();
   const handleClose = () => {
     setCreateModalOpen(false);
   };
@@ -238,8 +239,12 @@ const DataTable = ({ model }: ModelContentProps) => {
           </Link>
           <button
             onClick={() => {
-              setModelData(null);
-              setCreateModalOpen(true);
+              if (model.config.forms.length > 8) {
+                navigate(`/apitoolz/model/${model.slug}/create`);
+              } else {
+                setModelData(null);
+                setCreateModalOpen(true);
+              }
             }}
             className="btn btn-sm btn-primary"
           >

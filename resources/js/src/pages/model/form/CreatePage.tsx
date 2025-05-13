@@ -38,22 +38,6 @@ const CreatePage = () => {
 
   return (
     <Fragment>
-      <PageNavbar menuConfig={menuConfig} />
-      <Container>
-        <Toolbar>
-          <ToolbarHeading>
-            <ToolbarPageTitle text={model?.title} />
-            {model?.desc && <ToolbarDescription>{model?.desc}</ToolbarDescription>}
-          </ToolbarHeading>
-          <ToolbarActions>
-            <a href="#" className="btn btn-sm btn-light">
-              <KeenIcon icon="setting-4 mr-2" />
-              {model?.title} Settings
-            </a>
-          </ToolbarActions>
-        </Toolbar>
-      </Container>
-
       <Container>{model && <CreateContent model={model} />}</Container>
     </Fragment>
   );

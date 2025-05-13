@@ -22,9 +22,9 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
     ...generateFormLayout(model.config.forms || [], isModal || false),
     new FormSubmit({
       label: `Submit`,
-      display: isModal ? 'flex flex-col gap-1' : '',
-      altClass: isModal ? 'flex' : '',
-      inputClass: isModal ? 'flex justify-center grow' : ''
+      display: 'flex flex-col gap-1',
+      altClass: 'flex',
+      inputClass: `flex justify-center ${isModal ? 'grow' : ''}`
     })
   ];
 

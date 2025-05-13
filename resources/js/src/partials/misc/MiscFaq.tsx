@@ -15,7 +15,9 @@ const MiscFaq = () => {
 To create a model, use the \`apitoolz:model\` Artisan command:
 
 \`\`\`shell
-php artisan apitoolz:model Product --table=products --soft-delete
+php artisan apitoolz:model Product \\
+    --table=products \\
+    --soft-delete
 \`\`\`
 
 ### Available Options for Model Generation
@@ -46,7 +48,10 @@ Yes, you can create a model with user \`policy\` using the \`--use-policy\` flag
 **Note:** The model's table must include a \`user_id\` field.
 
 \`\`\`shell
-php artisan apitoolz:model Product --table=products --soft-delete --use-policy
+php artisan apitoolz:model Product \\
+    --table=products \\
+    --soft-delete \\
+    --use-policy
 \`\`\`
 `
     },
@@ -55,7 +60,10 @@ php artisan apitoolz:model Product --table=products --soft-delete --use-policy
       text: `
 To create a model with authentication and role-based access control:
 \`\`\`shell
-php artisan apitoolz:model Order --table=orders --use-auth --use-roles=admin,user
+php artisan apitoolz:model Order \\
+    --table=orders \\
+    --use-auth \\
+    --use-roles=admin,user
 \`\`\`
 `
     },
@@ -63,7 +71,9 @@ php artisan apitoolz:model Order --table=orders --use-auth --use-roles=admin,use
       title: 'How do I create a model with table SQL format?',
       text: `
 \`\`\`php
-php artisan apitoolz:model Customer --table=customers --soft-delete --sql="
+php artisan apitoolz:model Customer \\
+    --table=customers \\
+    --soft-delete --sql="
     CREATE TABLE customers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         first_name VARCHAR(50) NOT NULL,
@@ -89,7 +99,8 @@ This command will create a new model called \`Customer\` with the specified tabl
 You can create a database table using the \`apitoolz:datatable\` Artisan command:
 
 \`\`\`shell
-php artisan apitoolz:datatable customers --soft-delete
+php artisan apitoolz:datatable customers \\
+    --soft-delete
 \`\`\`
 `
     },
@@ -99,7 +110,8 @@ php artisan apitoolz:datatable customers --soft-delete
 To remove a database table, use the following command:
 
 \`\`\`shell
-php artisan apitoolz:datatable customers --remove
+php artisan apitoolz:datatable customers \\
+    --remove
 \`\`\`
 `
     },
@@ -131,7 +143,8 @@ php artisan apitoolz:datatable customers \\
 #### Example: Dropping a field
 To drop a field from a table:
 \`\`\`shell
-php artisan apitoolz:datatable customers --drop-field=address
+php artisan apitoolz:datatable customers \\
+    --drop-field=address
 \`\`\`
 
 ### Available Options for Datatable Configuration
@@ -208,7 +221,8 @@ You can configure the field-level settings for a model using the \`apitoolz:requ
 If you want to reset the default field configuration:
 
 \`\`\`shell
-php artisan apitoolz:request Sale --field=sale_date --reset
+php artisan apitoolz:request Sale \\
+    --field=sale_date --reset
 \`\`\`
 
 ### Available Option Parameters for Request Body Configuration
@@ -271,7 +285,8 @@ You can define relationships between models (e.g., \`belongsTo\`, \`hasOne\`, \`
 
 3. To remove an existing relationship:
     \`\`\`shell
-    php artisan apitoolz:relation Customer --title=orders --remove
+    php artisan apitoolz:relation Customer \\
+        --title=orders --remove
     \`\`\`
 
 
@@ -315,7 +330,7 @@ Below are some examples:
     php artisan apitoolz:filter Order \\
     --title=status \\
     --filter-type=select \\
-    --filter-query='pending:Pending|completed:Completed|canceled:Canceled' \\
+    --filter-query='pending:Pending|completed:Completed' \\
     --filter-key=status
     \`\`\`
 
@@ -339,12 +354,17 @@ Below are some examples:
 
 5. To remove an existing filter:
     \`\`\`shell
-    php artisan apitoolz:filter Product --title=category --remove
+    php artisan apitoolz:filter Product \\
+        --title=category \\
+        --remove
     \`\`\`
 
 6. To force remove a filter without confirmation:
     \`\`\`shell
-    php artisan apitoolz:filter Order --title=status --remove --force
+    php artisan apitoolz:filter Order \\
+        --title=status \\
+        --remove \\
+        --force
     \`\`\`
 
 ### Available Options for Filters
@@ -374,7 +394,9 @@ php artisan apitoolz:model Customer --rebuild
 To remove your model along with its database table:
 
 \`\`\`shell
-php artisan apitoolz:model Product --remove --remove-table
+php artisan apitoolz:model Product \\
+    --remove \\
+    --remove-table
 \`\`\`
 `
     },
@@ -390,7 +412,9 @@ APIToolz allows you to export models using the \`apitoolz:export\` Artisan comma
 
 2. To export a specific model by name:
     \`\`\`shell
-    php artisan apitoolz:export --model=Customer --include-data
+    php artisan apitoolz:export \\
+        --model=Customer \\
+        --include-data
     \`\`\`
 `
     },
@@ -401,12 +425,16 @@ You can import models using the \`apitoolz:import\` Artisan command. Below are s
 
 1. To import a model from a file:
     \`\`\`shell
-    php artisan apitoolz:import --file=your_file.zip
+    php artisan apitoolz:import \\
+        --file=your_file.zip
     \`\`\`
 
 2. To import a specific model by name without including its data:
     \`\`\`shell
-    php artisan apitoolz:import --file=your_file.zip --model=Customer --exclude-data
+    php artisan apitoolz:import \\
+        --file=your_file.zip \\
+        --model=Customer \\
+        --exclude-data
     \`\`\`
 `
     }

@@ -99,13 +99,15 @@ Below are the available options for the `apitoolz:model` Artisan command:
 
 | Option                  | Description                                                                 |
 |-------------------------|-----------------------------------------------------------------------------|
+| `--update`              | Update an existing model without creating a new one.                       |
 | `--table=`              | Specify the database table name for the model.                             |
 | `--type=`               | Define the type of model (e.g., `basic`, `advanced`).                      |
 | `--use-auth`            | Enable authentication support for the model.                              |
-| `--use-roles=`           | Enable role-based access control for the model. Specify roles as a comma-separated list, e.g., `admin,user`. |
+| `--use-roles=`          | Enable role-based access control for the model. Specify roles as a comma-separated list, e.g., `admin,user`. |
 | `--use-policy`          | Apply user policy to the model (requires `user_id` field in the table).    |
 | `--soft-delete`         | Enable soft delete functionality for the model.                           |
 | `--sql=`                | Provide an SQL table definition to generate the model.                    |
+| `--lock=`               | Lock specific components to prevent overwriting during regeneration. Options: `controller`, `model`, `request`, `resource`, `service`. |
 | `--force`               | Force the operation without confirmation.                                 |
 | `--rebuild`             | Rebuild the model and its associated API.                                 |
 | `--remove`              | Remove the model without deleting its database table.                     |
