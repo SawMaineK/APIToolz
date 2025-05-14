@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { DataGrid, DataGridColumnVisibility, useDataGrid, KeenIcon } from '@/components';
+import { DataGrid, KeenIcon, useDataGrid } from '@/components';
 import axios from 'axios';
 import {
   Toolbar,
@@ -22,14 +22,17 @@ const DataTable = ({ model }: ModelContentProps) => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
-  const handleClose = () => {
+
+  useEffect(() => {
+    // Trigger refresh and reset UI state when model changes
+    setRefreshKey((prev) => prev + 1);
+    setModelData(null);
     setCreateModalOpen(false);
-  };
+  }, [model]);
 
   const columns = useMemo(() => {
     const cols = generateColumns(model.config.grid, model.config.forms, model.config.relationships);
 
-    // Add Action Buttons with fixed positioning on large screens
     cols.push(
       {
         id: 'edit',
@@ -73,7 +76,7 @@ const DataTable = ({ model }: ModelContentProps) => {
     );
 
     return cols;
-  }, []);
+  }, [model]);
 
   const fetchModels = async (params: any) => {
     try {
@@ -85,15 +88,13 @@ const DataTable = ({ model }: ModelContentProps) => {
         queryParams.set('sort_dir', params.sorting[0].desc ? 'desc' : 'asc');
       }
       if (params.columnFilters.length > 0) {
-        var values: string[] = [];
-        params.columnFilters.forEach((filter: any) => {
-          values.push(`${filter.id}:${filter.value}`);
-        });
+        const values = params.columnFilters.map((f: any) => `${f.id}:${f.value}`);
         queryParams.set(`filter`, values.join('|'));
       }
       if (params.querySearch.length > 0) {
         queryParams.set('search', params.querySearch);
       }
+
       const response = await axios.get(
         `${import.meta.env.VITE_APP_API_URL}/${model.slug}?${queryParams.toString()}`
       );
@@ -119,108 +120,114 @@ const DataTable = ({ model }: ModelContentProps) => {
     }
   };
 
+  const onCreated = () => {
+    setCreateModalOpen(false);
+    setRefreshKey((prev) => prev + 1);
+  };
+
   const Filters = () => {
     const { table, setQuerySearch } = useDataGrid();
-
     const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+      // Reset search and filters on model change
+      setSearchQuery('');
+      setQuerySearch('');
+      table.setColumnFilters([]);
+      table.setPageIndex(0);
+    }, [model]);
+
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
       table.setPageIndex(0);
       setSearchQuery(value);
       setQuerySearch(value);
     };
+
     const filterCols = (old: any, key: string, value: any) => {
-      const filterIndex = old.findIndex((f: any) => f.id === key);
-      if (filterIndex > -1) {
+      const index = old.findIndex((f: any) => f.id === key);
+      if (index > -1) {
         if (value === '') {
           return old.filter((f: any) => f.id !== key);
         } else {
-          const newFilters = [...old];
-          newFilters[filterIndex].value = value;
-          return newFilters;
+          const updated = [...old];
+          updated[index].value = value;
+          return updated;
         }
       } else {
         return value === '' ? old : [...old, { id: key, value }];
       }
     };
+
     return (
-      <>
-        <div className="card-header border-b-0 px-5 flex-wrap">
-          <h3 className="card-title font-medium text-sm">
-            Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
-            {model?.slug}s
-          </h3>
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-            <div className="flex gap-2">
-              <div className="flex gap-6">
-                <div className="relative">
-                  <KeenIcon
-                    icon="magnifier"
-                    className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
-                  />
-                  <input
-                    type="text"
-                    placeholder={`Search ${model.title}`}
-                    className="input input-sm ps-8"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
-                </div>
+      <div className="card-header border-b-0 px-5 flex-wrap">
+        <h3 className="card-title font-medium text-sm">
+          Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
+          {model?.slug}s
+        </h3>
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div className="flex gap-2">
+            <div className="flex gap-6">
+              <div className="relative">
+                <KeenIcon
+                  icon="magnifier"
+                  className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
+                />
+                <input
+                  type="text"
+                  placeholder={`Search ${model.title}`}
+                  className="input input-sm ps-8"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
               </div>
-              {model.config?.filters?.map((filter: Filter) => {
-                if (filter.type === 'select') {
-                  return (
-                    <FilterSelect
-                      key={filter.key}
-                      filter={filter}
-                      onValueChange={(value: string) => {
+            </div>
+            {model.config?.filters?.map((filter: Filter) => {
+              if (filter.type === 'select') {
+                return (
+                  <FilterSelect
+                    key={filter.key}
+                    filter={filter}
+                    onValueChange={(value: string) => {
+                      table.setPageIndex(0);
+                      table.setColumnFilters((old) => filterCols(old, filter.key, value));
+                    }}
+                  />
+                );
+              }
+              if (filter.type === 'checkbox') {
+                return (
+                  <div key={filter.key} className="flex items-center">
+                    <Switch
+                      id={filter.key}
+                      defaultChecked={false}
+                      onCheckedChange={(checked) => {
                         table.setPageIndex(0);
-                        table.setColumnFilters((old) => filterCols(old, filter.key, value));
+                        table.setColumnFilters((old) => filterCols(old, filter.key, checked));
                       }}
                     />
-                  );
-                }
-                if (filter.type == 'checkbox') {
-                  return (
-                    <div key={filter.key} className="flex items-center">
-                      <Switch
-                        id={filter.key}
-                        defaultChecked={false}
-                        onCheckedChange={(checked) => {
-                          table.setPageIndex(0);
-                          table.setColumnFilters((old) => filterCols(old, filter.key, checked));
-                        }}
-                      />
-                      <label htmlFor={filter.key} className="form-label ms-2">
-                        {filter.query}
-                      </label>
-                    </div>
-                  );
-                }
-                if (filter.type == 'radio') {
-                  return (
-                    <FilterRadio
-                      key={filter.key}
-                      filter={filter}
-                      table={table}
-                      filterCols={filterCols}
-                    />
-                  );
-                }
-                return null;
-              })}
-
-              {/* <DataGridColumnVisibility table={table} hideTitle={true} /> */}
-            </div>
+                    <label htmlFor={filter.key} className="form-label ms-2">
+                      {filter.query}
+                    </label>
+                  </div>
+                );
+              }
+              if (filter.type === 'radio') {
+                return (
+                  <FilterRadio
+                    key={filter.key}
+                    filter={filter}
+                    table={table}
+                    filterCols={filterCols}
+                  />
+                );
+              }
+              return null;
+            })}
           </div>
         </div>
-      </>
+      </div>
     );
-  };
-
-  const onCreated = () => {
-    handleClose();
-    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -253,6 +260,7 @@ const DataTable = ({ model }: ModelContentProps) => {
           </button>
         </ToolbarActions>
       </Toolbar>
+
       <DataGrid
         key={refreshKey}
         columns={columns}
@@ -264,12 +272,13 @@ const DataTable = ({ model }: ModelContentProps) => {
         toolbar={<Filters />}
         layout={{ card: true }}
       />
+
       <CreateModal
         open={createModalOpen}
         model={model}
         modelData={modelData}
         onCreated={onCreated}
-        onOpenChange={handleClose}
+        onOpenChange={() => setCreateModalOpen(false)}
       />
     </>
   );
