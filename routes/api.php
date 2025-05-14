@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
+use Sawmainek\Apitoolz\Http\Controllers\AppSettingController;
 use Sawmainek\Apitoolz\Http\Controllers\AuthController;
 use Sawmainek\Apitoolz\Http\Controllers\RoleController;
 use Sawmainek\Apitoolz\Http\Controllers\TwoFactorAuthController;
@@ -64,4 +65,17 @@ Route::prefix('api')->group(function () {
             Route::put('/{role}/restore', 'restore')->middleware([]);
             Route::delete('/{role}/force-destory', 'forceDestroy')->middleware([]);
         });
+
+    // AppSetting Route Group
+    Route::controller(AppSettingController::class)
+    ->prefix('appsetting')->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/', 'index')->middleware([]);
+        Route::post('/', 'store')->middleware(['role:super']);
+        Route::get('/{appSetting}', 'show')->middleware(['role:super', 'role:admin']);
+        Route::put('/{appSetting}', 'update')->middleware(['role:super']);
+        Route::delete('/{appSetting}', 'destroy')->middleware(['role:super']);
+        Route::put('/{appSetting}/restore', 'restore')->middleware(['role:super']);
+        Route::delete('/{appSetting}/force-destory', 'forceDestroy')->middleware(['role:super']);
+    });
 });

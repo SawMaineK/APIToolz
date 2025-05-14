@@ -1,14 +1,16 @@
-import { createContext, type PropsWithChildren, useContext, useState } from 'react';
+import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react';
 
 import { defaultSettings, ISettings, type TSettingsThemeMode } from '@/config/settings.config';
 
 import { getData, setData } from '@/utils';
+import axios from 'axios';
 
 export interface ISettingsProps {
   settings: ISettings;
   storeSettings: (settings: Partial<ISettings>) => void;
   updateSettings: (settings: Partial<ISettings>) => void;
   getThemeMode: () => TSettingsThemeMode;
+  getSettings: () => Promise<void>;
 }
 
 const SETTINGS_CONFIGS_KEY = 'settings-configs';
@@ -21,7 +23,8 @@ const initialProps: ISettingsProps = {
   settings: { ...defaultSettings, ...getStoredSettings() },
   updateSettings: (settings: Partial<ISettings>) => {},
   storeSettings: (settings: Partial<ISettings>) => {},
-  getThemeMode: () => 'light'
+  getThemeMode: () => 'light',
+  getSettings: async () => {}
 };
 
 const LayoutsContext = createContext<ISettingsProps>(initialProps);
@@ -39,6 +42,19 @@ const SettingsProvider = ({ children }: PropsWithChildren) => {
     updateSettings(newSettings);
   };
 
+  const getSettings = async () => {
+    try {
+      const data = await axios
+        .get(`${import.meta.env.VITE_APP_API_URL}/appsetting?filter=key:${settings.configKey}`)
+        .then((settings) => {
+          return settings.data.data[0] || null;
+        });
+      updateSettings({ configId: data.id, menuConfig: data.menu_config });
+    } catch (e) {
+      return;
+    }
+  };
+
   const getThemeMode = (): TSettingsThemeMode => {
     const { themeMode } = settings;
 
@@ -51,8 +67,14 @@ const SettingsProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
+  useEffect(() => {
+    getSettings();
+  }, []);
+
   return (
-    <LayoutsContext.Provider value={{ settings, updateSettings, storeSettings, getThemeMode }}>
+    <LayoutsContext.Provider
+      value={{ settings, updateSettings, storeSettings, getThemeMode, getSettings }}
+    >
       {children}
     </LayoutsContext.Provider>
   );

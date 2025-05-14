@@ -1,14 +1,17 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useResponsive } from '@/hooks';
 import { KeenIcon } from '@/components';
-import { TMenuConfig, MenuItem, MenuLink, MenuTitle, MenuArrow, Menu } from '@/components/menu';
 import {
-  MegaMenuSubProfiles,
-  MegaMenuSubAccount,
-  MegaMenuSubNetwork,
-  MegaMenuSubAuth,
-  MegaMenuSubHelp
-} from '@/partials/menu/mega-menu';
+  TMenuConfig,
+  MenuItem,
+  MenuLink,
+  MenuTitle,
+  MenuArrow,
+  Menu,
+  MenuSub,
+  MenuIcon
+} from '@/components/menu';
+import { MegaMenuSubHelp } from '@/partials/menu/mega-menu';
 import { useDemo1Layout } from '../Demo1LayoutProvider';
 import { MENU_MEGA } from '@/config';
 import { useLanguage } from '@/i18n';
@@ -36,11 +39,6 @@ const MegaMenuInner = () => {
   });
 
   const build = (items: TMenuConfig) => {
-    const homeItem = items[0];
-    const publicProfilesItem = items[1];
-    const myAccountItem = items[2];
-    const networkItem = items[3];
-    const authItem = items[4];
     const helpItem = items[5];
 
     const linkClass =
@@ -49,29 +47,18 @@ const MegaMenuInner = () => {
 
     return (
       <Fragment>
-        <MenuItem key="home">
-          <MenuLink path={homeItem.path} className={linkClass}>
-            <MenuTitle className={titleClass}>{homeItem.title}</MenuTitle>
+        <MenuItem key="model">
+          <MenuLink path={'apitoolz/model'} className={linkClass}>
+            <MenuTitle className={titleClass}>Models</MenuTitle>
           </MenuLink>
         </MenuItem>
-
-        <MenuItem
-          key="public-profiles"
-          toggle={desktopMode ? 'dropdown' : 'accordion'}
-          trigger={desktopMode ? 'hover' : 'click'}
-          dropdownProps={{
-            placement: isRTL() ? 'bottom-end' : 'bottom-start'
-          }}
-        >
-          <MenuLink className={linkClass}>
-            <MenuTitle className={titleClass}>{publicProfilesItem.title}</MenuTitle>
-            {buildArrow()}
+        <MenuItem key="model">
+          <MenuLink path={'apitoolz/menu-config'} className={linkClass}>
+            <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>
           </MenuLink>
-          {MegaMenuSubProfiles(items)}
         </MenuItem>
-
-        <MenuItem
-          key="my-account"
+        {/* <MenuItem
+          key="settings"
           toggle={desktopMode ? 'dropdown' : 'accordion'}
           trigger={desktopMode ? 'hover' : 'click'}
           dropdownProps={{
@@ -80,66 +67,37 @@ const MegaMenuInner = () => {
               {
                 name: 'offset',
                 options: {
-                  offset: isRTL() ? [300, 0] : [-300, 0] // [skid, distance]
+                  offset: isRTL() ? [20, 0] : [-20, 0] // [skid, distance]
                 }
               }
             ]
           }}
         >
           <MenuLink className={linkClass}>
-            <MenuTitle className={titleClass}>{myAccountItem.title}</MenuTitle>
+            <MenuTitle className={titleClass}>Settings</MenuTitle>
             {buildArrow()}
           </MenuLink>
-          {MegaMenuSubAccount(items)}
-        </MenuItem>
+          <MenuSub className="menu-default py-2.5 lg:w-[225px]">
+            <MenuItem key={'menu-config'}>
+              <MenuLink path={'apitoolz/menu-config'}>
+                <MenuIcon>
+                  <KeenIcon icon={'burger-menu'} />
+                </MenuIcon>
+                <MenuTitle>{`Menu Config`}</MenuTitle>
+              </MenuLink>
+            </MenuItem>
+            <MenuItem key={'theme-settings'}>
+              <MenuLink path={''}>
+                <MenuIcon>
+                  <KeenIcon icon={'setting-4'} />
+                </MenuIcon>
+                <MenuTitle>{`Settings`}</MenuTitle>
+              </MenuLink>
+            </MenuItem>
+          </MenuSub>
+        </MenuItem> */}
 
-        <MenuItem
-          key="network"
-          toggle={desktopMode ? 'dropdown' : 'accordion'}
-          trigger={desktopMode ? 'hover' : 'click'}
-          dropdownProps={{
-            placement: isRTL() ? 'bottom-end' : 'bottom-start',
-            modifiers: [
-              {
-                name: 'offset',
-                options: {
-                  offset: isRTL() ? [300, 0] : [-300, 0] // [skid, distance]
-                }
-              }
-            ]
-          }}
-        >
-          <MenuLink className={linkClass}>
-            <MenuTitle className={titleClass}>{networkItem.title}</MenuTitle>
-            {buildArrow()}
-          </MenuLink>
-          {MegaMenuSubNetwork(items)}
-        </MenuItem>
-
-        <MenuItem
-          key="auth"
-          toggle={desktopMode ? 'dropdown' : 'accordion'}
-          trigger={desktopMode ? 'hover' : 'click'}
-          dropdownProps={{
-            placement: isRTL() ? 'bottom-end' : 'bottom-start',
-            modifiers: [
-              {
-                name: 'offset',
-                options: {
-                  offset: isRTL() ? [300, 0] : [-300, 0] // [skid, distance]
-                }
-              }
-            ]
-          }}
-        >
-          <MenuLink className={linkClass}>
-            <MenuTitle className={titleClass}>{authItem.title}</MenuTitle>
-            {buildArrow()}
-          </MenuLink>
-          {MegaMenuSubAuth(items)}
-        </MenuItem>
-
-        <MenuItem
+        {/* <MenuItem
           key="help"
           toggle={desktopMode ? 'dropdown' : 'accordion'}
           trigger={desktopMode ? 'hover' : 'click'}
@@ -160,7 +118,7 @@ const MegaMenuInner = () => {
             {buildArrow()}
           </MenuLink>
           {MegaMenuSubHelp(items)}
-        </MenuItem>
+        </MenuItem> */}
       </Fragment>
     );
   };

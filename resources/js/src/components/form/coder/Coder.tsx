@@ -9,11 +9,12 @@ interface CoderProps extends FormTextArea {
 
 export const Coder = ({ handler, formGroup, ...props }: CoderProps) => {
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
 
   const defaultConfig = {
     width: '100%',
     height: '300px',
-    fontFamily: 'Poppins',
+    // fontFamily: 'Poppins',
     defaultLanguage: props.config?.defaultLanguage || 'javascript',
     className: props.inputClass,
     ...props.config
@@ -46,16 +47,20 @@ export const Coder = ({ handler, formGroup, ...props }: CoderProps) => {
           {...defaultConfig}
           onMount={(editor: any, monaco: any) => {
             editorRef.current = editor;
+            monacoRef.current = monaco;
             monaco.editor.defineTheme('my-theme', {
               base: 'vs-dark',
               inherit: true,
               rules: [],
               colors: {
                 'editor.background': '#1b1b29',
-                'editor.color': '#ffffff'
+                'editor.foreground': '#ffffff'
               }
             });
             monaco.editor.setTheme('my-theme');
+            setTimeout(() => {
+              editor.getAction('editor.action.formatDocument')?.run();
+            }, 200);
           }}
           value={getValue() || ''}
           onChange={onChange}

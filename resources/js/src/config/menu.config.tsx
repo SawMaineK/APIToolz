@@ -1,26 +1,6 @@
 import { type TMenuConfig } from '@/components/menu';
 
 export const MENU_SIDEBAR: TMenuConfig = [
-  {
-    title: 'Dashboards',
-    icon: 'home-2',
-    path: '/apitoolz'
-  },
-  {
-    title: 'Models',
-    icon: 'scan-barcode',
-    path: '/apitoolz/model'
-  },
-  {
-    title: 'Users',
-    icon: 'users',
-    path: '/apitoolz/users'
-  },
-  {
-    title: 'Roles & Permssions',
-    icon: 'security-user',
-    path: '/apitoolz/roles'
-  }
 ];
 
 export const MENU_MODEL: TMenuConfig = [
@@ -607,7 +587,7 @@ export const MENU_MEGA: TMenuConfig = [
       {
         title: 'Getting Started',
         icon: 'coffee',
-        path: 'https://keenthemes.com/metronic/tailwind/docs/getting-started/installation'
+        path: 'https://apitoolz.com/installation'
       },
       {
         title: 'Support Forum',
@@ -616,17 +596,17 @@ export const MENU_MEGA: TMenuConfig = [
           {
             title: 'All Questions',
             icon: 'questionnaire-tablet',
-            path: 'https://devs.keenthemes.com'
+            path: 'https://apitoolz.com/questions'
           },
           {
             title: 'Popular Questions',
             icon: 'star',
-            path: 'https://devs.keenthemes.com/popular'
+            path: 'https://apitoolz.com/popular'
           },
           {
             title: 'Ask Question',
             icon: 'message-question',
-            path: 'https://devs.keenthemes.com/question/create'
+            path: 'https://apitoolz.com/question/create'
           }
         ]
       },
@@ -637,18 +617,18 @@ export const MENU_MEGA: TMenuConfig = [
           placement: 'right'
         },
         icon: 'subtitle',
-        path: 'https://keenthemes.com/metronic/tailwind/docs/getting-started/license'
+        path: 'https://apitoolz.com/license'
       },
       {
         title: 'Documentation',
         icon: 'questionnaire-tablet',
-        path: 'https://keenthemes.com/metronic/tailwind/docs'
+        path: 'https://apitoolz.com/docs'
       },
       { separator: true },
       {
         title: 'Contact Us',
         icon: 'share',
-        path: 'https://keenthemes.com/contact'
+        path: 'https://apitoolz.com/contact'
       }
     ]
   }

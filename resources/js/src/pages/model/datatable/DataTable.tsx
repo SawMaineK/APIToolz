@@ -75,7 +75,7 @@ const DataTable = ({ model }: ModelContentProps) => {
     return cols;
   }, []);
 
-  const fetchProducts = async (params: any) => {
+  const fetchModels = async (params: any) => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.set('page', String(params.pageIndex + 1));
@@ -257,7 +257,7 @@ const DataTable = ({ model }: ModelContentProps) => {
         key={refreshKey}
         columns={columns}
         serverSide={true}
-        onFetchData={fetchProducts}
+        onFetchData={fetchModels}
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
         pagination={{ size: 10 }}

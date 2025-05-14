@@ -40,8 +40,7 @@ Run the following commands to publish vendor files and migrate the database:
 
 ```shell
 php artisan migrate
-php artisan db:seed --class=UserSeeder
-php artisan db:seed --class=RolePermissionSeeder
+php artisan db:seed --class=APIToolzSeeder
 php artisan vendor:publish --tag=apitoolz-config
 ```
 
