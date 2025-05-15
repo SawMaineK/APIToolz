@@ -43,6 +43,7 @@ class ModelImportGenerator extends Command
         //$exportPath = "app/Exports";
         $modelPath = "app/Models";
         $policyPath = "app/Policies";
+        $observerPath = "app/Observers";
         $migratePath = "database/migrations";
         if ($res === TRUE) {
             $zip->extractTo($importPath);
@@ -63,6 +64,9 @@ class ModelImportGenerator extends Command
                 $config = ModelConfigUtils::decryptJson($model->config);
                 if($model->auth && $config['policy']) {
                     copy(storage_path("apitoolz/imports/$policyPath/{$model->name}Policy.php"), base_path("$policyPath/{$model->name}Policy.php"));
+                }
+                if($config['observer']) {
+                    copy(storage_path("apitoolz/imports/$observerPath/{$model->name}Observer.php"), base_path("$observerPath/{$model->name}Observer.php"));
                 }
                 if(count($migrateFile) > 0) {
                     copy($migrateFile[0], base_path("$migratePath/". basename($migrateFile[0])));

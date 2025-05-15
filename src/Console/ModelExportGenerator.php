@@ -72,6 +72,10 @@ class ModelExportGenerator extends Command
                     $policyPath = "app/Policies/{$model->name}Policy.php";
                     $zip->addFile(base_path($policyPath), $policyPath);
                 }
+                if($config['observer']) {
+                    $observerPath = "app/Observers/{$model->name}Observer.php";
+                    $zip->addFile(base_path($observerPath), $observerPath);
+                }
                 $columns = \Schema::getColumns($model->table);
                 $indexes = \Schema::getIndexes($model->table);
                 $foreignKeys = \Schema::getForeignKeys($model->table);

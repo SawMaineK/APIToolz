@@ -8,7 +8,7 @@ use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelBuilder
 {
-    public static function build(Model $model, $usePolicy = "", $softDelete = "")
+    public static function build(Model $model, $usePolicy = "", $useObserver = "", $softDelete = "")
     {
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
@@ -37,6 +37,7 @@ class ModelBuilder
         $columns = \Schema::getColumns($codes['table']);
 
         $config['policy'] = $usePolicy != "" ? $usePolicy : ($config['policy'] ?? false);
+        $config['observer'] = $useObserver != "" ? $useObserver : ($config['observer'] ?? false);
         $config['softdelete'] = $softDelete != "" ? $softDelete : ($config['softdelete'] ?? false);
         $codes['softdelete'] = $config['softdelete'] == true ? "use SoftDeletes;" : "";
 
@@ -261,6 +262,19 @@ class ModelBuilder
         } else {
             $policyFile = app_path("Policies/{$codes['model']}Policy.php");
             @unlink($policyFile);
+        }
+
+        if($config['observer']) {
+            $observerFile = app_path("Observers/{$codes['model']}Observer.php");
+            $buildObserver = APIToolzGenerator::blend('observer.tpl', $codes);
+            if(!file_exists($observerFile)) {
+                if ( !is_dir( app_path("Observers") ) )
+                    mkdir(app_path("Observers"), 0775, true);
+                file_put_contents($observerFile, $buildObserver);
+            }
+        } else {
+            $observerFile = app_path("Observers/{$codes['model']}Observer.php");
+            @unlink($observerFile);
         }
 
         if(!$model->lock || ($model->lock && !in_array('request', $model->lock))) {

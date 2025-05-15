@@ -21,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--use-observer} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
 
     /**
      * The console command description.
@@ -102,7 +102,7 @@ class ModelGenerator extends Command
             $model->two_factor = 0;
             $model->save();
 
-            ModelBuilder::build($model, $this->option('use-policy'), $this->option('soft-delete'));
+            ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('soft-delete'));
             $this->info("This $name model has created successfully.");
         } else {
             if($this->option('update')) {
@@ -124,7 +124,7 @@ class ModelGenerator extends Command
                 }
 
                 $model->update();
-                ModelBuilder::build($model, $this->option('use-policy'), $this->option('soft-delete'));
+                ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('soft-delete'));
                 return $this->info("This $name model update successfully.");
             }
             else if($this->option('rebuild')) {

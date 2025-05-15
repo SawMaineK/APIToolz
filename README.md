@@ -104,6 +104,7 @@ Below are the available options for the `apitoolz:model` Artisan command:
 | `--use-auth`            | Enable authentication support for the model.                              |
 | `--use-roles=`          | Enable role-based access control for the model. Specify roles as a comma-separated list, e.g., `admin,user`. |
 | `--use-policy`          | Apply user policy to the model (requires `user_id` field in the table).    |
+| `--use-observer`       | Enable model observer functionality for lifecycle events.                   |
 | `--soft-delete`         | Enable soft delete functionality for the model.                           |
 | `--sql=`                | Provide an SQL table definition to generate the model.                    |
 | `--lock=`               | Lock specific components to prevent overwriting during regeneration. Options: `controller`, `model`, `request`, `resource`, `service`. |
@@ -527,17 +528,13 @@ This setup allows you to seamlessly integrate any SMS provider of your choice in
 
 ## How to Implement Model Observers for the User?
 
-### Step 1: Create the Observer
-Generate an observer using the Artisan command:
+If you want to enable user observer actions, you can publish the user observer files using the following command:
+
 ```shell
-php artisan make:observer UserObserver --model=User
-```
-This will create the file:
-```php
-app/Observers/UserObserver.php
+php artisan vendor:publish --tag=user-observer
 ```
 
-### Step 2: Define Observer Methods
+### Define Observer Methods
 Open the generated file and define the lifecycle hooks you want to handle:
 ```php
 namespace App\Observers;
@@ -591,26 +588,9 @@ class UserObserver
     }
 }
 ```
-
-### Step 3: Register the Observer
-In the `AppServiceProvider` (`app/Providers/AppServiceProvider.php`), register the observer in the `boot()` method:
-```php
-use Sawmainek\Apitoolz\Models\User;
-use App\Observers\UserObserver;
-
-public function boot()
-{
-    User::observe(UserObserver::class);
-}
-```
-Make sure to use the correct namespace for your User model and observer.
-
-### (Optional) Step 4: Create an Async Job
+### Create an Async Job (Optional) 
 To handle asynchronous tasks, create a job:
-```shell
-php artisan make:job NotifyUserUpdateJob
-```
-In `NotifyUserUpdateJob.php`:
+
 ```php
 namespace App\Jobs;
 
