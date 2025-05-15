@@ -10,6 +10,11 @@ class ObserverServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $observerPath = app_path('Observers');
+
+        if (!File::exists($observerPath)) {
+            File::makeDirectory($observerPath, 0755, true);
+        }
+
         $observerNamespace = 'App\\Observers\\';
 
         // You can list multiple model namespaces to check
