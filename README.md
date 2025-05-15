@@ -459,7 +459,7 @@ Yes, if the `.zip` file contains multiple models, they will all be imported unle
 #### 4. How do I ensure data integrity during import/export?
 Always verify the file and model names before executing the commands to avoid conflicts or data loss.
 
-## How to Integrate with a Custom SMS API
+## How to Integrate with a Custom SMS API?
 
 To integrate a custom SMS API with APIToolz, follow these steps:
 
@@ -524,6 +524,139 @@ class AppServiceProvider extends ServiceProvider
 Once the above steps are complete, you can test your SMS integration by sending notifications through the `sms` channel. Ensure that your custom SMS provider's API is correctly configured in the `CustomSmsService` class.
 
 This setup allows you to seamlessly integrate any SMS provider of your choice into APIToolz.
+
+## How to Implement Model Observers for the User?
+
+### Step 1: Create the Observer
+Generate an observer using the Artisan command:
+```shell
+php artisan make:observer UserObserver --model=User
+```
+This will create the file:
+```php
+app/Observers/UserObserver.php
+```
+
+### Step 2: Define Observer Methods
+Open the generated file and define the lifecycle hooks you want to handle:
+```php
+namespace App\Observers;
+
+use Sawmainek\Apitoolz\Models\User;
+use Illuminate\Support\Facades\Log;
+//use App\Jobs\NotifyUserUpdateJob;
+
+class UserObserver
+{
+    public function creating(User $user)
+    {
+        Log::info('Before creating user', ['data' => $user->toArray()]);
+        // $user->status = $user->status ?? 'pending'; // Set default status
+    }
+
+    public function created(User $user)
+    {
+        Log::info('After creating user', ['id' => $user->id]);
+        // dispatch(new NotifyUserUpdateJob($user)); // Trigger async job
+    }
+
+    public function updating(User $user)
+    {
+        Log::info('Before updating user', ['id' => $user->id]);
+    }
+
+    public function updated(User $user)
+    {
+        Log::info('After updating user', ['id' => $user->id]);
+    }
+
+    public function deleting(User $user)
+    {
+        Log::info('Before deleting user', ['id' => $user->id]);
+    }
+
+    public function deleted(User $user)
+    {
+        Log::info('After deleting user', ['id' => $user->id]);
+    }
+
+    public function restoring(User $user)
+    {
+        Log::info('Before restoring user', ['id' => $user->id]);
+    }
+
+    public function restored(User $user)
+    {
+        Log::info('After restoring user', ['id' => $user->id]);
+    }
+}
+```
+
+### Step 3: Register the Observer
+In the `AppServiceProvider` (`app/Providers/AppServiceProvider.php`), register the observer in the `boot()` method:
+```php
+use Sawmainek\Apitoolz\Models\User;
+use App\Observers\UserObserver;
+
+public function boot()
+{
+    User::observe(UserObserver::class);
+}
+```
+Make sure to use the correct namespace for your User model and observer.
+
+### (Optional) Step 4: Create an Async Job
+To handle asynchronous tasks, create a job:
+```shell
+php artisan make:job NotifyUserUpdateJob
+```
+In `NotifyUserUpdateJob.php`:
+```php
+namespace App\Jobs;
+
+use Sawmainek\Apitoolz\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+
+class NotifyUserUpdateJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(public User $user) {}
+
+    public function handle()
+    {
+        Log::info('Async notification triggered for user', ['id' => $this->user->id]);
+        // Add notification logic here
+    }
+}
+```
+
+This setup ensures that your model's lifecycle events are handled efficiently, with support for asynchronous processing when needed.
+
+To process queued jobs, you can use the following command:
+
+```shell
+php artisan queue:work
+```
+
+This command will start processing jobs from the queue. Ensure that your queue driver is correctly configured in the `.env` file (e.g., `QUEUE_CONNECTION=database` for database queues). You can also specify additional options, such as the queue name or the number of jobs to process.
+
+For example, to process jobs from a specific queue:
+```shell
+php artisan queue:work --queue=high
+```
+
+To run the queue worker as a daemon (recommended for production):
+```shell
+php artisan queue:work --daemon
+```
+
+For more details, refer to the [Laravel Queue Documentation](https://laravel.com/docs/queues).
 
 ## License
 

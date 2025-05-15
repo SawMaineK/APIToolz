@@ -187,26 +187,30 @@ class APIToolzServiceProvider extends ServiceProvider
         $providersFile = base_path('bootstrap/providers.php');
         $apiFile = base_path('routes/api.php');
 
-        if(!file_exists($apiFile)) {
+        if (!file_exists($apiFile)) {
             file_put_contents($apiFile, "<?php\n\n");
         }
 
         if (file_exists($providersFile)) {
             $providers = require $providersFile;
+
+            // Ensure $providers is an array
+            if (!is_array($providers)) {
+                \Log::error('Expected $providers to be an array but got: ' . gettype($providers));
+                return;
+            }
+
             $routeProvider = \Sawmainek\Apitoolz\Providers\RouteServiceProvider::class;
             $permissionProvider = \Sawmainek\Apitoolz\Providers\PermissionMiddlewareServiceProvider::class;
 
-            // Check if routeProvider is already added
             if (!in_array($routeProvider, $providers)) {
                 $providers[] = $routeProvider;
             }
 
-            // Check if permissionProvider is already added
             if (!in_array($permissionProvider, $providers)) {
                 $providers[] = $permissionProvider;
             }
 
-            // Write back to file
             file_put_contents($providersFile, "<?php\n\nreturn " . var_export($providers, true) . ";\n");
         }
     }
