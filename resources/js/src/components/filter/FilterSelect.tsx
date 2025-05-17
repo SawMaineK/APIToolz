@@ -19,7 +19,10 @@ const FilterSelect: React.FC<FilterSelectProps> = ({ filter, onValueChange }) =>
           : `${import.meta.env.VITE_APP_API_URL}/${filter.model_slug}`;
         return await axios.get(url).then(({ data }) => {
           return data.data.map((item: any) => ({
-            label: item[filter.display],
+            label: filter.display
+              .split(',')
+              .map((x) => item[x])
+              .join(' '),
             value: item['id']
           }));
         });

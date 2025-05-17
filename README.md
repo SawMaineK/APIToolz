@@ -296,7 +296,7 @@ Below are the available option parameters for configuring the request body:
 | `--upload-multiple=`    | Allow multiple file uploads (`true` or `false`).                           |
 | `--opt-type=`           | Option type (`select` or `datalist`).                                      |
 | `--lookup-model=`       | The model to use for external lookup values.                               |
-| `--lookup-value=`       | The field to display as the lookup value.                                  |
+| `--lookup-value=`       | The fields to display as the lookup value. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--lookup-dependency-key=` | Dependency key for cascading dropdowns.                                 |
 | `--lookup-query=`       | Query for predefined options (e.g., `key:value|key2:value2`).              |
 | `--select-multiple=`    | Allow multiple selections (`true` or `false`).                             |
@@ -334,7 +334,7 @@ Below are the available options for configuring relationships:
 | `--relation-model=`     | The related model for the relationship.                                    |
 | `--relation-type=`      | The type of relationship (`belongsTo`, `hasOne`, `hasMany`, etc.).         |
 | `--foreign-key=`        | The foreign key for the relationship.                                      |
-| `--display-field=`      | The field to display for the related model.                                |
+| `--display-field=`      | The fields to display for the related model. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--remove`              | Remove the specified relationship.                                         |
 | `--force`               | Force the removal operation without requiring confirmation.                |
 
@@ -397,7 +397,7 @@ Below are some examples:
 | `--filter-model=`       | The model to use for external filter values.                               |
 | `--filter-query=`       | Query for predefined filter options (e.g., `key:value|key2:value2`).       |
 | `--filter-key=`         | The key field for the filter (e.g., `id`).                                 |
-| `--display-field=`      | The field to display for the filter options.                               |
+| `--display-field=`      | The fields to display for the filter options. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--remove`              | Remove the specified filter.                                               |
 | `--force`               | Force the removal operation without requiring confirmation.                |
 

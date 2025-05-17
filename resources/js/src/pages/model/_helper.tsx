@@ -113,7 +113,13 @@ export const generateColumns = (
           return value ? new Date(value).toLocaleString() : '-';
         }
         if (relation) {
-          return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
+          const displayKeys = relation.display.split(',');
+          return displayKeys
+            .map((key) => {
+              return info.row.original[relation.title]?.[key || 'name'] || '-';
+            })
+            .join(' ');
+          //return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
         }
         if (typeof value === 'string') {
           return truncateText(value);
@@ -149,7 +155,9 @@ export function requestOptionData(
     .get(`${import.meta.env.VITE_APP_API_URL}/${slug}?${query}`)
     .then((res) => {
       return res.data.data.map((data: any) => {
-        return { value: data.id, label: data[display] };
+        const keys = display.split(',');
+        const displayValue = keys.map((key) => data[key] || '').join(' ');
+        return { value: data.id, label: displayValue };
       });
     })
     .catch((e) => {});
@@ -314,18 +322,19 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
       case 'select':
         if (field.option.opt_type == 'external') {
           const loadData = async (inputValue: string, filter: { key: string; value: string }) => {
+            const lookupValues = field.option.lookup_value.split(',');
             if (filter && filter.key && filter.value) {
               return requestOptionData(
                 field.option.lookup_model,
                 inputValue
-                  ? `filter=${field.option.lookup_value}:like:${inputValue}|${filter.key}:${filter.value}`
+                  ? `filter=${lookupValues[0]}:like:${inputValue}|${filter.key}:${filter.value}`
                   : `filter=${filter.key}:${filter.value}`,
                 field.option.lookup_value
               );
             } else {
               return requestOptionData(
                 field.option.lookup_model,
-                `filter=${field.option.lookup_value}:like:${inputValue}`,
+                `search=${inputValue}`,
                 field.option.lookup_value
               );
             }
