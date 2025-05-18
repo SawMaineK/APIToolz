@@ -1,3 +1,5 @@
+import { BaseForm } from "@/components/form/base/base-form";
+
 export interface FormField {
   class: string;
   field: string;
@@ -110,6 +112,7 @@ export interface ModelConfig {
   grid: GridField[];
   relationships: Relationship[];
   filters: Filter[];
+  formLayout: BaseForm<string>[];
 }
 
 export interface Model {

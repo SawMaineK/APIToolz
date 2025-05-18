@@ -1,4 +1,5 @@
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 export class BaseForm<T> {
   /**
    * Form Controls Properties
@@ -275,10 +276,10 @@ export class BaseForm<T> {
     /**
      * Form Controls Properties
      */
-    this.unqKey = options.unqKey;
+    this.unqKey = options.unqKey || uuid();
     this.controlType = options.controlType || 'textbox';
     this.type = options.type || 'text';
-    this.display = options.display || 'x';
+    this.display = options.display || 'flex flex-col gap-1';
 
     /**
      * Form Common Properties

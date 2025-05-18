@@ -81,7 +81,7 @@ class ModelController extends Controller
             return response()->json(['message' => $model['message']], 400);
         }
 
-        return response()->json($model);
+        return response()->json(new ModelResource($model));
     }
 
     public function destroy($id, $deleteTable)

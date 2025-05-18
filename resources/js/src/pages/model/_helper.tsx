@@ -186,8 +186,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           type: 'password',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -198,8 +196,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           type: 'email',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -210,8 +206,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           type: 'number',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -223,8 +217,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormTextArea({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           defaultLength: 3,
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -235,8 +227,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInputEditor({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -246,8 +236,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormCheckBox({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -261,8 +249,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         });
         return new FormRadioGroup({
           name: field.field,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -283,8 +269,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDate({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -296,8 +280,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDateTime({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -309,8 +291,6 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'file',
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           multiple: field?.file?.image_multiple,
           //   filePreview: field?.file?.upload_type == 'image' ? true : false,
@@ -320,74 +300,16 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
             : {})
         });
       case 'select':
-        if (field.option.opt_type == 'external') {
-          const loadData = async (inputValue: string, filter: { key: string; value: string }) => {
-            const lookupValues = field.option.lookup_value.split(',');
-            if (filter && filter.key && filter.value) {
-              return requestOptionData(
-                field.option.lookup_model,
-                inputValue
-                  ? `filter=${lookupValues[0]}:like:${inputValue}|${filter.key}:${filter.value}`
-                  : `filter=${filter.key}:${filter.value}`,
-                field.option.lookup_value
-              );
-            } else {
-              return requestOptionData(
-                field.option.lookup_model,
-                `search=${inputValue}`,
-                field.option.lookup_value
-              );
-            }
-          };
-          return new FormSelect({
-            name: field.field,
-            label: field.label,
-            display: 'flex flex-col gap-1',
-            columns: modal ? field.width : 'lg:w-[70%]',
-            multiple: field.option.select_multiple,
-            required:
-              field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-
-            filter: field.option.is_dependency
-              ? {
-                  parent: field.option.lookup_dependency_key,
-                  key: field.option.lookup_filter_key || field.option.lookup_dependency_key
-                }
-              : null,
-            options$: loadData,
-            ...(field.criteria
-              ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-              : {})
-          });
-        } else {
-          const lookupData = field.option.lookup_query.split('|').map((x: any) => {
-            const dataList = x.split(':');
-            return { value: dataList[0], label: dataList[1] };
-          });
-          return new FormSelect({
-            name: field.field,
-            label: field.label,
-            display: 'flex flex-col gap-1',
-            columns: modal ? field.width : 'lg:w-[70%]',
-            multiple: field.option.select_multiple,
-            required:
-              field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-            options$: async () => lookupData,
-            ...(field.criteria
-              ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-              : {})
-          });
-        }
+        return createFormSelectField(field);
 
       default:
         return new FormInput({
           name: field.field,
           label: field.label,
-          display: 'flex flex-col gap-1',
-          columns: modal ? field.width : 'lg:w-[70%]',
           placeholder: field.option?.placeholder || `Enter ${field.label}`,
-          required: field.validator.includes('required'),
-          validators: field.validator.includes('email') ? [Validators.email] : [],
+          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+          validators:
+            field?.validator && field?.validator?.indexOf('email') != -1 ? [Validators.email] : [],
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
             : {})
@@ -395,3 +317,81 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
     }
   });
 };
+
+export const toFormLayout = (
+  formLayout: BaseForm<string>[],
+  forms: FormField[]
+): BaseForm<string>[] => {
+  return formLayout.map((formField: BaseForm<string>) => {
+    switch (formField.controlType) {
+      case 'dropdown':
+        {
+          const field = forms.find((f: FormField) => f.field === formField.name);
+          if (field) {
+            return {
+              ...createFormSelectField(field),
+              ...formField
+            };
+          }
+        }
+        return formField;
+      default:
+        return formField;
+    }
+  });
+};
+
+type Filter = { key: string; value: string };
+
+function createFormSelectField(field: any): FormSelect {
+  const isRequired = field?.validator?.includes('required') ?? false;
+
+  const commonProps = {
+    name: field.field,
+    label: field.label,
+    multiple: field.option.select_multiple,
+    required: isRequired,
+    ...(field.criteria
+      ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+      : {})
+  };
+
+  if (field.option.opt_type === 'external') {
+    const loadData = async (inputValue: string, filter: Filter) => {
+      const lookupValues = field.option.lookup_value.split(',');
+      if (filter?.key && filter?.value) {
+        const filterQuery = inputValue
+          ? `filter=${lookupValues[0]}:like:${inputValue}|${filter.key}:${filter.value}`
+          : `filter=${filter.key}:${filter.value}`;
+        return requestOptionData(field.option.lookup_model, filterQuery, field.option.lookup_value);
+      } else {
+        return requestOptionData(
+          field.option.lookup_model,
+          `search=${inputValue}`,
+          field.option.lookup_value
+        );
+      }
+    };
+
+    return new FormSelect({
+      ...commonProps,
+      filter: field.option.is_dependency
+        ? {
+            parent: field.option.lookup_dependency_key,
+            key: field.option.lookup_filter_key || field.option.lookup_dependency_key
+          }
+        : null,
+      options$: loadData
+    });
+  } else {
+    const lookupData = field.option.lookup_query.split('|').map((x: string) => {
+      const [value, label] = x.split(':');
+      return { value, label };
+    });
+
+    return new FormSelect({
+      ...commonProps,
+      options$: async () => lookupData
+    });
+  }
+}

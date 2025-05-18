@@ -2,6 +2,7 @@
 namespace Sawmainek\Apitoolz\Services;
 
 use Illuminate\Http\Request;
+use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\Models\Model as ApiToolzModel;
 
 class ModelService
@@ -113,6 +114,7 @@ class ModelService
     {
         $model = $this->model->find($id);
         if ($model) {
+            $data['config'] = ModelConfigUtils::encryptJson($data['config']);
             $model->update($data);
             return $model;
         }

@@ -240,9 +240,9 @@ const DataTable = ({ model }: ModelContentProps) => {
           </ToolbarDescription>
         </ToolbarHeading>
         <ToolbarActions>
-          <Link to={''} className="btn btn-sm btn-light">
-            <KeenIcon icon="exit-down" className="!text-base" />
-            Export
+          <Link to={`/apitoolz/model/${model.slug}/builder`} className="btn btn-sm btn-light">
+            <KeenIcon icon="setting-2" className="!text-base" />
+            Builder
           </Link>
           <button
             onClick={() => {

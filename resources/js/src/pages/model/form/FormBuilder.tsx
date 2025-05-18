@@ -7,9 +7,12 @@ import { BaseForm } from '@/components/form/base/base-form';
 import { FormGroup } from 'react-reactive-form';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { Subject } from 'rxjs';
-import { generateFormLayout, toFormLayout } from '../_helper';
+import { generateFormLayout } from '../_helper';
+import { FormLayoutBuilder } from '@/components/form/FormLayoutBuilder';
+import { useState } from 'react';
+import { unset } from 'lodash';
 
-const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
+const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/apitoolz';
@@ -18,17 +21,17 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
     ...modelData
   };
 
-  const formLayout: BaseForm<string>[] = model.config.formLayout
-    ? toFormLayout(model.config.formLayout, model.config.forms)
-    : [
-        ...generateFormLayout(model.config.forms || [], isModal || false),
-        new FormSubmit({
-          label: `Submit`,
-          display: 'flex flex-col gap-1',
-          altClass: 'flex',
-          inputClass: `flex justify-center ${isModal ? 'grow' : ''}`
-        })
-      ];
+  const [formLayout, setFormLayout] = useState<BaseForm<string>[]>(
+    model.config.formLayout || [
+      ...generateFormLayout(model.config.forms || [], isModal || false),
+      new FormSubmit({
+        label: `Submit`,
+        display: 'flex flex-col gap-1',
+        altClass: 'flex',
+        inputClass: `flex justify-center ${isModal ? 'grow' : ''}`
+      })
+    ]
+  );
 
   const formSubmit = async (value: any, formGroup: FormGroup, submitted$: Subject<boolean>) => {
     try {
@@ -102,34 +105,57 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
     }
   };
 
+  const onSaveFormLayout = async (formLayout: BaseForm<string>[]) => {
+    console.log(JSON.stringify(formLayout));
+    try {
+      model.config.formLayout = formLayout;
+      const result = await axios.put(
+        `${import.meta.env.VITE_APP_API_URL}/model/${model.id}`,
+        model
+      );
+      toast.success('Successfully updated');
+    } catch (error: any) {
+      console.error('Form submission failed:', error);
+    }
+  };
+
+  const onResetFormLayout = async () => {
+    console.log(JSON.stringify(formLayout));
+    try {
+      unset(model.config, 'formLayout');
+      const result = await axios.put(
+        `${import.meta.env.VITE_APP_API_URL}/model/${model.id}`,
+        model
+      );
+      toast.success('Successfully updated');
+      setFormLayout([
+        ...generateFormLayout(model.config.forms || [], isModal || false),
+        new FormSubmit({
+          label: `Submit`,
+          display: 'flex flex-col gap-1',
+          altClass: 'flex',
+          inputClass: `flex justify-center ${isModal ? 'grow' : ''}`
+        })
+      ]);
+    } catch (error: any) {
+      console.error('Form submission failed:', error);
+    }
+  };
+
   return (
-    <>
-      {isModal ? (
-        <div className="">
-          <FormLayout
-            initValues={initialValues}
-            formLayout={formLayout}
-            onSubmitForm={formSubmit}
-          ></FormLayout>
-        </div>
-      ) : (
-        <div className="card w-full">
-          <div className="card-body flex flex-col gap-5 p-10">
-            <div className="mb-2.5">
-              <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">
-                {modelData ? `Edit` : `New`} {model.title}
-              </h3>
-            </div>
-            <FormLayout
-              initValues={initialValues}
-              formLayout={formLayout}
-              onSubmitForm={formSubmit}
-            ></FormLayout>
-          </div>
-        </div>
-      )}
-    </>
+    <div className="card w-full">
+      <div className="card-body flex flex-col gap-5">
+        <FormLayoutBuilder
+          title={`Form Builder for ${model.title}`}
+          initValues={{}}
+          formLayout={formLayout}
+          onSaveFormLayout={onSaveFormLayout}
+          onResetFormLayout={onResetFormLayout}
+          onSubmitForm={formSubmit}
+        ></FormLayoutBuilder>
+      </div>
+    </div>
   );
 };
 
-export { Create };
+export { FormBuilder };
