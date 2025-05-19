@@ -14,8 +14,8 @@ interface IFlatpickerProps {
   inputClass?: string;
   filter?: { parent: string; key: string };
   readonly?: boolean;
-  min?: any;
-  max?: any;
+  minDate?: string;
+  maxDate?: string;
 }
 
 export const Flatpicker = ({
@@ -25,8 +25,8 @@ export const Flatpicker = ({
   enableTime = false,
   placeholder,
   inputClass,
-  min,
-  max
+  minDate,
+  maxDate
 }: IFlatpickerProps) => {
   const flatpickrRef = useRef<any>(null);
 
@@ -53,6 +53,18 @@ export const Flatpicker = ({
     }
   };
 
+  const getDateLimit = (value: string) => {
+    try {
+      return value == 'today'
+        ? new Date().toISOString().split('T')[0]
+        : value
+          ? new Date(value).toISOString().split('T')[0]
+          : undefined;
+    } catch (error) {
+      return undefined;
+    }
+  };
+
   const handleClose = () => {
     try {
       if (formGroup?.controls) {
@@ -74,8 +86,8 @@ export const Flatpicker = ({
         altInput: true,
         altInputClass: `${inputClass}`,
         enableTime,
-        minDate: min,
-        maxDate: max,
+        minDate: getDateLimit(minDate || ''),
+        maxDate: getDateLimit(maxDate || ''),
         altFormat: enableTime ? 'F j, Y H:i' : 'F j, Y',
         dateFormat: enableTime ? 'Y-m-d H:i:S' : 'Y-m-d',
         appendTo: document.body,

@@ -2,17 +2,23 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { ModelContentProps } from '../_models';
 import { FormLayout } from '@/components/form/FormLayout';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BaseForm } from '@/components/form/base/base-form';
 import { FormGroup } from 'react-reactive-form';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { Subject } from 'rxjs';
 import { generateFormLayout, toFormLayout } from '../_helper';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle
+} from '@/partials/toolbar';
+import { KeenIcon } from '@/components/keenicons';
 
 const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/apitoolz';
 
   const initialValues = {
     ...modelData
@@ -73,7 +79,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
         formGroup.reset();
         onCreated?.(result.data);
       } else {
-        navigate(from, { replace: true });
+        navigate(`/apitoolz/model/${model.slug}`, { replace: true });
       }
     } catch (error: any) {
       console.error('Form submission failed:', error);
@@ -114,12 +120,20 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
         </div>
       ) : (
         <div className="card w-full">
-          <div className="card-body flex flex-col gap-5 p-10">
-            <div className="mb-2.5">
-              <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">
-                {modelData ? `Edit` : `New`} {model.title}
-              </h3>
-            </div>
+          <div className="card-body flex flex-col gap-5">
+            <Toolbar>
+              <ToolbarHeading>
+                <ToolbarPageTitle
+                  text={modelData ? `Edit ${model?.title || ''}` : `New  ${model?.title || ''}`}
+                />
+              </ToolbarHeading>
+              <ToolbarActions>
+                <Link to={`/apitoolz/model/${model.slug}/builder`} className="btn btn-sm btn-light">
+                  <KeenIcon icon="setting-2" className="!text-base" />
+                  Builder
+                </Link>
+              </ToolbarActions>
+            </Toolbar>
             <FormLayout
               initValues={initialValues}
               formLayout={formLayout}

@@ -30,8 +30,9 @@ export const DateTimePicker = ({ handler, formGroup, ...props }: FormDate) => {
                 formGroup={formGroup}
                 placeholder={props.placeholder}
                 readonly={props.readonly}
-                min={props.min}
-                max={props.max}
+                minDate={props.minDate}
+                maxDate={props.maxDate}
+                dateFormat={props.dateFormat}
                 inputClass={props.inputClass}
               />
               {props.tooltip ? (

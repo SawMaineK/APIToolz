@@ -169,18 +169,18 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
       <Separator />
 
       <h3 className="text-md font-semibold">Advanced</h3>
-    {floatingInput('tooltip', formField.tooltip, 'Tooltip (e.g., helpful info)', (e) =>
-      updateField('tooltip', e.target.value)
-    )}
-    {floatingInput('hint', formField.hint, 'Hint (e.g., additional guidance)', (e) =>
-      updateField('hint', e.target.value)
-    )}
-    {floatingInput(
-      'defaultLength',
-      formField.defaultLength,
-      'Default Row Length (e.g., for Textarea & Table)',
-      (e) => updateField('defaultLength', Number(e.target.value) || 3)
-    )}
+      {floatingInput('tooltip', formField.tooltip, 'Tooltip (e.g., helpful info)', (e) =>
+        updateField('tooltip', e.target.value)
+      )}
+      {floatingInput('hint', formField.hint, 'Hint (e.g., additional guidance)', (e) =>
+        updateField('hint', e.target.value)
+      )}
+      {floatingInput(
+        'defaultLength',
+        formField.defaultLength,
+        'Default Row Length (e.g., for Textarea & Table)',
+        (e) => updateField('defaultLength', Number(e.target.value) || 3)
+      )}
       <div className="flex items-center gap-2">
         <Switch
           checked={!!formField.readonly}
@@ -188,8 +188,11 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
         />
         <span className="form-label">Read-only</span>
       </div>
-      {floatingInput('dateFormat', formField.dateFormat ?? '', 'Date Format', (e) =>
-        updateField('dateFormat', e.target.value)
+      {floatingInput('minDate', formField.minDate ?? '', 'Mix Date(e.g, today|Y-m-d)', (e) =>
+        updateField('minDate', e.target.value)
+      )}
+      {floatingInput('maxDate', formField.maxDate ?? '', 'Max Date(e.g, today|Y-m-d)', (e) =>
+        updateField('maxDate', e.target.value)
       )}
       {floatingInput('columns', formField.columns ?? '', 'Columns (e.g., col-span-6)', (e) =>
         updateField('columns', e.target.value)

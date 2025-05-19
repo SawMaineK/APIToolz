@@ -2,7 +2,7 @@ import { FormHidden } from '../base/form-hidden';
 
 export const Hidden = ({ handler, ...props }: FormHidden) => {
   return (
-    <div className={`mb-4 ${props.altClass || ''}`} style={props.style}>
+    <div className={`mb-4 ${props.altClass || ''}`} style={{ display: 'none', ...props.style }}>
       {props.label && (
         <label className="block text-sm font-medium text-gray-700">
           {props.label}

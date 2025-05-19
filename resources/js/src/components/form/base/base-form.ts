@@ -31,6 +31,8 @@ export class BaseForm<T> {
    */
   validators: any[];
   dateFormat: string | undefined;
+  minDate: string | undefined;
+  maxDate: string | undefined;
   acceptFiles: string;
   filePreview: boolean;
   tooltip: string;
@@ -167,6 +169,8 @@ export class BaseForm<T> {
        */
       validators?: any[];
       dateFormat?: string | undefined;
+      minDate?: 'today' | string | undefined;
+      maxDate?: 'today' | string | undefined;
       acceptFiles?: string;
       filePreview?: boolean;
       tooltip?: string;
@@ -303,6 +307,8 @@ export class BaseForm<T> {
      */
     this.validators = options.validators || [];
     this.dateFormat = options.dateFormat;
+    this.minDate = options.minDate;
+    this.maxDate = options.maxDate;
     this.acceptFiles = options.acceptFiles || '*';
     this.filePreview = options.filePreview || false;
     this.tooltip = options.tooltip || '';

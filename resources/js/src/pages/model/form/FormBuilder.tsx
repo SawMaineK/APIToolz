@@ -120,7 +120,6 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
   };
 
   const onResetFormLayout = async () => {
-    console.log(JSON.stringify(formLayout));
     try {
       unset(model.config, 'formLayout');
       const result = await axios.put(

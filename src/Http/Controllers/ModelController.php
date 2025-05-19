@@ -84,6 +84,17 @@ class ModelController extends Controller
         return response()->json(new ModelResource($model));
     }
 
+    public function askRequest($slug)
+    {
+        $response = $this->modelService->askRequest($slug);
+
+        if (isset($response['status']) && $response['status'] === 'error') {
+            return response()->json(['message' => $response['message']], 400);
+        }
+
+        return response()->json($response);
+    }
+
     public function destroy($id, $deleteTable)
     {
         $response = $this->modelService->delete($id, $deleteTable);

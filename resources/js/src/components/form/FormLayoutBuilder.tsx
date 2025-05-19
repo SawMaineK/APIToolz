@@ -13,7 +13,7 @@ import { BaseForm } from './base/base-form';
 import { BaseFormArray } from './base/form-array';
 import { BaseFormGroup } from './base/form-group';
 import { FormField } from './FormField';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toFormGroup } from './FormLayout';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -535,6 +535,7 @@ function SortableFormField({
       {/* Content Container */}
       <div
         className="py-2 px-8 border border-gray-300 bg-white rounded shadow relative"
+        style={{ minHeight: '56px' }}
         onClick={(e) => {
           e.stopPropagation();
           onClick(formField);
@@ -567,9 +568,24 @@ function SortableFormField({
           key={uuid()}
           control={formGroup}
           render={() => {
-            return (
-              <FormField formLayout={formLayout} formField={formField} formGroup={formGroup} />
-            );
+            switch (formField.controlType) {
+              case 'hidden':
+                return <span className="text-md mt-2 flex items-center">Hidden Input</span>;
+              case 'label':
+                return (
+                  <div className="mt-2 flex items-center">
+                    <FormField
+                      formLayout={formLayout}
+                      formField={formField}
+                      formGroup={formGroup}
+                    />
+                  </div>
+                );
+              default:
+                return (
+                  <FormField formLayout={formLayout} formField={formField} formGroup={formGroup} />
+                );
+            }
           }}
         />
       </div>

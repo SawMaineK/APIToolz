@@ -2,6 +2,7 @@
 namespace Sawmainek\Apitoolz\Services;
 
 use Illuminate\Http\Request;
+use Sawmainek\Apitoolz\APIToolzGenerator;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\Models\Model as ApiToolzModel;
 
@@ -117,6 +118,22 @@ class ModelService
             $data['config'] = ModelConfigUtils::encryptJson($data['config']);
             $model->update($data);
             return $model;
+        }
+        return null;
+    }
+
+    public function askRequest($slug) {
+        $model = $this->model->where('slug', $slug)->first();
+        if ($model) {
+            $config = ModelConfigUtils::decryptJson($model->config);
+            $fields = collect($config['forms'])->filter(function ($field) {
+                return isset($field['view']) && $field['view'] == true &&
+                       !in_array($field['field'], ['id', 'created_at', 'updated_at', 'deleted_at']);
+            })->map(function ($field) {
+                return $field['field'];
+            })->implode(', ');
+            $question = "Create $model->name model's request field configuration for $fields fields with above format.";
+            return APIToolzGenerator::askRequestHint($question);
         }
         return null;
     }

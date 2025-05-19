@@ -60,6 +60,33 @@ class APIToolzGenerator
         }
     }
 
+    public static function askRequestHint($question)
+    {
+        self::verifyValitation();
+        $response = \Http::post(config('apitoolz.host').'/apps/ai/ask/request', [
+            'ask' => $question,
+            'key' => config('apitoolz.activated_key')
+        ]);
+        if($response->failed()) {
+            switch ($response->status()) {
+                case 400:
+                case 419:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+                default:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+            }
+        }
+        if($response->successful()) {
+            return json_decode($response->body());
+        }
+    }
+
     static function verifyValitation() {
         if(config('apitoolz.host') == '') {
             echo "Please define APITOOLZ_HOST= in env.\n";
