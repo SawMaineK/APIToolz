@@ -297,6 +297,7 @@ Below are the available option parameters for configuring the request body:
 | `--opt-type=`           | Option type (`select` or `datalist`).                                      |
 | `--lookup-model=`       | The model to use for external lookup values.                               |
 | `--lookup-value=`       | The fields to display as the lookup value. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
+| `--lookup-key=`          | The key field for external lookup values (e.g., `id`).                    |
 | `--lookup-dependency-key=` | Dependency key for cascading dropdowns.                                 |
 | `--lookup-query=`       | Query for predefined options (e.g., `key:value|key2:value2`).              |
 | `--select-multiple=`    | Allow multiple selections (`true` or `false`).                             |
@@ -360,7 +361,7 @@ Below are some examples:
 
 1. To define a filter with a specific type:
     ```shell
-    php artisan apitoolz:filter Product --title=category --filter-type=select --filter-model=Category --filter-key=category_id --display-field=name
+    php artisan apitoolz:filter Product --title=category --filter-type=select --filter-model=Category --filter-key=category_id --filter-label=name
     ```
 
 2. To define a filter with a custom query:
@@ -378,12 +379,17 @@ Below are some examples:
     php artisan apitoolz:filter Product --title=published --filter-type=checkbox --filter-query='Is Active' --filter-key=published
     ```
 
-5. To remove an existing filter:
+5. To define a filter with custom value and label fields:
+    ```shell
+    php artisan apitoolz:filter Product --title=brand --filter-type=select --filter-model=Brand --filter-key=brand_id --filter-value=id --filter-label=name
+    ```
+
+6. To remove an existing filter:
     ```shell
     php artisan apitoolz:filter Product --title=category --remove
     ```
 
-6. To force remove a filter without confirmation:
+7. To force remove a filter without confirmation:
     ```shell
     php artisan apitoolz:filter Order --title=status --remove --force
     ```
@@ -393,23 +399,43 @@ Below are some examples:
 | Parameter               | Description                                                                 |
 |-------------------------|-----------------------------------------------------------------------------|
 | `--title=`              | The name of the filter.                                                    |
-| `--filter-type=`        | The type of filter (`select`, `checkbox`, radio).                         |
+| `--filter-type=`        | The type of filter (`select`, `checkbox`, `radio`).                        |
 | `--filter-model=`       | The model to use for external filter values.                               |
 | `--filter-query=`       | Query for predefined filter options (e.g., `key:value|key2:value2`).       |
 | `--filter-key=`         | The key field for the filter (e.g., `id`).                                 |
-| `--display-field=`      | The fields to display for the filter options. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
+| `--filter-value=`       | The value field for the filter option (used with external models).          |
+| `--filter-lable=`       | The fields to display for the filter options. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--remove`              | Remove the specified filter.                                               |
 | `--force`               | Force the removal operation without requiring confirmation.                |
 
 ## Rebuild/Remove Model
 
-### How can I rebuild or remove a Restful API model?
+### How can I rebuild or remove a RESTful API model?
 
-To rebuild your Restful API model:
+To rebuild a specific RESTful API model:
 
 ```shell
-php artisan apitoolz:model Customer --rebuild
+php artisan apitoolz:rebuild --model=Customer
 ```
+
+To rebuild all RESTful API models:
+
+```shell
+php artisan apitoolz:rebuild --all
+```
+
+To remove a specific RESTful API model (without deleting its table):
+
+```shell
+php artisan apitoolz:model Customer --remove
+```
+
+To remove a model and its database table:
+
+```shell
+php artisan apitoolz:model Customer --remove --remove-table
+```
+
 To remove your model along with its database table:
 
 ```shell

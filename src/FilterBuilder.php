@@ -35,7 +35,8 @@ class FilterBuilder
         $filter['type'] = $request['filter_type'];
         $filter['model'] = $filterModel ? $filterModel->name : '';
         $filter['model_slug'] = $filterModel ? $filterModel->slug : '';
-        $filter['display'] = $request['display_field'] ?? 'name';
+        $filter['display'] = $request['filter_label'] ?? 'name';
+        $filter['value'] = $request['filter_value'] ?? 'id';
         $filter['query'] = $request['filter_query'] ?? '';
         $filter['key'] = $request['filter_key'];
         $existedIdx = self::getExistedFilter($config['filters'], $filter['title']);
@@ -64,6 +65,7 @@ class FilterBuilder
             'model' => '',
             'model_slug' => '',
             'display' => 'name',
+            'value' => 'id',
             'query' => '',
             'key' => '',
         ];

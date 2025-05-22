@@ -17,7 +17,7 @@ class ModelFilterGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:filter {model} {--title=} {--filter-type=} {--filter-model=} {--filter-query=} {--filter-key=} {--display-field=} {--remove} {--force}';
+    protected $signature = 'apitoolz:filter {model} {--title=} {--filter-type=} {--filter-model=} {--filter-query=} {--filter-value=} {--filter-label=} {--filter-key=} {--remove} {--force}';
 
     /**
      * The console command description.
@@ -43,7 +43,8 @@ class ModelFilterGenerator extends Command
                 $roles = array_merge($roles, [
                     'filter_type' => 'required|in:select,checkbox,radio',
                     'filter_model' => 'nullable|exists:Sawmainek\Apitoolz\Models\Model,name',
-                    'display_field' => $this->option('filter-model') ? 'required' : 'nullable',
+                    'filter_lable' => $this->option('filter-model') ? 'required' : 'nullable',
+                    'filter_value' => $this->option('filter-model') ? 'required' : 'nullable',
                     'filter_query' => !$this->option('filter-model') ? 'required' : 'nullable',
                     'filter_key' => 'required'
                 ]);
@@ -52,7 +53,8 @@ class ModelFilterGenerator extends Command
                 'title' => $this->option('title'),
                 'filter_type' => $this->option('filter-type'),
                 'filter_model' => $this->option('filter-model'),
-                'display_field' => $this->option('display-field'),
+                'filter_lable' => $this->option('filter-label'),
+                'filter_value' => $this->option('filter-value'),
                 'filter_query' => $this->option('filter-query'),
                 'filter_key' => $this->option('filter-key')
             ];

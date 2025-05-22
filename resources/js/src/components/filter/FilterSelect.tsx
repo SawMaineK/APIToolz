@@ -15,19 +15,19 @@ const FilterSelect: React.FC<FilterSelectProps> = ({ filter, onValueChange }) =>
     try {
       if (filter.model) {
         const url = inputValue
-          ? `${import.meta.env.VITE_APP_API_URL}/${filter.model_slug}?search=${inputValue}`
-          : `${import.meta.env.VITE_APP_API_URL}/${filter.model_slug}`;
+          ? `${import.meta.env.VITE_APP_API_URL}/${filter.model_slug}?search=${inputValue}&fields=${filter.key},${filter.display}&per_page=1000`
+          : `${import.meta.env.VITE_APP_API_URL}/${filter.model_slug}?fields=${filter.key},${filter.display}&per_page=1000`;
         return await axios.get(url).then(({ data }) => {
           return data.data.map((item: any) => ({
             label: filter.display
-              .split(',')
-              .map((x) => item[x])
-              .join(' '),
-            value: item['id']
+              ?.split(',')
+              ?.map((x) => item[x])
+              ?.join(' '),
+            value: item[filter.value || 'id']
           }));
         });
       } else {
-        const queryData = filter.query.split('|');
+        const queryData = filter.query?.split('|');
         const list = queryData.map((item: string) => {
           const [key, value] = item.split(':');
           return {

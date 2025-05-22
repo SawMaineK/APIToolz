@@ -96,6 +96,7 @@ export interface Relationship {
 }
 
 export interface Filter {
+  value: string;
   display: string;
   key: string;
   model: string;

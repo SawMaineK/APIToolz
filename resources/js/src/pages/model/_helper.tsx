@@ -149,15 +149,18 @@ export const generateColumns = (
 export function requestOptionData(
   slug: string,
   query?: string,
-  display: string = 'name'
+  display: string = 'name',
+  key: string = 'id'
 ): Promise<any> {
   return axios
-    .get(`${import.meta.env.VITE_APP_API_URL}/${slug}?${query}`)
+    .get(
+      `${import.meta.env.VITE_APP_API_URL}/${slug}?${query}&fields=${key},${display}&per_page=1000`
+    )
     .then((res) => {
       return res.data.data.map((data: any) => {
         const keys = display.split(',');
         const displayValue = keys.map((key) => data[key] || '').join(' ');
-        return { value: data.id, label: displayValue };
+        return { value: data[key], label: displayValue };
       });
     })
     .catch((e) => {});
@@ -363,12 +366,18 @@ function createFormSelectField(field: any): FormSelect {
         const filterQuery = inputValue
           ? `filter=${lookupValues[0]}:like:${inputValue}|${filter.key}:${filter.value}`
           : `filter=${filter.key}:${filter.value}`;
-        return requestOptionData(field.option.lookup_model, filterQuery, field.option.lookup_value);
+        return requestOptionData(
+          field.option.lookup_model,
+          filterQuery,
+          field.option.lookup_value,
+          field.option.lookup_key
+        );
       } else {
         return requestOptionData(
           field.option.lookup_model,
           `search=${inputValue}`,
-          field.option.lookup_value
+          field.option.lookup_value,
+          field.option.lookup_key
         );
       }
     };
@@ -384,7 +393,7 @@ function createFormSelectField(field: any): FormSelect {
       options$: loadData
     });
   } else {
-    const lookupData = field.option.lookup_query.split('|').map((x: string) => {
+    const lookupData = field.option.lookup_query?.split('|').map((x: string) => {
       const [value, label] = x.split(':');
       return { value, label };
     });

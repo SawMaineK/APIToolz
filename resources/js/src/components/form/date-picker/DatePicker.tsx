@@ -1,3 +1,4 @@
+import { KeenIcon } from '@/components/keenicons';
 import { FormDate } from '../base/form-date';
 import { Flatpicker } from './Flatpicker';
 
@@ -47,7 +48,11 @@ export const DatePicker = ({ handler, formGroup, ...props }: DatePickerProps) =>
               ) : null}
               {props.endfix || props.endfixHtml ? (
                 <span dangerouslySetInnerHTML={{ __html: props.endfixHtml || props.endfix }}></span>
-              ) : null}
+              ) : (
+                <span>
+                  <KeenIcon icon="calendar-2" />
+                </span>
+              )}
             </div>
           )}
           {props.hint && (

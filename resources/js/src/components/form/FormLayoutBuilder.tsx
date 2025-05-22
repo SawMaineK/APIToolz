@@ -7,7 +7,8 @@ import {
   FormArray,
   AbstractControl,
   FieldGroup,
-  Validators
+  Validators,
+  Field
 } from 'react-reactive-form';
 import { BaseForm } from './base/base-form';
 import { BaseFormArray } from './base/form-array';
@@ -18,6 +19,13 @@ import { toFormGroup } from './FormLayout';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuid } from 'uuid';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet';
 
 import {
   SortableContext,
@@ -43,7 +51,11 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
   const [formGroup, setFormGroup] = useState(toFormGroup(props.formLayout, props.initValues || {}));
 
   const [formLayout, setFormLayout] = useState<BaseForm<string>[]>(props.formLayout);
-  const [selectedField, setSelectedField] = useState<BaseForm<any>>(formLayout[0]);
+  const [selectedField, setSelectedField] = useState<BaseForm<any> | null>(null);
+
+  const handleClose = () => {
+    setSelectedField(null);
+  };
 
   useEffect(() => {
     const newFormGroup: FormGroup = toFormGroup(formLayout, props.initValues || {});
@@ -82,11 +94,11 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
       <div className="w-2/3 flex flex-wrap px-4 space-y-4 p-4">
         <h3 className="text-lg font-semibold">{props.title ?? 'Form Builder'}</h3>
       </div>
-      <div className="w-1/3 flex flex-wrap px-4 space-y-4 p-4">
+      {/* <div className="w-1/3 flex flex-wrap px-4 space-y-4 p-4">
         <h3 className="text-lg font-semibold">Form Properties</h3>
-      </div>
+      </div> */}
 
-      <div className="w-2/3 flex flex-wrap px-4 space-y-4 p-4 mb-auto">
+      <div className="w-full flex flex-wrap px-4 space-y-4 p-4 mb-auto">
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext
             items={formLayout.map((f) => f.unqKey)}
@@ -222,6 +234,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
                             formLayout={formField.formGroup}
                             formGroup={formGroup.get(formField.name)}
                             initValues={props.initValues && props.initValues[formField.name]}
+                            selectedField={selectedField}
                             onClick={(field) => {
                               setSelectedField(field);
                             }}
@@ -240,6 +253,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
                               formField={formField}
                               formLayout={formField.formArray}
                               formArray={formGroup.get(formField.name) as FormArray}
+                              selectedField={selectedField}
                               onClick={(field) => {
                                 setSelectedField(field);
                               }}
@@ -261,6 +275,9 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
                         formGroup={formGroup}
                         formLayout={formLayout}
                         formField={formField}
+                        selected={
+                          (selectedField && selectedField.unqKey == formField.unqKey) || false
+                        }
                         onClick={(field) => {
                           setSelectedField(field);
                         }}
@@ -286,24 +303,36 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
             onClick={() => {
               props.onResetFormLayout();
             }}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
+            className="border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 font-semibold py-2 px-4 rounded"
           >
             Reset Form Layout
           </button>
         </div>
       </div>
-      <div className="w-1/3">
-        <FormFieldPropertiesPanel
-          formField={selectedField}
-          onChange={(updated) => {
-            setSelectedField(updated);
+      <Sheet open={selectedField != null} onOpenChange={handleClose}>
+        <SheetContent
+          className="border-0 p-0 w-[400px] scrollable-y-auto"
+          forceMount={true}
+          side="right"
+          close={false}
+        >
+          <SheetHeader>
+            <SheetTitle>
+              <h3 className="text-lg font-semibold p-4">Form Properties</h3>
+            </SheetTitle>
+          </SheetHeader>
+          <FormFieldPropertiesPanel
+            onChange={(updated) => {
+              setSelectedField(updated);
 
-            setFormLayout((prev) =>
-              prev.map((f) => (f.unqKey === updated.unqKey ? { ...f, ...updated } : f))
-            );
-          }}
-        />
-      </div>
+              setFormLayout((prev) =>
+                prev.map((f) => (f.unqKey === updated.unqKey ? { ...f, ...updated } : f))
+              );
+            }}
+            formField={selectedField}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
@@ -313,6 +342,7 @@ interface IFormLayoutControl {
   formGroup: FormGroup | any;
   initValues?: any;
   submitted$?: any;
+  selectedField?: BaseForm<string> | null;
   onClick: (field: BaseForm<string>) => void;
   onRemove: (field: BaseForm<string>) => void;
   onAdd: (field: BaseForm<string>) => void;
@@ -450,6 +480,7 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                         formLayout={formField.formGroup}
                         formGroup={props.formGroup.get(formField.name)}
                         initValues={props.initValues && props.initValues[formField.name]}
+                        selectedField={props.selectedField}
                         onClick={props.onClick}
                         onRemove={props.onRemove}
                         onAdd={props.onAdd}
@@ -467,6 +498,7 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                           formLayout={formField.formArray}
                           formArray={props.formGroup.get(formField.name) as FormArray}
                           initValues={(props.initValues && props.initValues[formField.name]) || []}
+                          selectedField={props.selectedField}
                           onClick={props.onClick}
                           onRemove={props.onRemove}
                           onAdd={props.onAdd}
@@ -484,6 +516,10 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                     formGroup={props.formGroup}
                     formLayout={props.formLayout}
                     formField={formField}
+                    selected={
+                      (props.selectedField && props.selectedField.unqKey == formField.unqKey) ||
+                      false
+                    }
                     onClick={props.onClick}
                     onRemove={props.onRemove}
                     onAdd={props.onAdd}
@@ -502,6 +538,7 @@ function SortableFormField({
   formGroup,
   formField,
   id,
+  selected,
   onClick,
   onRemove,
   onAdd
@@ -510,6 +547,7 @@ function SortableFormField({
   formGroup: FormGroup;
   formField: BaseForm<string>;
   id: string;
+  selected: boolean;
   onClick: (formField: BaseForm<string>) => void;
   onRemove: (formField: BaseForm<string>) => void;
   onAdd: (formField: BaseForm<string>) => void;
@@ -534,7 +572,7 @@ function SortableFormField({
 
       {/* Content Container */}
       <div
-        className="py-2 px-8 border border-gray-300 bg-white rounded shadow relative"
+        className={`py-2 px-8 border border-neutral-300 bg-white rounded shadow relative ${selected ? 'bg-white-100' : ''}`}
         style={{ minHeight: '56px' }}
         onClick={(e) => {
           e.stopPropagation();
@@ -544,7 +582,7 @@ function SortableFormField({
         {/* Top-right buttons */}
         <div className="absolute top-7 right-2 -translate-y-1/2 flex flex-col space-y-1 z-1">
           <button
-            className="text-gray-600 hover:text-blue-500"
+            className="text-neutral-600 hover:text-blue-500"
             onClick={(e) => {
               e.stopPropagation(); // prevent parent onClick
               onRemove(formField);
@@ -553,7 +591,7 @@ function SortableFormField({
             <X size={18} />
           </button>
           <button
-            className="text-gray-600 hover:text-green-500"
+            className="text-neutral-600 hover:text-green-500"
             onClick={(e) => {
               e.stopPropagation();
               onAdd(formField);
@@ -572,6 +610,7 @@ function SortableFormField({
               case 'hidden':
                 return <span className="text-md mt-2 flex items-center">Hidden Input</span>;
               case 'label':
+              case 'sub_title':
                 return (
                   <div className="mt-2 flex items-center">
                     <FormField
@@ -597,6 +636,7 @@ type IFormTableControl = {
   formLayout: BaseForm<string>[];
   formArray: FormArray;
   initValues?: any;
+  selectedField?: BaseForm<string> | null;
   onClick: (field: BaseForm<string>) => void;
   onRemove: (field: BaseForm<string>) => void;
   onAdd: (field: BaseForm<string>) => void;
@@ -630,6 +670,7 @@ export const FormTableControl = (props: IFormTableControl) => {
                       formLayout={props.formLayout}
                       formGroup={formGroup}
                       initValues={props.initValues[index] || {}}
+                      selectedField={props.selectedField}
                       onClick={props.onClick}
                       onRemove={props.onRemove}
                       onAdd={props.onAdd}

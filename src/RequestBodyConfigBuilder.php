@@ -76,7 +76,7 @@ class RequestBodyConfigBuilder
                             $config['forms'][$i]['option']['opt_type'] = $request['opt_type'];
                             $config['forms'][$i]['option']['lookup_model'] = $request['lookup_model'];
                             $config['forms'][$i]['option']['lookup_table'] = $lookupModel->table;
-                            $config['forms'][$i]['option']['lookup_key'] = $lookupModel->key ?? 'id';
+                            $config['forms'][$i]['option']['lookup_key'] = $request['lookup_key'] ?? $lookupModel->key ?? 'id';
                             $config['forms'][$i]['option']['lookup_value'] = $request['lookup_value'];
                             if ($request['lookup_dependency_key']) {
                                 $config['forms'][$i]['option']['is_dependency'] = true;

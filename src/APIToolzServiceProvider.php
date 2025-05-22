@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
+use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
 use Sawmainek\Apitoolz\Http\Middleware\RequestLogger;
 use Sawmainek\Apitoolz\Http\Middleware\ResponseLogger;
 use Sawmainek\Apitoolz\Console\ModelGenerator;
@@ -63,6 +64,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:activate', function ($app) {
             return $app->make(ActivateGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:rebuild', function ($app) {
+            return $app->make(ModelRebuildGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:clean', function ($app) {
@@ -146,6 +151,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ModelImportGenerator::class,
             ActivateGenerator::class,
             ModelCleanUpGenerator::class,
+            ModelRebuildGenerator::class,
             OpenAIGenerator::class
         ]);
     }
@@ -170,6 +176,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.import',
             'command.apitoolz.activate',
             'command.apitoolz.clean',
+            'command.apitoolz.rebuild',
             'command.apitoolz.ai'
         ];
     }
