@@ -108,7 +108,8 @@ export const generateColumns = (
         if (
           field.format_as === 'date' ||
           field.format_as === 'datetime' ||
-          field.field.includes('_at')
+          field.field.includes('_at') ||
+          field.field.includes('_date')
         ) {
           return value ? new Date(value).toLocaleString() : '-';
         }
@@ -327,10 +328,31 @@ export const toFormLayout = (
 ): BaseForm<string>[] => {
   return formLayout.map((formField: BaseForm<string>) => {
     switch (formField.controlType) {
+      case 'form_array':
+        formField.formArray = formField.formArray.map((form: BaseForm<string>) => {
+          if (form.controlType == 'dropdown') {
+            if (form.config.opt_type) {
+              const field: FormField = forms[0];
+              field.option = form.config;
+              field.option.opt_type = form.config.opt_type == 'async' ? 'external' : 'datalist';
+              return {
+                ...createFormSelectField(field),
+                ...form
+              };
+            }
+          }
+          return form;
+        });
+        return formField;
       case 'dropdown':
         {
           const field = forms.find((f: FormField) => f.field === formField.name);
           if (field) {
+            if (formField.config.opt_type) {
+              field.option = formField.config;
+              field.option.opt_type =
+                formField.config.opt_type == 'async' ? 'external' : 'datalist';
+            }
             return {
               ...createFormSelectField(field),
               ...formField
@@ -384,12 +406,13 @@ function createFormSelectField(field: any): FormSelect {
 
     return new FormSelect({
       ...commonProps,
-      filter: field.option.is_dependency
-        ? {
-            parent: field.option.lookup_dependency_key,
-            key: field.option.lookup_filter_key || field.option.lookup_dependency_key
-          }
-        : null,
+      filter:
+        field.option.is_dependency || field.option.lookup_dependency_key
+          ? {
+              parent: field.option.lookup_dependency_key,
+              key: field.option.lookup_filter_key || field.option.lookup_dependency_key
+            }
+          : null,
       options$: loadData
     });
   } else {
@@ -404,3 +427,38 @@ function createFormSelectField(field: any): FormSelect {
     });
   }
 }
+
+export const objectToFormData = (
+  obj: any,
+  form: FormData = new FormData(),
+  namespace = ''
+): FormData => {
+  for (let key in obj) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (!obj.hasOwnProperty(key)) continue;
+
+    const formKey = namespace ? `${namespace}[${key}]` : key;
+    const value = obj[key];
+
+    if (value instanceof Date) {
+      form.append(formKey, value.toISOString());
+    } else if (value instanceof File || value instanceof Blob) {
+      form.append(formKey, value);
+    } else if (Array.isArray(value)) {
+      value.forEach((element, index) => {
+        const arrayKey = `${formKey}[${index}]`;
+        if (typeof element === 'object' && element !== null) {
+          objectToFormData(element, form, arrayKey);
+        } else {
+          form.append(arrayKey, element);
+        }
+      });
+    } else if (typeof value === 'object' && value !== null) {
+      objectToFormData(value, form, formKey);
+    } else if (value !== undefined && value !== null) {
+      form.append(formKey, value);
+    }
+  }
+
+  return form;
+};

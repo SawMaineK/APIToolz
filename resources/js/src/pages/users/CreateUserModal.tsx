@@ -77,7 +77,7 @@ const CreateUserModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
       label: 'Gender',
       placeholder: 'Select gender',
       display: 'flex flex-col gap-1',
-      options$: async () => [
+      options: [
         { label: 'Male', value: 'male' },
         { label: 'Female', value: 'female' }
       ]

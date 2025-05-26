@@ -88,17 +88,17 @@ class APIToolzServiceProvider extends ServiceProvider
             $this->app[Kernel::class]->pushMiddleware(RequestLogger::class);
             $this->app[Kernel::class]->pushMiddleware(ResponseLogger::class);
 
-            DB::listen(function (QueryExecuted $query) {
-                $request = $this->app->request;
-                if( \Str::startsWith($request->path(), 'api/')) {
-                    \Log::info("[DB Query]  {$request->method()}::/{$request->path()} >>",[
-                        'request_id'=>$request->header()['x-request-id'][0] ?? "",
-                        'sql' => $query->sql,
-                        'binding' => $query->bindings,
-                        'time' => $query->time,
-                    ]);
-                }
-            });
+            // DB::listen(function (QueryExecuted $query) {
+            //     $request = $this->app->request;
+            //     if( \Str::startsWith($request->path(), 'api/')) {
+            //         \Log::info("[DB Query]  {$request->method()}::/{$request->path()} >>",[
+            //             'request_id'=>$request->header()['x-request-id'][0] ?? "",
+            //             'sql' => $query->sql,
+            //             'binding' => $query->bindings,
+            //             'time' => $query->time,
+            //         ]);
+            //     }
+            // });
 
             DB::whenQueryingForLongerThan(500, function (Connection $connection, QueryExecuted $event) {
                 $request = $this->app->request;

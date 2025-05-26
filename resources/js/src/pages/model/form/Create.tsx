@@ -7,7 +7,7 @@ import { BaseForm } from '@/components/form/base/base-form';
 import { FormGroup } from 'react-reactive-form';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { Subject } from 'rxjs';
-import { generateFormLayout, toFormLayout } from '../_helper';
+import { generateFormLayout, objectToFormData, toFormLayout } from '../_helper';
 import {
   Toolbar,
   ToolbarActions,
@@ -38,43 +38,24 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
 
   const formSubmit = async (value: any, formGroup: FormGroup, submitted$: Subject<boolean>) => {
     try {
-      const formData = new FormData();
-      formLayout.forEach((form) => {
-        if (form.name && value[form.name] !== undefined) {
-          if (form.type === 'file') {
-            if (value[form.name] instanceof File || value[form.name] instanceof Blob) {
-              formData.append(form.name, value[form.name]);
-            }
-          } else if (form.type === 'array') {
-            if (Array.isArray(value[form.name])) {
-              value[form.name].forEach((item: any) => {
-                if (item instanceof File || item instanceof Blob) {
-                  formData.append(form.name, item);
-                } else {
-                  formData.append(form.name, JSON.stringify(item));
-                }
-              });
-            }
-          } else {
-            formData.append(form.name, `${value[form.name]}`);
-          }
+      const formData = objectToFormData(value);
+
+      if (modelData) {
+        formData.append('_method', 'PUT');
+      }
+
+      const url =
+        `${import.meta.env.VITE_APP_API_URL}/${model.slug}` + (modelData ? `/${modelData.id}` : '');
+      const result = await axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: '' // Add token here if needed
         }
       });
-      if (modelData) {
-        formData.append(model.key, modelData.id);
-      }
-      const result = await axios.post(
-        `${import.meta.env.VITE_APP_API_URL}/${model.slug}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: ``
-          }
-        }
-      );
-      toast.success('Successfully created');
+
+      toast.success(`Successfully ${modelData ? 'updated' : 'created'}`);
       submitted$.next(true);
+
       if (isModal) {
         formGroup.reset();
         onCreated?.(result.data);

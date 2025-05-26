@@ -8,7 +8,7 @@ use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelBuilder
 {
-    public static function build(Model $model, $usePolicy = "", $useObserver = "", $softDelete = "")
+    public static function build(Model $model, $usePolicy = "", $useObserver = "", $useHook = null, $softDelete = "")
     {
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
@@ -38,6 +38,7 @@ class ModelBuilder
 
         $config['policy'] = $usePolicy != "" ? $usePolicy : ($config['policy'] ?? false);
         $config['observer'] = $useObserver != "" ? $useObserver : ($config['observer'] ?? false);
+        $config['hook'] = $useHook != null ? $useHook : ($config['hook'] ?? null);
         $config['softdelete'] = $softDelete != "" ? $softDelete : ($config['softdelete'] ?? false);
         $codes['softdelete'] = $config['softdelete'] == true ? "use SoftDeletes;" : "";
 
@@ -138,111 +139,6 @@ class ModelBuilder
         $codes['update_event'] = "";
         $codes['delete_event'] = "";
 
-        if(isset($config['notification'])) {
-            $notification = $config['notification'];
-            if(isset($notification['email'])) {
-                $codes['subject'] = $notification['email']['subject'];
-                $sendto = explode(',', $notification['email']['send_to']);
-                foreach($sendto as $to) {
-                    $to = trim($to);
-                    $codes['receivers'][] = "\"{$to}\"";
-                }
-                $codes['receivers'] = implode(", \n\t\t\t", $codes['receivers']);
-
-                if(!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                    $mailClassFile = app_path("Mails/{$codes['class']}Mail.php");
-                    $mailLayoutFile = base_path("resources/views/emails/{$codes['slug']}.blade.php");
-                    file_put_contents($mailClassFile,APIToolzGenerator::blend('email.class.tpl', $codes));
-                    file_put_contents($mailLayoutFile, $notification['email']['body']);
-                }
-
-                if(isset($notification['email']['when']['new'])) {
-                    $codes['job_class'] = "Created{$codes['class']}";
-                    $codes['notify_class'] = "{$codes['class']}Created";
-                    $codes['mail_alias'] = "{$codes['slug']}-created";
-                    $jobFile = app_path("Jobs/ProcessCreated{$codes['class']}.php");
-                    $notifyFile = app_path("Notifications/{$codes['class']}CreatedNotification.php");
-                    $mailLayoutFile = base_path("resources/views/emails/{$codes['mail_alias']}.blade.php");
-                    $codes['create_notification'] = "\App\Jobs\ProcessCreated{$codes['class']}::dispatchNow(\${$codes['alias']});";
-                    if(!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        file_put_contents($jobFile, APIToolzGenerator::blend('job.tpl', $codes));
-                        file_put_contents($notifyFile, APIToolzGenerator::blend('notification.tpl', $codes));
-                        file_put_contents($mailLayoutFile, $notification['email']['body']);
-                    }
-                }
-
-                if (isset($notification['email']['when']['update'])) {
-                    $codes['job_class'] = "Updated{$codes['class']}";
-                    $codes['notify_class'] = "{$codes['class']}Updated";
-                    $codes['mail_alias'] = "{$codes['slug']}-updated";
-                    $jobFile = app_path("Jobs/ProcessUpdated{$codes['class']}.php");
-                    $notifyFile = app_path("Notifications/{$codes['class']}UpdatedNotification.php");
-                    $mailLayoutFile = base_path("resources/views/emails/{$codes['mail_alias']}.blade.php");
-                    $codes['update_notification'] = "\App\Jobs\ProcessUpdated{$codes['class']}::dispatchNow(\${$codes['alias']});";
-                    if (!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        file_put_contents($jobFile, APIToolzGenerator::blend('job.tpl', $codes));
-                        file_put_contents($notifyFile, APIToolzGenerator::blend('notification.tpl', $codes));
-                        file_put_contents($mailLayoutFile, $notification['email']['body']);
-                    }
-                }
-
-                if (isset($notification['email']['when']['delete'])) {
-                    $codes['job_class'] = "Deleted{$codes['class']}";
-                    $codes['notify_class'] = "{$codes['class']}Deleted";
-                    $codes['mail_alias'] = "{$codes['slug']}-deleted";
-                    $jobFile = app_path("Jobs/ProcessDeleted{$codes['class']}.php");
-                    $notifyFile = app_path("Notifications/{$codes['class']}DeletedNotification.php");
-                    $mailLayoutFile = base_path("resources/views/emails/{$codes['mail_alias']}.blade.php");
-                    $codes['delete_notification'] = "\App\Jobs\ProcessDeleted{$codes['class']}::dispatchNow(\${$codes['alias']});";
-                    if (!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        file_put_contents($jobFile, APIToolzGenerator::blend('job.tpl', $codes));
-                        file_put_contents($notifyFile, APIToolzGenerator::blend('notification.tpl', $codes));
-                        file_put_contents($mailLayoutFile, $notification['email']['body']);
-                    }
-                }
-            }
-
-            if(isset($notification['broadcast'])) {
-                if($notification['broadcast']['privacy'] == 'private') {
-                    $codes['channel'] = "new PrivateChannel(\"{$notification['broadcast']['channel']}\")";
-                } else {
-                    $codes['channel'] = "[\"{$notification['broadcast']['channel']}\"]";
-                }
-
-                $codes['broadcast_body'] = $notification['broadcast']['body'];
-
-                if (isset($notification['broadcast']['when']['new'])) {
-                    $codes['event_class'] = "{$codes['class']}Created";
-                    $codes['channel_as'] = "{$codes['slug']}.created";
-                    $codes['create_event'] = "broadcast(new \\App\\Events\\{$codes['class']}CreatedEvent(\${$codes['alias']}));\n";
-                    $eventFile = app_path("Events/{$codes['class']}CreatedEvent.php");
-                    if (!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        file_put_contents($eventFile, APIToolzGenerator::blend('event.tpl', $codes));
-                    }
-                }
-
-                if (isset($notification['broadcast']['when']['update'])) {
-                    $codes['event_class'] = "{$codes['class']}Updated";
-                    $codes['channel_as'] = "{$codes['slug']}.updated";
-                    $codes['update_event'] = "broadcast(new \\App\\Events\\{$codes['class']}UpdatedEvent(\${$codes['alias']}));\n";
-                    $eventFile = app_path("Events/{$codes['class']}UpdatedEvent.php");
-                    if (!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        //file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
-                    }
-                }
-
-                if (isset($notification['broadcast']['when']['delete'])) {
-                    $codes['event_class'] = "{$codes['class']}Deleted";
-                    $codes['channel_as'] = "{$codes['slug']}.deleted";
-                    $codes['delete_event'] = "broadcast(new \\App\\Events\\{$codes['class']}DeletedEvent(\${$codes['alias']}));\n";
-                    $eventFile = app_path("Events/{$codes['class']}DeletedEvent.php");
-                    if (!$model->lock || ($model->lock && !isset($model->lock['notification']))) {
-                        //file_put_contents($eventFile, APIToolzGenerator::blend($eventTpl, $codes));
-                    }
-                }
-            }
-        }
-
         if($model->auth && $config['policy']) {
             $codes['policy_index'] = "\$this->authorize('viewAny', {$codes['model']}::class);";
             $codes['policy_store'] = "\$this->authorize('create', {$codes['model']}::class);";
@@ -275,6 +171,46 @@ class ModelBuilder
         } else {
             $observerFile = app_path("Observers/{$codes['model']}Observer.php");
             @unlink($observerFile);
+        }
+
+        $codes['hook_handle'] = "";
+        $codes['hook_creating'] = "";
+        $codes['hook_created'] = "";
+        $codes['hook_updating'] = "";
+        $codes['hook_updated'] = "";
+        $codes['hook_deleting'] = "";
+        $codes['hook_deleted'] = "";
+        $codes['hook_restored'] = "";
+
+        if($config['hook'] != null) {
+            foreach(explode(",", $config['hook']) as $value) {
+                if(trim($value) == 'handle')
+                    $codes['hook_handle'] = "\$this->callHook('handle', \$request, \$query);";
+                elseif(trim($value) == 'creating')
+                    $codes['hook_creating'] = "\$this->callHook('creating', \$request, \$data);";
+                elseif(trim($value) == "created")
+                    $codes['hook_created'] = "\$this->callHook('created', \${$codes['alias']}, \$request);";
+                elseif(trim($value) == 'updating')
+                    $codes['hook_updating'] = "\$this->callHook('updating', \$request, \${$codes['alias']}, \$data);";
+                elseif(trim($value) == 'updated')
+                    $codes['hook_updated'] = "\$this->callHook('updated', \${$codes['alias']}, \$request);";
+                elseif(trim($value) == 'deleting')
+                    $codes['hook_deleting'] = "\$this->callHook('deleting', \${$codes['alias']});";
+                elseif(trim($value) == 'deleted')
+                    $codes['hook_deleted'] = "\$this->callHook('deleted', \${$codes['alias']});";
+                elseif(trim($value) == 'restored')
+                    $codes['hook_restored'] = "\$this->callHook('restored', \${$codes['alias']});";
+            }
+            $hookFile = app_path("Hooks/{$codes['model']}Hook.php");
+            $buildHook = APIToolzGenerator::blend('hook.tpl', $codes);
+            if(!file_exists($hookFile)) {
+                if ( !is_dir( app_path("Hooks") ) )
+                    mkdir(app_path("Hooks"), 0775, true);
+                file_put_contents($hookFile, $buildHook);
+            }
+        } else {
+            $hookFile = app_path("Hooks/{$codes['model']}Hook.php");
+            @unlink($hookFile);
         }
 
         if(!$model->lock || ($model->lock && !in_array('request', $model->lock))) {

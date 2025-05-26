@@ -24,9 +24,9 @@ export const TextBox = ({ handler, formGroup, ...props }: FormInput) => {
               ) : null}
               <input
                 {...handler()}
-                autoComplete="off"
+                autoComplete={props.autoComplete || 'off'}
                 type={props.type}
-                name={props.unqKey || props.name}
+                name={props.name || props.unqKey}
                 placeholder={props.placeholder}
                 readOnly={props.readonly}
                 className={props.inputClass}

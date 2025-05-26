@@ -1,8 +1,4 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-refresh/only-export-components */
-/* eslint-disable no-case-declarations */
-import { Subject, Observable, of, from } from 'rxjs';
-import { mergeMap, concatMap, delay, tap, finalize } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import {
   FormGroup,
   FieldArray,
@@ -48,7 +44,7 @@ export const toFormGroup = (
                       {}
                   );
                   break;
-                case 'form_array':
+                case 'form_array': {
                   y.defaultLength =
                     (data[x.name] && data[x.name][y.name] && data[x.name][y.name].length) ||
                     (clone[x.name] && clone[x.name][y.name] && clone[x.name][y.name].length) ||
@@ -67,7 +63,8 @@ export const toFormGroup = (
                   }
                   formGroup[y.name] = formArray;
                   break;
-                default:
+                }
+                default: {
                   let validators: any[] = y.required ? [Validators.required] : [];
                   let value =
                     (data[x.name] && data[x.name][y.name]) ||
@@ -82,6 +79,7 @@ export const toFormGroup = (
                   }
                   formGroup[y.name] = new FormControl(value, [...validators, ...y.validators]);
                   break;
+                }
               }
             }
           });
@@ -124,227 +122,6 @@ export const toFormGroup = (
     }
   });
   return new FormGroup(group);
-};
-
-export const fileUpload$ = (
-  form: BaseForm<string | boolean>[],
-  formGroup: FormGroup,
-  options: {
-    type?: string;
-    type_id?: string;
-    name?: string;
-  } = {}
-) => {
-  return Observable.create((observer: any) => {
-    let formGroupValue = Object.assign({}, formGroup.value);
-    let callbackFiles: { key: string; originFile: any | any[] }[] = [];
-    getFiles(form, formGroupValue, callbackFiles);
-    let files: any[] = [];
-    let uploadedFiles: any[] = [];
-    callbackFiles.map((x) => {
-      if (Array.isArray(x.originFile)) {
-        for (const originFile of x.originFile) {
-          files.push({
-            key: x.key || null,
-            file: originFile
-          });
-        }
-      } else {
-        files.push({
-          key: x.key || null,
-          file: x.originFile
-        });
-      }
-    });
-
-    of(files)
-      .pipe(
-        mergeMap((x: any[]) => from(x)),
-        concatMap((x) => {
-          return of(x).pipe(delay(100));
-        }),
-        concatMap((x) => {
-          if (x.file instanceof File) {
-            const formData: any = new FormData();
-            formData.append('id', btoa(x.key) || '');
-            formData.append('files', x.file);
-            return {} as any; //requestFileUpload(formData);
-          }
-          return of(x.file);
-        }),
-        tap((x: any) => {
-          if (x) {
-            const index = uploadedFiles.indexOf((file: any) => file.key === x.key);
-            if (index >= 0) {
-              uploadedFiles[index].push(x);
-            } else {
-              uploadedFiles.push(x);
-            }
-          }
-        }),
-        finalize(() => {
-          formGroupValue = restoreFiles(form, formGroupValue, uploadedFiles);
-          observer.next(formGroupValue);
-          observer.complete();
-        })
-      )
-      .subscribe();
-  });
-};
-
-const getFiles = (
-  form: BaseForm<string | boolean>[],
-  formGroupValue: any,
-  uploadFiles: any[] = [],
-  index: number = 0
-) => {
-  form.forEach((x: BaseForm<string>) => {
-    switch (x.controlType) {
-      case 'form_group':
-        getFiles(x.formGroup, formGroupValue[x.name], uploadFiles, index);
-        break;
-      case 'form_array':
-        let values = formGroupValue[x.name] || [];
-        values.map((value: any, index2: number) => {
-          x.formArray.forEach((y: BaseForm<string>) => {
-            switch (y.controlType) {
-              case 'form_group':
-                getFiles(y.formGroup, value[y.name] || [], uploadFiles, index2);
-                break;
-              case 'form_array':
-                let values = value[y.name] || [];
-                values.map((value: any, index3: number) => {
-                  y.formArray.forEach((z: any) => {
-                    switch (z.controlType) {
-                      case 'form_group':
-                        getFiles(z.formGroup, value[z.key] || [], uploadFiles, index3);
-                        break;
-                      default:
-                        if (z instanceof FormFile) {
-                          uploadFiles.push({
-                            id: value[z.name]?.id,
-                            key: `${z.name}:${index}:${index2}:${index3}`,
-                            originFile: value[z.name]
-                          });
-                        }
-                        break;
-                    }
-                  });
-                });
-                break;
-              default:
-                if (y instanceof FormFile) {
-                  uploadFiles.push({
-                    id: value[y.name]?.id,
-                    key: `${y.name}:${index}:${index2}`,
-                    originFile: value[y.name]
-                  });
-                }
-                break;
-            }
-          });
-        });
-        break;
-      default:
-        if (x instanceof FormFile) {
-          uploadFiles.push({
-            id: formGroupValue[x.name]?.id,
-            key: `${x.name}:${index}`,
-            originFile: formGroupValue[x.name]
-          });
-        }
-        break;
-    }
-  });
-};
-
-const restoreFiles = (
-  form: BaseForm<string | boolean>[],
-  formGroupValue: any = {},
-  uploadFiles: any[] = [],
-  index: number = 0
-) => {
-  form.forEach((x: BaseForm<string>) => {
-    switch (x.controlType) {
-      case 'form_group':
-        restoreFiles(x.formGroup, formGroupValue[x.name], uploadFiles);
-        break;
-      case 'form_array':
-        let values = formGroupValue[x.name] || [];
-        values.map((value: any, index2: number) => {
-          x.formArray.forEach((y: BaseForm<string>) => {
-            switch (y.controlType) {
-              case 'form_group':
-                restoreFiles(y.formGroup, value[y.name] || [], uploadFiles, index2);
-                break;
-              case 'form_array':
-                let values = value[y.name] || [];
-                values.map((value: any, index3: number) => {
-                  y.formArray.forEach((z: BaseForm<string>) => {
-                    switch (z.controlType) {
-                      case 'form_group':
-                        restoreFiles(z.formGroup, value[z.name] || [], uploadFiles, index3);
-                        break;
-                      default:
-                        if (z instanceof FormFile) {
-                          getFormType(form, z.name, (type: BaseForm<string>) => {
-                            if (type.multiple) {
-                              //Need to remove for multiple
-                              value[z.name] =
-                                uploadFiles.filter(
-                                  (a) => atob(a.id) == `${z.name}:${index}:${index2}:${index3}`
-                                ) || [];
-                            } else {
-                              value[z.name] =
-                                uploadFiles.filter(
-                                  (a) => atob(a.id) == `${z.name}:${index}:${index2}:${index3}`
-                                )[0] || {};
-                            }
-                          });
-                        }
-                        break;
-                    }
-                  });
-                });
-                break;
-              default:
-                if (y instanceof FormFile) {
-                  getFormType(form, y.name, (type: BaseForm<string>) => {
-                    if (type.multiple) {
-                      //Need to remove for multiple
-                      value[y.name] =
-                        uploadFiles.filter((a) => atob(a.id) == `${y.name}:${index}:${index2}`) ||
-                        [];
-                    } else {
-                      value[y.name] =
-                        uploadFiles.filter(
-                          (a) => atob(a.id) == `${y.name}:${index}:${index2}`
-                        )[0] || {};
-                    }
-                  });
-                }
-                break;
-            }
-          });
-        });
-        break;
-      default:
-        if (x instanceof FormFile) {
-          getFormType(form, x.name, (type: BaseForm<string>) => {
-            if (type.multiple) {
-              //Need to remove for multiple
-              formGroupValue[x.name] =
-                uploadFiles.filter((a) => atob(a.id) == `${x.name}:${index}`) || [];
-            } else {
-              formGroupValue[x.name] =
-                uploadFiles.filter((a) => atob(a.id) == `${x.name}:${index}`)[0] || {};
-            }
-          });
-        }
-        break;
-    }
-  });
-  return formGroupValue;
 };
 
 const getFormType = (
@@ -618,6 +395,9 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                   <div key={index} className={`w-full ${formField.altClass}`}>
                     {hasCriteria(formField, props.formGroup) && (
                       <div className="form-array">
+                        <div className="px-4 mb-4">
+                          <label className="text-md font-semibold">{formField.label}</label>
+                        </div>
                         <FormTableControl
                           formField={formField}
                           formLayout={formField.formArray}
@@ -671,26 +451,25 @@ export const FormTableControl = (props: IFormTableControl) => {
         };
 
         return (
-          <div className={`grid px-4 ${props.formField.altClass}`}>
+          <div className={`grid px-4 mb-4 ${props.formField.altClass}`}>
             {!props.formField.useTable &&
               controls.map((formGroup: AbstractControl, index: number) => {
                 return (
-                  <div
-                    className="flex items-center space-x-4 mb-4"
-                    key={`${formGroup.meta.key}-${String(index)}`}
-                  >
-                    <FormLayoutControl
-                      formLayout={props.formLayout}
-                      formGroup={formGroup}
-                      initValues={props.initValues[index] || {}}
-                    />
+                  <div className="flex items-center" key={`${formGroup.meta.key}-${String(index)}`}>
+                    <div className="w-full -mx-4">
+                      <FormLayoutControl
+                        formLayout={props.formLayout}
+                        formGroup={formGroup}
+                        initValues={props.initValues[index] || {}}
+                      />
+                    </div>
                     {!props.formField.readonly && (
                       <button
                         onClick={() => removeAt(index)}
-                        className="text-red-600 hover:text-red-800 focus:outline-none"
+                        className="text-red-600 hover:text-red-800 focus:outline-none ms-4"
                         type="button"
                       >
-                        <i className="las la-minus-circle text-2xl"></i>
+                        <i className="ki-filled ki-trash"></i>
                       </button>
                     )}
                   </div>
@@ -722,6 +501,19 @@ export const FormTableControl = (props: IFormTableControl) => {
                                   </th>
                                 );
                               })}
+                              {/* ADD BUTTON */}
+                          {!props.formField.readonly && (
+                            <th className="pl-2 w-[20px]">
+                              <button
+                                onClick={addMore}
+                                className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                                type="button"
+                                title={props.formField.addMoreText || 'Add Row'}
+                              >
+                                <i className="ki-filled ki-plus-squared text-2xl" />
+                              </button>
+                            </th>
+                          )}
                             </tr>
                           );
                         })}
@@ -738,6 +530,19 @@ export const FormTableControl = (props: IFormTableControl) => {
                               </th>
                             );
                           })}
+                          {/* ADD BUTTON */}
+                          {!props.formField.readonly && (
+                            <th className="pl-2 w-[20px]">
+                              <button
+                                onClick={addMore}
+                                className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                                type="button"
+                                title={props.formField.addMoreText || 'Add Row'}
+                              >
+                                <i className="ki-filled ki-plus-squared text-2xl" />
+                              </button>
+                            </th>
+                          )}
                         </tr>
                       )}
                     </thead>
@@ -774,15 +579,19 @@ export const FormTableControl = (props: IFormTableControl) => {
                                 </>
                               )}
                             />
-                            {!props.formField.readonly && (
+                            {/* enable row deletion */}
+                            {/* enable row deletion */}
+                          {!props.formField.readonly && (
+                            <td className="pl-1 w-[20px]">
                               <button
                                 onClick={() => removeAt(trIdx)}
-                                className="text-red-600 hover:text-red-800 focus:outline-none ml-2"
+                                className="text-red-600 hover:text-red-800 focus:outline-none"
                                 type="button"
                               >
-                                <i className="las la-minus-circle text-2xl"></i>
+                                <i className="ki-filled ki-trash text-xl"></i>
                               </button>
-                            )}
+                            </td>
+                          )}
                           </tr>
                         );
                       })}
@@ -791,8 +600,8 @@ export const FormTableControl = (props: IFormTableControl) => {
                 </div>
               </div>
             )}
-            {!props.formField.readonly && (
-              <div className="py-4 text-right">
+            {!props.formField.useTable && !props.formField.readonly && (
+              <div className="text-right">
                 <button
                   onClick={addMore}
                   className="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 rounded-md px-4 py-2"

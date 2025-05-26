@@ -35,6 +35,8 @@ import {
 } from '@dnd-kit/sortable';
 import { FormFieldPropertiesPanel } from './FormFieldPropertiesPanel';
 import { MoveVertical, Plus, X } from 'lucide-react';
+import { AddFormInputModal } from './AddFormInputModal';
+import { KeenIcon } from '../keenicons';
 
 export type IFormLayoutBuilder = {
   title: string;
@@ -52,9 +54,13 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
 
   const [formLayout, setFormLayout] = useState<BaseForm<string>[]>(props.formLayout);
   const [selectedField, setSelectedField] = useState<BaseForm<any> | null>(null);
+  const [inputField, setInputField] = useState<BaseForm<any> | null>(null);
+  const [openInputForm, setOpenInputForm] = useState(false);
+  const [openProperiesPanel, setOpenProperiesPanel] = useState(false);
 
   const handleClose = () => {
-    setSelectedField(null);
+    setOpenProperiesPanel(false);
+    setOpenInputForm(false);
   };
 
   useEffect(() => {
@@ -76,13 +82,8 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
   };
 
   const onAddField = (field: BaseForm<string>) => {
-    const newField = { ...field, unqKey: uuid() };
-    setFormLayout((prev) => {
-      const index = prev.findIndex((f) => f.unqKey === field.unqKey);
-      const updatedLayout = [...prev];
-      updatedLayout.splice(index + 1, 0, newField);
-      return updatedLayout;
-    });
+    setInputField(field);
+    setOpenInputForm(true);
   };
 
   const onRemoveField = (field: BaseForm<string>) => {
@@ -234,39 +235,46 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
                             formLayout={formField.formGroup}
                             formGroup={formGroup.get(formField.name)}
                             initValues={props.initValues && props.initValues[formField.name]}
-                            selectedField={selectedField}
-                            onClick={(field) => {
-                              setSelectedField(field);
-                            }}
-                            onRemove={onRemoveField}
-                            onAdd={onAddField}
+                            // selectedField={selectedField}
+                            // onClick={(field) => {
+                            //   setSelectedField(field);
+                            // }}
+                            // onRemove={onRemoveField}
+                            // onAdd={onAddField}
                           />
                         )}
                       </div>
                     );
-                  case 'form_array':
-                    return (
-                      <div key={index} className={`w-full ${formField.altClass}`}>
-                        {hasCriteria(formField, formGroup) && (
-                          <div className="form-array">
-                            <FormTableControl
-                              formField={formField}
-                              formLayout={formField.formArray}
-                              formArray={formGroup.get(formField.name) as FormArray}
-                              selectedField={selectedField}
-                              onClick={(field) => {
-                                setSelectedField(field);
-                              }}
-                              onRemove={onRemoveField}
-                              onAdd={onAddField}
-                              initValues={
-                                (props.initValues && props.initValues[formField.name]) || []
-                              }
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
+                  //   case 'form_array':
+                  //     return (
+                  //       <div key={index} className={`w-full ${formField.altClass}`}>
+                  //         {
+                  //           <FieldGroup
+                  //             control={formGroup}
+                  //             render={(form: any) => {
+                  //               return (
+                  //                 <div className="form-array">
+                  //                   <FormTableControl
+                  //                     formField={formField}
+                  //                     formLayout={formField.formArray}
+                  //                     formArray={formGroup.get(formField.name) as FormArray}
+                  //                     //   selectedField={selectedField}
+                  //                     //   onClick={(field) => {
+                  //                     //     setSelectedField(field);
+                  //                     //   }}
+                  //                     //   onRemove={onRemoveField}
+                  //                     //   onAdd={onAddField}
+                  //                     initValues={
+                  //                       (props.initValues && props.initValues[formField.name]) || []
+                  //                     }
+                  //                   />
+                  //                 </div>
+                  //               );
+                  //             }}
+                  //           />
+                  //         }
+                  //       </div>
+                  //     );
                   default:
                     return (
                       <SortableFormField
@@ -280,6 +288,12 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
                         }
                         onClick={(field) => {
                           setSelectedField(field);
+                          if (
+                            field.controlType == 'form_group' ||
+                            field.controlType == 'form_array'
+                          )
+                            setOpenInputForm(true);
+                          else setOpenProperiesPanel(true);
                         }}
                         onRemove={onRemoveField}
                         onAdd={onAddField}
@@ -309,7 +323,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
           </button>
         </div>
       </div>
-      <Sheet open={selectedField != null} onOpenChange={handleClose}>
+      <Sheet open={openProperiesPanel} onOpenChange={handleClose}>
         <SheetContent
           className="border-0 p-0 w-[400px] scrollable-y-auto"
           forceMount={true}
@@ -333,6 +347,35 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
           />
         </SheetContent>
       </Sheet>
+      <AddFormInputModal
+        open={openInputForm}
+        initValue={selectedField}
+        onAdded={(formField) => {
+          const newField = {
+            ...formField,
+            unqKey: selectedField?.unqKey ?? uuid() // retain the same key for editing
+          };
+
+          setFormLayout((prev) => {
+            const index = prev.findIndex((f) => f.unqKey === selectedField?.unqKey);
+
+            if (index >= 0) {
+              const updatedLayout = [...prev];
+              updatedLayout[index] = newField;
+              return updatedLayout;
+            } else {
+              return [...prev, newField];
+            }
+          });
+
+          setSelectedField(null);
+          setOpenInputForm(false);
+        }}
+        onOpenChange={() => {
+          setOpenInputForm(false);
+          setSelectedField(null);
+        }}
+      />
     </div>
   );
 };
@@ -342,15 +385,10 @@ interface IFormLayoutControl {
   formGroup: FormGroup | any;
   initValues?: any;
   submitted$?: any;
-  selectedField?: BaseForm<string> | null;
-  onClick: (field: BaseForm<string>) => void;
-  onRemove: (field: BaseForm<string>) => void;
-  onAdd: (field: BaseForm<string>) => void;
 }
 export const FormLayoutControl = (props: IFormLayoutControl) => {
   return (
     <FieldGroup
-      key={uuid()}
       control={props.formGroup}
       render={() => (
         <>
@@ -469,61 +507,46 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
             };
 
             switch (formField.controlType) {
-              case 'form_group':
-                return (
-                  <div
-                    key={index}
-                    className={`flex flex-wrap ${formField.columns} ${formField.altClass}`}
-                  >
-                    {hasCriteria(formField, props.formGroup) && (
-                      <FormLayoutControl
-                        formLayout={formField.formGroup}
-                        formGroup={props.formGroup.get(formField.name)}
-                        initValues={props.initValues && props.initValues[formField.name]}
-                        selectedField={props.selectedField}
-                        onClick={props.onClick}
-                        onRemove={props.onRemove}
-                        onAdd={props.onAdd}
-                      />
-                    )}
-                  </div>
-                );
-              case 'form_array':
-                return (
-                  <div key={index} className={`w-full ${formField.altClass}`}>
-                    {hasCriteria(formField, props.formGroup) && (
-                      <div className="form-array">
-                        <FormTableControl
-                          formField={formField}
-                          formLayout={formField.formArray}
-                          formArray={props.formGroup.get(formField.name) as FormArray}
-                          initValues={(props.initValues && props.initValues[formField.name]) || []}
-                          selectedField={props.selectedField}
-                          onClick={props.onClick}
-                          onRemove={props.onRemove}
-                          onAdd={props.onAdd}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
+              //   case 'form_group':
+              //     return (
+              //       <div
+              //         key={index}
+              //         className={`flex flex-wrap ${formField.columns} ${formField.altClass}`}
+              //       >
+              //         {hasCriteria(formField, props.formGroup) && (
+              //           <FormLayoutControl
+              //             formLayout={formField.formGroup}
+              //             formGroup={props.formGroup.get(formField.name)}
+              //             initValues={props.initValues && props.initValues[formField.name]}
+              //           />
+              //         )}
+              //       </div>
+              //     );
+              //   case 'form_array':
+              //     return (
+              //       <div key={index} className={`w-full ${formField.altClass}`}>
+              //         {hasCriteria(formField, props.formGroup) && (
+              //           <div className="form-array">
+              //             <FormTableControl
+              //               formField={formField}
+              //               formLayout={formField.formArray}
+              //               formArray={props.formGroup.get(formField.name) as FormArray}
+              //               initValues={(props.initValues && props.initValues[formField.name]) || []}
+              //             />
+              //           </div>
+              //         )}
+              //       </div>
+              //     );
               default:
                 formField.submitted$ = props.submitted$;
                 return (
-                  <SortableFormField
-                    key={formField.unqKey}
-                    id={formField.unqKey}
-                    formGroup={props.formGroup}
-                    formLayout={props.formLayout}
-                    formField={formField}
-                    selected={
-                      (props.selectedField && props.selectedField.unqKey == formField.unqKey) ||
-                      false
-                    }
-                    onClick={props.onClick}
-                    onRemove={props.onRemove}
-                    onAdd={props.onAdd}
-                  ></SortableFormField>
+                  <div key={index} className={`${formField.columns}`}>
+                    <FormField
+                      formLayout={props.formLayout}
+                      formField={formField}
+                      formGroup={props.formGroup}
+                    />
+                  </div>
                 );
             }
           })}
@@ -607,10 +630,29 @@ function SortableFormField({
           control={formGroup}
           render={() => {
             switch (formField.controlType) {
+              case 'form_array':
+                return (
+                  <div className={`w-full flex flex-col gap-1 ${formField.altClass}`}>
+                    {/* {hasCriteria(formField, props.formGroup) && ( */}
+                    <label className="text-md font-semibold mb-4">{formField.label}</label>
+                    <div className="form-array">
+                      {/* Form Array */}
+                      <FormTableControl
+                        formField={formField}
+                        formLayout={formField.formArray}
+                        formArray={formGroup.get(formField.name) as FormArray}
+                        initValues={[]}
+                      />
+                    </div>
+                    {/* )} */}
+                  </div>
+                );
               case 'hidden':
                 return <span className="text-md mt-2 flex items-center">Hidden Input</span>;
               case 'label':
               case 'sub_title':
+              case 'checkbox':
+              case 'radio':
                 return (
                   <div className="mt-2 flex items-center">
                     <FormField
@@ -631,25 +673,24 @@ function SortableFormField({
     </div>
   );
 }
+
 type IFormTableControl = {
   formField: BaseForm<string>;
   formLayout: BaseForm<string>[];
   formArray: FormArray;
   initValues?: any;
-  selectedField?: BaseForm<string> | null;
-  onClick: (field: BaseForm<string>) => void;
-  onRemove: (field: BaseForm<string>) => void;
-  onAdd: (field: BaseForm<string>) => void;
 };
+
 export const FormTableControl = (props: IFormTableControl) => {
   return (
     <FieldArray
+      key={uuid()}
       name={props.formField.name}
-      render={({ controls, length }: FormArray | any) => {
+      render={({ controls }: FormArray | any) => {
         const addMore = () => {
           const formControl = toFormGroup(props.formLayout, {});
           formControl.meta = {
-            key: length++
+            key: uuid()
           };
           props.formArray.push(formControl);
         };
@@ -657,133 +698,148 @@ export const FormTableControl = (props: IFormTableControl) => {
         const removeAt = (index: number) => {
           props.formArray.removeAt(index);
         };
+
         return (
-          <div className={`grid px-4 ${props.formField.altClass}`}>
+          <div className={`grid ${props.formField.altClass}`}>
+            {/* NON-TABLE RENDERING */}
             {!props.formField.useTable &&
               controls.map((formGroup: AbstractControl, index: number) => {
                 return (
                   <div
-                    className="flex items-center space-x-4 mb-4"
-                    key={`${formGroup.meta.key}-${String(index)}`}
+                    className="flex items-center"
+                    key={`${formGroup.meta?.key || uuid()}-${index}`}
                   >
                     <FormLayoutControl
                       formLayout={props.formLayout}
                       formGroup={formGroup}
-                      initValues={props.initValues[index] || {}}
-                      selectedField={props.selectedField}
-                      onClick={props.onClick}
-                      onRemove={props.onRemove}
-                      onAdd={props.onAdd}
+                      initValues={props.initValues?.[index] || {}}
                     />
                     {!props.formField.readonly && (
                       <button
                         onClick={() => removeAt(index)}
-                        className="text-red-600 hover:text-red-800 focus:outline-none"
+                        className="text-red-600 hover:text-red-800 focus:outline-none ms-4"
                         type="button"
                       >
-                        <i className="las la-minus-circle text-2xl"></i>
+                        <i className="ki-filled ki-trash"></i>
                       </button>
                     )}
                   </div>
                 );
               })}
 
+            {/* TABLE RENDERING */}
             {props.formField.useTable && (
               <div className="card min-w-full">
                 <div className="card-table scrollable-x-auto">
                   <table className="table align-middle text-gray-700 font-medium text-sm">
                     <thead>
-                      {props.formField.tableHeader &&
-                        props.formField.tableHeader.map((header: any, index: number) => {
-                          return (
-                            <tr
-                              className="text-gray-500 font-semibold uppercase text-sm border-b"
-                              key={index}
-                            >
-                              {header.map((th: any, thIdx: number) => {
-                                return (
-                                  <th
-                                    className="text-gray-700 px-3 py-2"
-                                    colSpan={th.colSpan}
-                                    rowSpan={th.rowSpan}
-                                    style={th.style}
-                                    key={thIdx}
-                                  >
-                                    {th.label}
-                                  </th>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
-                      {!props.formField.tableHeader && (
-                        <tr className="text-gray-500 font-semibold uppercase text-sm border-b">
-                          {props.formLayout.map((field: BaseForm<string>, index: number) => {
-                            return (
+                      {props.formField.tableHeader ? (
+                        props.formField.tableHeader.map((header: any[], index: number) => (
+                          <tr
+                            className="text-gray-500 font-semibold uppercase text-sm border-b"
+                            key={`header-${index}`}
+                          >
+                            {header.map((th: any, thIdx: number) => (
                               <th
-                                className={`px-3 py-2 ${field.columns}`}
-                                style={field.style}
-                                key={index}
+                                className="text-gray-700 px-3 py-2"
+                                colSpan={th.colSpan}
+                                rowSpan={th.rowSpan}
+                                style={th.style}
+                                key={`th-${thIdx}`}
                               >
-                                {field.label}
+                                {th.label}
                               </th>
-                            );
-                          })}
+                            ))}
+                            {/* ADD BUTTON */}
+                            {!props.formField.readonly && (
+                              <th className="pl-2 w-[20px]">
+                                <button
+                                  onClick={addMore}
+                                  className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                                  type="button"
+                                  title={props.formField.addMoreText || 'Add Row'}
+                                >
+                                  <i className="ki-filled ki-plus-squared text-2xl" />
+                                </button>
+                              </th>
+                            )}
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className="text-gray-500 font-semibold uppercase text-sm border-b">
+                          {props.formLayout.map((field: BaseForm<string>, index: number) => (
+                            <th
+                              className={`px-3 py-2 ${field.columns}`}
+                              style={field.style}
+                              key={`auto-th-${index}`}
+                            >
+                              {field.label}
+                            </th>
+                          ))}
+                          {/* ADD BUTTON */}
+                          {!props.formField.readonly && (
+                            <th className="pl-2 w-[20px]">
+                              <button
+                                onClick={addMore}
+                                className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                                type="button"
+                                title={props.formField.addMoreText || 'Add Row'}
+                              >
+                                <i className="ki-filled ki-plus-squared text-2xl" />
+                              </button>
+                            </th>
+                          )}
                         </tr>
                       )}
                     </thead>
                     <tbody>
-                      {controls.map((formGroup: AbstractControl | any, trIdx: number) => {
-                        return (
-                          <tr key={trIdx} className="border-b">
-                            <FieldGroup
-                              key={uuid()}
-                              control={formGroup}
-                              render={() => (
-                                <>
-                                  {props.formLayout.map(
-                                    (field: BaseForm<string>, tdIdx: number) => {
-                                      return (
-                                        <td
-                                          className={`${field.columns} px-3 py-2`}
-                                          style={field.style}
-                                          key={tdIdx}
-                                        >
-                                          {field.controlType !== 'form_group' &&
-                                            field.controlType !== 'form_array' && (
-                                              <div className="mb-2">
-                                                <FormField
-                                                  formLayout={props.formLayout}
-                                                  formField={field}
-                                                  formGroup={formGroup}
-                                                />
-                                              </div>
-                                            )}
-                                        </td>
-                                      );
-                                    }
-                                  )}
-                                </>
-                              )}
-                            />
-                            {!props.formField.readonly && (
+                      {controls.map((formGroup: AbstractControl | any, trIdx: number) => (
+                        <tr key={`row-${trIdx}`} className="border-b">
+                          <FieldGroup
+                            control={formGroup}
+                            render={() => (
+                              <>
+                                {props.formLayout.map((field: BaseForm<string>, tdIdx: number) => (
+                                  <td
+                                    className={`${field.columns} px-3 py-2`}
+                                    style={field.style}
+                                    key={`td-${trIdx}-${tdIdx}`}
+                                  >
+                                    {field.controlType !== 'form_group' &&
+                                      field.controlType !== 'form_array' && (
+                                        <div className="mb-2">
+                                          <FormField
+                                            formLayout={props.formLayout}
+                                            formField={field}
+                                            formGroup={formGroup}
+                                          />
+                                        </div>
+                                      )}
+                                  </td>
+                                ))}
+                              </>
+                            )}
+                          />
+                          {/* enable row deletion */}
+                          {!props.formField.readonly && (
+                            <td className="pl-1 w-[20px]">
                               <button
                                 onClick={() => removeAt(trIdx)}
-                                className="text-red-600 hover:text-red-800 focus:outline-none ml-2"
+                                className="text-red-600 hover:text-red-800 focus:outline-none"
                                 type="button"
                               >
-                                <i className="las la-minus-circle text-2xl"></i>
+                                <i className="ki-filled ki-trash text-xl"></i>
                               </button>
-                            )}
-                          </tr>
-                        );
-                      })}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             )}
-            {!props.formField.readonly && (
+            {!props.formField.useTable && !props.formField.readonly && (
               <div className="py-4 text-right">
                 <button
                   onClick={addMore}

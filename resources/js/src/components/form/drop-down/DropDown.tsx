@@ -23,10 +23,10 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
     props.options.forEach((option: any) => {
       if (props.filter && values && values[props.filter.parent]) {
         if (option[filterKey()] === filterValue()) {
-          list.push({ value: option.id, label: option.name });
+          list.push({ value: option.value, label: option.label });
         }
       } else {
-        list.push({ value: option.id, label: option.name });
+        list.push({ value: option.value, label: option.label });
       }
     });
 

@@ -11,6 +11,12 @@ import { generateFormLayout } from '../_helper';
 import { FormLayoutBuilder } from '@/components/form/FormLayoutBuilder';
 import { useState } from 'react';
 import { unset } from 'lodash';
+import { BaseFormArray } from '@/components/form/base/form-array';
+import { FormDate } from '@/components/form/base/form-date';
+import { FormSelect } from '@/components/form/base/form-select';
+import { FormCheckBox } from '@/components/form/base/form-checkbox';
+import { FormInput } from '@/components/form/base/form-input';
+import { BaseFormGroup } from '@/components/form/base/form-group';
 
 const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
   const navigate = useNavigate();

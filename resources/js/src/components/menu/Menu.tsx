@@ -11,26 +11,25 @@ import {
 import { IMenuContextProps, IMenuItemProps, IMenuProps } from './';
 import { MenuItem } from './';
 
+// Initial default props for the Menu Context
 const initalProps: IMenuContextProps = {
   disabled: false,
   highlight: false,
   multipleExpand: false,
   dropdownTimeout: 0,
-  // Default function for opening an accordion (to be overridden)
   setOpenAccordion: (parentId: string, id: string) => {
     console.log(`Accordion at level ${parentId}, with ID ${id} is now open`);
   },
-  // Default function for checking if an accordion is open (to be overridden)
   isOpenAccordion: (parentId: string, id: string) => {
     console.log(`Checking if accordion at level ${parentId}, with ID ${id} is open`);
-    return false; // By default, no accordion is open
+    return false;
   }
 };
 
-// Create a Menu Context
+// Create the Menu Context
 const MenuContext = createContext(initalProps);
 
-// Custom hook to use the Menu Context
+// Custom hook to use Menu Context
 const useMenu = () => useContext(MenuContext);
 
 const MenuComponent = ({
@@ -43,29 +42,33 @@ const MenuComponent = ({
 }: IMenuProps) => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: string | null }>({});
 
-  // Function to handle the accordion toggle
+  // Toggle accordion open/close
   const setOpenAccordion = (parentId: string, id: string) => {
     setOpenAccordions((prevState) => ({
       ...prevState,
-      [parentId]: prevState[parentId] === id ? null : id // Toggle the current item and collapse others at the same level
+      [parentId]: prevState[parentId] === id ? null : id
     }));
   };
 
+  // Check if accordion is open
   const isOpenAccordion = (parentId: string, id: string) => {
     return openAccordions[parentId] === id;
   };
 
+  // Map and modify children with unique keys and props
   const modifiedChildren = Children.map(children, (child, index) => {
     if (isValidElement(child)) {
+      const key = child.key ?? `menu-item-${index}`;
+
       if (child.type === MenuItem) {
         const modifiedProps: IMenuItemProps = {
           parentId: 'root',
           id: `root-${index}`
         };
 
-        return cloneElement(child, modifiedProps);
+        return cloneElement(child, { ...modifiedProps, key });
       } else {
-        return cloneElement(child);
+        return cloneElement(child, { key });
       }
     }
 
@@ -83,11 +86,11 @@ const MenuComponent = ({
         isOpenAccordion
       }}
     >
-      <div className={clsx('menu', className && className)}>{modifiedChildren}</div>
+      <div className={clsx('menu', className)}>{modifiedChildren}</div>
     </MenuContext.Provider>
   );
 };
 
 const Menu = memo(MenuComponent);
-// eslint-disable-next-line react-refresh/only-export-components
+
 export { Menu, useMenu };

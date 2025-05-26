@@ -19,8 +19,8 @@ export const Default: StoryObj<typeof DropDown> = {
   args: {
     ...formField,
     options: [
-      { id: 'foo', name: 'Foo' },
-      { id: 'bar', name: 'Bar' }
+      { value: 'foo', label: 'Foo' },
+      { value: 'bar', label: 'Bar' }
     ],
     inputClass: 'border border-gray-300 rounded-lg px-4 py-2 w-full',
     altClass: 'mb-4'
@@ -31,8 +31,8 @@ export const Multiple: StoryObj<typeof DropDown> = {
   args: {
     ...formField,
     options: [
-      { id: 'foo', name: 'Foo' },
-      { id: 'bar', name: 'Bar' }
+      { value: 'foo', label: 'Foo' },
+      { value: 'bar', label: 'Bar' }
     ],
     multiple: true,
     prefixHtml: '<i class="las la-user-alt text-lg"></i>',
@@ -47,8 +47,8 @@ export const InputSolid: StoryObj<typeof DropDown> = {
     prefixHtml: '<i class="las la-user-alt text-lg"></i>',
     inputClass: 'border border-gray-300 bg-gray-100 rounded-lg px-4 py-2 w-full',
     options: [
-      { id: 'foo', name: 'Foo' },
-      { id: 'bar', name: 'Bar' }
+      { value: 'foo', label: 'Foo' },
+      { value: 'bar', label: 'Bar' }
     ],
     altClass: 'mb-4'
   }
@@ -58,8 +58,8 @@ export const AsyncSelect: StoryObj<typeof DropDown> = {
   args: {
     ...formField,
     options$: async () => [
-      { id: 'foo', name: 'Foo' },
-      { id: 'bar', name: 'Bar' }
+      { value: 'foo', label: 'Foo' },
+      { value: 'bar', label: 'Bar' }
     ],
     multiple: true,
     prefixHtml: '<i class="las la-user-alt text-lg"></i>',

@@ -79,7 +79,7 @@ const UpdateUserModal = ({ open, data, onOpenChange, onCreated }: IModalProps) =
       placeholder: 'Select gender',
       display: 'flex flex-col gap-1',
       value: data?.gender,
-      options$: async () => [
+      options: [
         { label: 'Male', value: 'male' },
         { label: 'Female', value: 'female' }
       ]

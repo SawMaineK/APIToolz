@@ -176,7 +176,7 @@ const DataTable = ({ model }: ModelContentProps) => {
                 <input
                   type="text"
                   placeholder={`Search ${model.title}`}
-                  className="input input-sm ps-8"
+                  className="input ps-8"
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />

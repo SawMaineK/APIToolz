@@ -4,6 +4,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { BaseForm } from './base/base-form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 interface FormFieldPropertiesPanelProps {
   formField?: BaseForm<any> | null;
@@ -18,86 +25,6 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
     if (!formField) return;
     onChange({ ...formField, [key]: value } as BaseForm<any>);
   };
-
-  const floatingInput = (
-    id: string,
-    value: any,
-    placeholder: string,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  ) => (
-    <div className="relative">
-      <Input
-        id={id}
-        className="input input-sm peer placeholder-transparent"
-        placeholder=" "
-        value={value ?? ''}
-        onChange={onChange}
-      />
-      <label
-        htmlFor={id}
-        className="pointer-events-none absolute left-2 -top-2 text-xs text-gray-500 bg-white px-1
-                    peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm
-                    peer-placeholder-shown:text-gray-400 transition-all"
-      >
-        {placeholder}
-      </label>
-    </div>
-  );
-
-  const floatingTextarea = (
-    id: string,
-    value: any,
-    placeholder: string,
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  ) => (
-    <div className="relative">
-      <Textarea
-        id={id}
-        className="input input-sm peer placeholder-transparent"
-        placeholder={placeholder}
-        value={value ?? ''}
-        onChange={onChange}
-      />
-      <label
-        htmlFor={id}
-        className="absolute left-2 -top-2.5 text-xs text-gray-500 bg-white px-1 peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 transition-all"
-      >
-        {placeholder}
-      </label>
-    </div>
-  );
-
-  const floatingSelect = (
-    id: string,
-    value: any,
-    placeholder: string,
-    options: string[],
-    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  ) => (
-    <div className="relative">
-      <select
-        id={id}
-        className="select input-sm peer placeholder-transparent"
-        value={value ?? ''}
-        onChange={onChange}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <label
-        htmlFor={id}
-        className="absolute left-2 -top-2.5 text-xs text-gray-500 bg-white px-1 peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 transition-all"
-      >
-        {placeholder}
-      </label>
-    </div>
-  );
 
   return (
     formField && (
@@ -140,7 +67,7 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
             'text',
             'title'
           ],
-          (e) => updateField('controlType', e.target.value)
+          (val: any) => updateField('controlType', val)
         )}
 
         {floatingSelect(
@@ -148,7 +75,7 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
           formField.type,
           'Type',
           ['text', 'number', 'email', 'password', 'date', 'file'],
-          (e) => updateField('type', e.target.value)
+          (val: any) => updateField('type', val)
         )}
 
         <Separator />
@@ -235,14 +162,84 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
         {floatingTextarea('endfixHtml', formField.endfixHtml ?? '', 'Endfix HTML', (e) =>
           updateField('endfixHtml', e.target.value)
         )}
-
-        <Separator />
-
-        <h3 className="text-md font-semibold">Options</h3>
-        {floatingTextarea('options', formField.options ?? '', 'Options (JSON format)', (e) =>
-          updateField('options', JSON.parse(e.target.value))
-        )}
       </div>
     )
   );
 };
+
+export const floatingInput = (
+  id: string,
+  value: any,
+  placeholder: string,
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+) => (
+  <div className="relative">
+    <Input
+      id={id}
+      className="input input-sm peer placeholder-transparent"
+      placeholder=" "
+      value={value ?? ''}
+      onChange={onChange}
+    />
+    <label
+      htmlFor={id}
+      className="pointer-events-none absolute left-2 -top-2 text-xs text-gray-500 bg-white px-1
+                    peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm
+                    peer-placeholder-shown:text-gray-400 transition-all"
+    >
+      {placeholder}
+    </label>
+  </div>
+);
+
+export const floatingTextarea = (
+  id: string,
+  value: any,
+  placeholder: string,
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+) => (
+  <div className="relative">
+    <Textarea
+      id={id}
+      className="input input-sm peer placeholder-transparent"
+      placeholder={placeholder}
+      value={value ?? ''}
+      onChange={onChange}
+    />
+    <label
+      htmlFor={id}
+      className="absolute left-2 -top-2.5 text-xs text-gray-500 bg-white px-1 peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 transition-all"
+    >
+      {placeholder}
+    </label>
+  </div>
+);
+
+export const floatingSelect = (
+  id: string,
+  value: any,
+  placeholder: string,
+  options: string[],
+  onChange: (val: string) => void
+) => (
+  <div className="relative">
+    <Select value={value ?? ''} onValueChange={onChange}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option, index) => (
+          <SelectItem key={index} value={option}>
+            {option}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    <label
+      htmlFor={id}
+      className="absolute left-2 -top-2.5 text-xs text-gray-500 bg-white px-1 peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 transition-all"
+    >
+      {placeholder}
+    </label>
+  </div>
+);

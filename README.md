@@ -105,6 +105,7 @@ Below are the available options for the `apitoolz:model` Artisan command:
 | `--use-roles=`          | Enable role-based access control for the model. Specify roles as a comma-separated list, e.g., `admin,user`. |
 | `--use-policy`          | Apply user policy to the model (requires `user_id` field in the table).    |
 | `--use-observer`       | Enable model observer functionality for lifecycle events.                   |
+| `--use-hook=`           | Attach custom hooks to the model lifecycle events. Specify hook names as a comma-separated list, e.g., `handle,creating,updating,deleted`. |
 | `--soft-delete`         | Enable soft delete functionality for the model.                           |
 | `--sql=`                | Provide an SQL table definition to generate the model.                    |
 | `--lock=`               | Lock specific components to prevent overwriting during regeneration. Options: `controller`, `model`, `request`, `resource`, `service`. |

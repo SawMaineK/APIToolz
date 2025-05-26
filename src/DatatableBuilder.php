@@ -180,7 +180,8 @@ class DatatableBuilder
 
     static function getFieldMigrate($field, $option = [], $after = null, $modify = false)
     {
-        $column = "\t\t\t\$table->{$option['type']}('{$field}')";
+        $type = $option['type'];
+        $column = "\t\t\t\$table->{$type}('{$field}')";
         if ($option['default'] != "") {
             $column = "{$column}->default('{$option['default']}')";
         }
@@ -203,6 +204,8 @@ class DatatableBuilder
         switch ($type) {
             case 'bigint':
                 return 'bigInteger';
+            case 'bigint unsigned':
+                return 'unsignedBigInteger';
             case 'int':
                 return 'integer';
             case 'mediuminit':
