@@ -112,7 +112,7 @@ class UsersController extends APIToolzController
                 if(!$role) {
                     return $this->response("Role not found", 404);
                 }
-                $user->roles()->attach($role);
+                $user->roles()->attach($role, ['model_type' => User::class]);
             }
         }
         return $this->response(new UsersResource($user), 201);
@@ -183,7 +183,7 @@ class UsersController extends APIToolzController
                 if(!$role) {
                     return $this->response("Role not found", 404);
                 }
-                $user->roles()->attach($role);
+                $user->roles()->attach($role, ['model_type' => User::class]);
             }
         }
         if (isset($data['is_2fa_enabled'])) {

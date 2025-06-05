@@ -33,13 +33,13 @@ class RolePermissionSeeder extends Seeder
         // Attach roles
         $user = User::where('email', 'admin@example.com')->first();
         if (!$user->roles->contains('name', 'super')) {
-            $user->roles()->attach($superRole);
+            $user->roles()->attach($superRole, ['model_type' => User::class]);
         }
         if (!$user->roles->contains('name', 'admin')) {
-            $user->roles()->attach($adminRole);
+            $user->roles()->attach($adminRole, ['model_type' => User::class]);
         }
         if (!$user->roles->contains('name', 'user')) {
-            $user->roles()->attach($userRole);
+            $user->roles()->attach($userRole, ['model_type' => User::class]);
         }
 
     }
