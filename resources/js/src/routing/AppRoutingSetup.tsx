@@ -38,6 +38,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/apitoolz/model" element={<ModelsPage />} />
           <Route path="/apitoolz/model/:id" element={<DataTablePage />} />
           <Route path="/apitoolz/model/:id/create" element={<CreatePage />} />
+          <Route path="/apitoolz/model/:id/update" element={<CreatePage />} />
           <Route path="/apitoolz/model/:id/builder" element={<FormBuilderPage />} />
           <Route path="/apitoolz/model/:id/:config" element={<ModelHightlightPage />} />
           <Route path="/apitoolz/model/:id/settings/:page" element={<SettingsPage />} />

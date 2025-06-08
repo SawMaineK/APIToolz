@@ -21,6 +21,7 @@ class DatatableBuilder
                     'type' => $field['type'],
                     'default' => isset($field['default']) ? $field['default'] : null,
                     'null' => isset($field['null']) ? $field['null'] : null,
+                    'enum' => isset($field['enum']) ? $field['enum'] : null,
                 ]);
             }
         }
@@ -61,9 +62,25 @@ class DatatableBuilder
                     $field['name'] = $col['name'];
                     $field['type'] = self::toCastFieldType($col['type_name']);
                     $field['null'] = $col['nullable'];
+                    $field['default'] = $col['default'];
+                    // If the type is enum, convert the enum string to an array of values
+                    if (isset($col['type']) && strpos($col['type'], "enum(") === 0) {
+                        preg_match("/^enum\((.*)\)$/", $col['type'], $matches);
+                        if (isset($matches[1])) {
+                            $enumValues = array_map(function($v) {
+                                return trim($v, " '\"");
+                            }, explode(',', $matches[1]));
+                            $field['enum'] = $enumValues;
+                        } else {
+                            $field['enum'] = null;
+                        }
+                    } else {
+                        $field['enum'] = isset($col['enum']) ? $col['enum'] : null;
+                    }
                     $fields[] = $field;
                 }
             }
+
             \DB::unprepared("DROP table $table;");
             self::build($table, $fields, $softDelete, $foreignKeys);
         } catch (\Exception $e) {
@@ -181,7 +198,13 @@ class DatatableBuilder
     static function getFieldMigrate($field, $option = [], $after = null, $modify = false)
     {
         $type = $option['type'];
-        $column = "\t\t\t\$table->{$type}('{$field}')";
+        if (isset($option['enum']) && $option['enum'] != null) {
+            $type = 'enum';
+            $option['default'] = isset($option['default']) ? $option['default'] : $option['enum'][0];
+            $column = "\t\t\t\$table->{$type}('{$field}', ['" . implode("', '", $option['enum']) . "'])";
+        } else {
+           $column = "\t\t\t\$table->{$type}('{$field}')";
+        }
         if ($option['default'] != "") {
             $column = "{$column}->default('{$option['default']}')";
         }
@@ -220,6 +243,8 @@ class DatatableBuilder
                 return 'string';
             case 'numeric':
                 return 'decimal';
+            case 'enum':
+                return 'enum';
             default:
                 return $type;
         }

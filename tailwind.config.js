@@ -11,7 +11,8 @@ module.exports = {
     'ki-duotone',
     'ki-solid',
     { pattern: /^apexcharts-.*$/ },
-    { pattern: /^leaflet-.*$/ }
+    { pattern: /^leaflet-.*$/ },
+    { pattern: /^(w|basis|flex)-1\/3$/, variants: ['md', 'lg', 'xl'] },
   ],
   darkMode: 'class',
   theme: {

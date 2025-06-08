@@ -9,65 +9,88 @@ use Sawmainek\Apitoolz\ResponseConfigBuilder;
 
 class ResponseConfigGenerator extends Command
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'apitoolz:response {model} {--field=} {--label=} {--visible=true} {--export=true} {--position=} {--reset}';
+    protected $signature = 'apitoolz:response
+        {model : The model name}
+        {--field= : Field name to configure}
+        {--label= : Field label for display}
+        {--visible=true : Show in response (true|false)}
+        {--export=true : Allow export (true|false)}
+        {--position= : Sorting position}
+        {--reset : Reset existing field config}
+        {--doc : Show detailed documentation}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Field configuration for response body of model.';
+    protected $description = 'Generate or update field response configuration for the given model.';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDoc();
+            return;
+        }
+
         $this->info('Field configuration start...');
 
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
-        if($model) {
-            $config = ModelConfigUtils::decryptJson($model->config);
-            $roles = [
-                'field' => 'required|in:'.implode(',', array_map(fn($form) => $form['field'], $config['grid'])),
-            ];
-
-            $data = [
-                'field' => $this->option('field'),
-                'label' => $this->option('label'),
-                'view' => $this->option('visible') == 'true' ? true : false,
-                'download' => $this->option('export') == 'true' ? true : false,
-                'sortlist' => $this->option('position')
-            ];
-            $validator = \Validator::make($data, $roles);
-            if ($validator->fails()) {
-
-                foreach($validator->errors()->messages() as $key => $err) {
-                    $this->error("- {$err[0]}");
-                }
-                return;
-            }
-            if($this->option('reset')) {
-                ResponseConfigBuilder::build($model, $data, $this->option('reset'));
-                return $this->info("The {$this->option('field')} config has reset successfully.");
-            } else {
-                ResponseConfigBuilder::build($model, $data);
-                return $this->info("The {$this->option('field')} config has updated successfully.");
-            }
-        } else {
-            $this->error("This $name model not found.");
+        if (!$model) {
+            $this->error("Model \"$name\" not found.");
+            return;
         }
 
+        $config = ModelConfigUtils::decryptJson($model->config);
+        $roles = [
+            'field' => 'required|in:' . implode(',', array_map(fn($form) => $form['field'], $config['grid'])),
+        ];
+
+        $data = [
+            'field' => $this->option('field'),
+            'label' => $this->option('label'),
+            'view' => $this->option('visible') === 'true',
+            'download' => $this->option('export') === 'true',
+            'sortlist' => $this->option('position'),
+        ];
+
+        $validator = \Validator::make($data, $roles);
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $err) {
+                $this->error("- {$err[0]}");
+            }
+            return;
+        }
+
+        ResponseConfigBuilder::build($model, $data, $this->option('reset'));
+
+        $action = $this->option('reset') ? 'reset' : 'updated';
+        $this->info("The \"{$this->option('field')}\" config has been {$action} successfully.");
     }
 
+    protected function printDoc()
+    {
+        $this->info("=== Response Config Generator Help ===");
+        $this->line("Command:");
+        $this->line("  php artisan apitoolz:response {model} [options]");
+        $this->newLine();
+
+        $this->info("Arguments:");
+        $this->line("  model              The name of the model (e.g., User)");
+
+        $this->info("Options:");
+        $this->line("  --field=FIELD      Field name to configure (required)");
+        $this->line("  --label=LABEL      Optional label for the field");
+        $this->line("  --visible=BOOL     Whether to show the field in response (default: true)");
+        $this->line("  --export=BOOL      Whether to include field in export (default: true)");
+        $this->line("  --position=NUM     Optional position index for ordering");
+        $this->line("  --reset            Reset the field's existing response config");
+        $this->line("  --doc              Show this doc message");
+
+        $this->newLine();
+        $this->info("Examples:");
+        $this->line("  php artisan apitoolz:response User --field=email --label=\"Email Address\"");
+        $this->line("  php artisan apitoolz:response Product --field=price --visible=false --export=true");
+        $this->line("  php artisan apitoolz:response Order --field=status --reset");
+
+        $this->newLine();
+        $this->info("=======================================");
+    }
 }

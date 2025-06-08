@@ -34,6 +34,9 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
           updateField('label', e.target.value)
         )}
         {floatingInput('name', formField.name, 'Name', (e) => updateField('name', e.target.value))}
+        {floatingInput('value', formField.value, 'Default value', (e) =>
+          updateField('value', e.target.value)
+        )}
         {floatingInput('placeholder', formField.placeholder, 'Placeholder', (e) =>
           updateField('placeholder', e.target.value)
         )}
@@ -96,6 +99,24 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
         )}
         {floatingInput('mask', formField.mask ?? '', 'Mask', (e) =>
           updateField('mask', e.target.value)
+        )}
+        {floatingInput('criteriaValue.key', formField.criteriaValue?.key, 'Criteria key', (e) =>
+          updateField('criteriaValue', {
+            ...formField.criteriaValue,
+            key: e.target.value,
+            value: formField.criteriaValue?.value || ''
+          })
+        )}
+        {floatingInput(
+          'criteriaValue.value',
+          formField.criteriaValue?.value,
+          'Criteria value',
+          (e) =>
+            updateField('criteriaValue', {
+              ...formField.criteriaValue,
+              value: e.target.value,
+              key: formField.criteriaValue?.key ?? ''
+            })
         )}
 
         <Separator />

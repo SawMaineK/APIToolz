@@ -3,6 +3,7 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Sawmainek\Apitoolz\APIToolzGenerator;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\RequestBodyConfigBuilder;
@@ -18,7 +19,7 @@ class RequestBodyConfigGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:request {model} {--field=} {--label=} {--input-type=} {--validator=} {--cast=} {--searchable=true} {--fillable=true} {--width=} {--criteria-key=} {--criteria-value=} {--position=} {--upload-path=} {--upload-max-size=} {--upload-type=image} {--upload-multiple=false} {--opt-type=} {--lookup-model=} {--lookup-value=} {--lookup-dependency-key=} {--lookup-filter-key=} {--lookup-query=} {--select-multiple=false} {--reset}';
+    protected $signature = 'apitoolz:request {model} {--field=} {--label=} {--input-type=} {--validator=} {--cast=} {--searchable=true} {--fillable=true} {--width=} {--criteria-key=} {--criteria-value=} {--position=} {--upload-path=} {--upload-max-size=} {--upload-type=image} {--upload-multiple=false} {--opt-type=} {--lookup-model=} {--lookup-value=} {--lookup-dependency-key=} {--lookup-filter-key=} {--lookup-query=} {--select-multiple=false} {--reset} {--ask-ai} {--doc}';
 
     /**
      * The console command description.
@@ -32,16 +33,33 @@ class RequestBodyConfigGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDoc();
+            return;
+        }
+
         $this->info('Field configuration start...');
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
         if($model) {
+            if ($this->option('ask-ai')) {
+                $field = $this->option('field');
+                if (!$field) {
+                    $this->error("The --field option is required when using --ask-ai.");
+                    return;
+                }
+
+                $question = "Create {$name} model's request configuration for $field field with above format.";
+                $answer = APIToolzGenerator::askRequestHint($question);
+                $this->line($answer);
+                return;
+            }
             $config = ModelConfigUtils::decryptJson($model->config);
             $roles = [
                 'field' => 'required|in:'.implode(',', array_map(fn($form) => $form['field'], $config['forms'])),
             ];
             if($this->option('input-type')) {
-                $roles['type'] = 'required|in:text,text_number,text_tags,text_password,text_email,text_date,text_time,text_datetime,textarea,textarea_editor,select,radio,checkbox,file,hidden';
+                $roles['type'] = 'required|in:text,number,tags,password,text_email,date,time,datetime,textarea,editor,select,radio,checkbox,file,hidden';
 
                 if($this->option('criteria-key')) {
                     $roles['criteria_value'] = 'required';
@@ -115,6 +133,64 @@ class RequestBodyConfigGenerator extends Command
             $this->error("This $name model not found.");
         }
 
+    }
+
+    protected function printDoc()
+    {
+        $this->info("=== apitoolz:request Command Documentation ===");
+        $this->line("Configure field behavior for request body handling of a model.");
+        $this->newLine();
+
+        $this->info("Usage:");
+        $this->line("  php artisan apitoolz:request {model} [options]");
+        $this->newLine();
+
+        $this->info("Arguments:");
+        $this->line("  model                      Required. Name of the model (e.g., User)");
+
+        $this->info("Common Options:");
+        $this->line("  --field=FIELD              Required. Field name from the model's form config");
+        $this->line("  --label=LABEL              Optional. Custom display label");
+        $this->line("  --input-type=TYPE          Optional. Input type (e.g. text, number, select, file)");
+        $this->line("  --validator=RULES          Optional. Validation rules string");
+        $this->line("  --cast=TYPE                Optional. Cast type (e.g. int, float)");
+        $this->line("  --searchable=true|false    Optional. Include in search (default: true)");
+        $this->line("  --fillable=true|false      Optional. Include in fillable/request (default: true)");
+        $this->line("  --width=WIDTH              Optional. UI width (e.g. col-md-6)");
+        $this->line("  --position=NUM             Optional. Sorting position in the form");
+
+        $this->info("Conditional Options:");
+        $this->line("  --criteria-key=KEY         Used with criteria-value (conditional visibility)");
+        $this->line("  --criteria-value=VALUE     Value to match for criteria-key");
+
+        $this->info("File Upload Options:");
+        $this->line("  --upload-path=PATH         Required if input-type=file");
+        $this->line("  --upload-max-size=NUM      Required if input-type=file");
+        $this->line("  --upload-type=image|file   Upload type (default: image)");
+        $this->line("  --upload-multiple=true     Allow multiple file upload (default: false)");
+
+        $this->info("Select/Radio/Checkbox Options:");
+        $this->line("  --opt-type=datalist|external    Required for select/radio");
+        $this->line("  --lookup-model=MODEL            Required if opt-type=external");
+        $this->line("  --lookup-value=FIELD            Value field from the lookup model");
+        $this->line("  --lookup-dependency-key=FIELD   Optional. Field to use for dynamic dependency");
+        $this->line("  --lookup-filter-key=FIELD       Optional. Used for filtering dependent values");
+        $this->line("  --lookup-query=key:value        Required if opt-type=datalist");
+        $this->line("  --select-multiple=true          Allow multiple selections");
+
+        $this->info("Other:");
+        $this->line("  --reset                    Reset the existing configuration");
+        $this->line("  --doc                      Show this command documentation");
+
+        $this->newLine();
+        $this->info("Examples:");
+        $this->line("  php artisan apitoolz:request User --field=email --label='Email Address' --input-type=text");
+        $this->line("  php artisan apitoolz:request Product --field=image --input-type=file --upload-path=products/ --upload-max-size=1024");
+        $this->line("  php artisan apitoolz:request Order --field=status --input-type=select --opt-type=datalist --lookup-query='0:Pending,1:Processing,2:Completed'");
+        $this->line("  php artisan apitoolz:request Profile --field=avatar --reset");
+
+        $this->newLine();
+        $this->info("===============================================");
     }
 
 }

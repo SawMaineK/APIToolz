@@ -33,11 +33,11 @@ class RelationBuilder
         $relationModel = Model::where('name', $request['relation_model'])->first();
         $relation['title'] = $request['title'];
         $relation['relation'] = $request['relation_type'] ? $request['relation_type'] : $relation['relation'];
-        $relation['master_key'] = 'id';
+        $relation['master_key'] = $request['related_key'] ?? 'id';
         $relation['model'] = $request['relation_model'];
         $relation['model_slug'] = $relationModel->slug;
         $relation['display'] = $request['display_field'] ?? 'name';
-        $relation['table'] = $relationModel->table;
+        $relation['table'] = $request['table'] ? $request['table'] : $relationModel->table;
         $relation['key'] = $request['foreign_key'];
         $relation['sub'] = $request['sub'];
         $existedIdx = self::getExistedRelation($config['relationships'], $relation['title']);

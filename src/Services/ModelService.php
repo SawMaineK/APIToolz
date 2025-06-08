@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Sawmainek\Apitoolz\APIToolzGenerator;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\Models\Model as ApiToolzModel;
+use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelService
 {
@@ -117,6 +118,7 @@ class ModelService
         if ($model) {
             $data['config'] = ModelConfigUtils::encryptJson($data['config']);
             $model->update($data);
+            SeederBuilder::build();
             return $model;
         }
         return null;

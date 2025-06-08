@@ -48,19 +48,19 @@ class RequestBodyConfigBuilder
                         }
                     }
 
-                    if ($request['type'] == 'text_number') {
+                    if ($request['type'] == 'number') {
                         $config['forms'][$i]['cast'] = 'integer';
                     }
 
-                    if ($request['type'] == 'text_tags') {
+                    if ($request['type'] == 'tags') {
                         $config['forms'][$i]['cast'] = 'array';
                     }
 
-                    if ($request['type'] == 'text_date') {
+                    if ($request['type'] == 'date') {
                         $config['forms'][$i]['cast'] = 'date:Y-m-d';
                     }
 
-                    if ($request['type'] == 'text_datetime') {
+                    if ($request['type'] == 'datetime') {
                         $config['forms'][$i]['cast'] = 'datetime:Y-m-d h:i:s';
                     }
 

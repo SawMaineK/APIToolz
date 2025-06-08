@@ -17,7 +17,7 @@ class ModelFilterGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:filter {model} {--title=} {--filter-type=} {--filter-model=} {--filter-query=} {--filter-value=} {--filter-label=} {--filter-key=} {--remove} {--force}';
+    protected $signature = 'apitoolz:filter {model} {--title=} {--filter-type=} {--filter-model=} {--filter-query=} {--filter-value=} {--filter-label=} {--filter-key=} {--remove} {--force} {--doc}';
 
     /**
      * The console command description.
@@ -31,6 +31,11 @@ class ModelFilterGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDocumentation();
+            return;
+        }
+
         $this->info('Adding filter in data table...');
 
         $name = $this->argument('model');
@@ -78,6 +83,34 @@ class ModelFilterGenerator extends Command
             $this->error("This $name model not found.");
         }
 
+    }
+
+    protected function printDocumentation()
+    {
+        $this->info("📘 API Toolz Filter Generator Documentation");
+        $this->line("");
+        $this->line("Usage:");
+        $this->line("  php artisan apitoolz:filter {model} [options]");
+        $this->line("");
+        $this->line("Arguments:");
+        $this->line("  model                  The name of the model to add/remove filters to.");
+        $this->line("");
+        $this->line("Options:");
+        $this->line("  --title               Title of the filter (used as label/display).");
+        $this->line("  --filter-type         Type of filter input (select, checkbox, radio).");
+        $this->line("  --filter-model        Related model name for dynamic filter options.");
+        $this->line("  --filter-query        Static query string (used when filter-model not provided).");
+        $this->line("  --filter-label        Field to use as label in related model.");
+        $this->line("  --filter-value        Field to use as value in related model.");
+        $this->line("  --filter-key          Key used to apply the filter on the model.");
+        $this->line("  --remove              Remove the specified filter.");
+        $this->line("  --force               Overwrite existing filter if already exists.");
+        $this->line("  --doc                 Show this documentation.");
+        $this->line("");
+        $this->info("Examples:");
+        $this->line("  php artisan apitoolz:filter Product --title=Category --filter-type=select --filter-model=Category --filter-label=name --filter-value=id --filter-key=category_id");
+        $this->line("  php artisan apitoolz:filter Product --title=Status --filter-type=radio --filter-query='[{\"label\":\"Active\",\"value\":1},{\"label\":\"Inactive\",\"value\":0}]' --filter-key=status");
+        $this->line("  php artisan apitoolz:filter Product --title=Status --remove");
     }
 
 }

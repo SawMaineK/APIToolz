@@ -51,8 +51,6 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
 
   return (
     <div className="space-y-5">
-      {floatingInput('name', form.name, 'Name', (e) => update('name', e.target.value))}
-      {floatingInput('label', form.label, 'Label', (e) => update('label', e.target.value))}
       {floatingSelect(
         'controlType',
         form.controlType,
@@ -85,7 +83,30 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
         ],
         (val: any) => update('controlType', val)
       )}
-
+      {/* Only show Name field if controlType needs a name */}
+      {[
+        'textbox',
+        'textarea',
+        'checkbox',
+        'coder',
+        'component',
+        'date',
+        'datetime',
+        'editor',
+        'file',
+        'img',
+        'mask',
+        'note',
+        'radio',
+        'dropdown',
+        'switch',
+        'text',
+        'hidden'
+      ].includes(form.controlType) &&
+        floatingInput('name', form.name, 'Name(eg., category_id)', (e) =>
+          update('name', e.target.value)
+        )}
+      {floatingInput('label', form.label, 'Label', (e) => update('label', e.target.value))}
       {form.controlType === 'dropdown' && (
         <>
           {floatingSelect(
@@ -154,13 +175,33 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
         </>
       )}
 
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          checked={form.required || false}
-          onCheckedChange={(val) => update('required', val)}
-        />
-        <span>Required</span>
-      </div>
+      {[
+        'textbox',
+        'textarea',
+        'checkbox',
+        'coder',
+        'component',
+        'date',
+        'datetime',
+        'editor',
+        'file',
+        'img',
+        'mask',
+        'note',
+        'radio',
+        'dropdown',
+        'switch',
+        'text',
+        'hidden'
+      ].includes(form.controlType) && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            checked={form.required || false}
+            onCheckedChange={(val) => update('required', val)}
+          />
+          <span>Required</span>
+        </div>
+      )}
     </div>
   );
 };

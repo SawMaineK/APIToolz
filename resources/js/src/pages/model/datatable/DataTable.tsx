@@ -42,8 +42,16 @@ const DataTable = ({ model }: ModelContentProps) => {
           <button
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => {
-              setModelData(row.original);
-              setCreateModalOpen(true);
+              if (model.config.forms.length > 8) {
+                navigate(`/apitoolz/model/${model.slug}/update`, {
+                  state: {
+                    modelData: row.original
+                  }
+                });
+              } else {
+                setModelData(row.original);
+                setCreateModalOpen(true);
+              }
             }}
           >
             <KeenIcon icon="notepad-edit" />

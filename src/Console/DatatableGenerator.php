@@ -17,7 +17,7 @@ class DatatableGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:datatable {table} {--sql=} {--add-field=} {--update-field=} {--rename=} {--drop-field=} {--type=string} {--not-null} {--default=} {--field-after=id} {--soft-delete} {--remove}';
+    protected $signature = 'apitoolz:datatable {table} {--sql=} {--add-field=} {--update-field=} {--rename=} {--drop-field=} {--type=string} {--not-null} {--default=} {--field-after=id} {--soft-delete} {--remove} {--doc}';
 
     /**
      * The console command description.
@@ -31,6 +31,10 @@ class DatatableGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDocumentation();
+            return;
+        }
         $this->info('Generating Datatable...');
         $this->warn('Do not include table\'s id, created_at, updated_at and deleted_at. It will be auto included when generating.');
 
@@ -93,4 +97,46 @@ class DatatableGenerator extends Command
         }
         return $this->fields;
     }
+
+    protected function printDocumentation()
+    {
+        $this->info("📘 API Toolz Datatable Generator Documentation");
+        $this->line("");
+        $this->line("Usage:");
+        $this->line("  php artisan apitoolz:datatable table_name [options]");
+        $this->line("");
+        $this->info("Options:");
+        $this->line("  --sql=              Provide raw SQL to build the table schema.");
+        $this->line("  --add-field=        Add a new field to an existing table.");
+        $this->line("  --update-field=     Update an existing field in a table.");
+        $this->line("  --rename=           Rename the field being updated.");
+        $this->line("  --drop-field=       Remove a field from the table.");
+        $this->line("  --type=             Data type for the field (default: string).");
+        $this->line("  --not-null          Make the field NOT NULL.");
+        $this->line("  --default=          Default value for the field.");
+        $this->line("  --field-after=      Position the new/updated field after a specific field (default: id).");
+        $this->line("  --soft-delete       Enable soft deletes on the table.");
+        $this->line("  --remove            Drop the entire table.");
+        $this->line("  --doc               Show this documentation.");
+        $this->line("");
+        $this->info("Examples:");
+        $this->line("  Create a new table interactively:");
+        $this->line("    php artisan apitoolz:datatable users");
+        $this->line("");
+        $this->line("  Create a table from SQL:");
+        $this->line("    php artisan apitoolz:datatable users --sql=\"CREATE TABLE users (...)\"");
+        $this->line("");
+        $this->line("  Add a field to an existing table:");
+        $this->line("    php artisan apitoolz:datatable users --add-field=email --type=string --not-null");
+        $this->line("");
+        $this->line("  Update and rename a field:");
+        $this->line("    php artisan apitoolz:datatable users --update-field=fullname --rename=name --type=string");
+        $this->line("");
+        $this->line("  Drop a field from a table:");
+        $this->line("    php artisan apitoolz:datatable users --drop-field=nickname");
+        $this->line("");
+        $this->line("  Remove the entire table:");
+        $this->line("    php artisan apitoolz:datatable users --remove");
+    }
+
 }

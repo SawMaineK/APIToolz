@@ -36,7 +36,7 @@ export const FormField = (props: IFormField) => {
     if (Array.isArray(values)) {
       return values.includes(criteriaValue);
     }
-    return values === criteriaValue || false;
+    return values === criteriaValue || values === `${criteriaValue}` || false;
   };
 
   const hasCriteria = () => {
@@ -45,7 +45,7 @@ export const FormField = (props: IFormField) => {
         props.formField.criteriaValue &&
         matchValue(
           props.formField.criteriaValue.value,
-          values[props.formField.criteriaValue.key].value
+          values[props.formField.criteriaValue.key]?.value
         )
       ) {
         if (props.formField.name) {

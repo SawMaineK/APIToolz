@@ -350,8 +350,6 @@ export const toFormLayout = (
           if (field) {
             if (formField.config.opt_type) {
               field.option = formField.config;
-              field.option.opt_type =
-                formField.config.opt_type == 'async' ? 'external' : 'datalist';
             }
             return {
               ...createFormSelectField(field),
@@ -381,7 +379,7 @@ function createFormSelectField(field: any): FormSelect {
       : {})
   };
 
-  if (field.option.opt_type === 'external') {
+  if (field.option.opt_type === 'external' || field.option.opt_type === 'async') {
     const loadData = async (inputValue: string, filter: Filter) => {
       const lookupValues = field.option.lookup_value.split(',');
       if (filter?.key && filter?.value) {
@@ -389,14 +387,14 @@ function createFormSelectField(field: any): FormSelect {
           ? `filter=${lookupValues[0]}:like:${inputValue}|${filter.key}:${filter.value}`
           : `filter=${filter.key}:${filter.value}`;
         return requestOptionData(
-          field.option.lookup_model,
+          toLowerCase(field.option.lookup_model),
           filterQuery,
           field.option.lookup_value,
           field.option.lookup_key
         );
       } else {
         return requestOptionData(
-          field.option.lookup_model,
+          toLowerCase(field.option.lookup_model),
           `search=${inputValue}`,
           field.option.lookup_value,
           field.option.lookup_key

@@ -91,6 +91,11 @@ class APIToolzController extends Controller
         $data = $request->all();
         $form = $this->info->config['forms'];
         foreach ($form as $f) {
+            if ($f['type'] == 'password') {
+                if (!empty($data[$f['field']]) && !preg_match('/^\$2y\$/', $data[$f['field']])) {
+                    $data[$f['field']] = bcrypt($data[$f['field']]);
+                }
+            }
             if ($f['type'] == 'file' && $request->hasFile($f['field'])) {
                 if ($f['file']['image_multiple']) {
                     foreach ($request->file($f['field']) as $file) {

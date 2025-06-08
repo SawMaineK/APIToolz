@@ -83,6 +83,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
 
   const onAddField = (field: BaseForm<string>) => {
     setInputField(field);
+    setSelectedField(null);
     setOpenInputForm(true);
   };
 
@@ -107,174 +108,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
           >
             <div className="mb-auto flex flex-wrap gap-x-0 gap-y-2 w-full">
               {formLayout.map((formField: BaseForm<string>, index: number) => {
-                const matchValue = (
-                  values: any[] | boolean | string,
-                  criteriaValue: string | any
-                ) => {
-                  if (Array.isArray(values)) {
-                    return values.includes(criteriaValue);
-                  }
-                  return values === criteriaValue || false;
-                };
-
-                const addValidators = (form: BaseFormGroup, formGroup: FormGroup) => {
-                  if (form.name && form instanceof BaseFormGroup) {
-                    let group = formGroup.get(form.name);
-                    form.formGroup.forEach((x: BaseForm<string>) => {
-                      if (x.name && x instanceof BaseFormGroup) {
-                        addValidators(x, group as FormGroup);
-                      } else if (x.name && x instanceof BaseFormArray) {
-                        addValidators(x, group as FormGroup);
-                      } else if (x.name) {
-                        let validators: any[] = x.required ? [Validators.required] : [];
-                        (group as FormGroup).controls[x.name].setValidators([
-                          ...validators,
-                          ...x.validators
-                        ]);
-                        (group as FormGroup).controls[x.name].updateValueAndValidity({
-                          onlySelf: false,
-                          emitEvent: false
-                        });
-                      }
-                    });
-                  }
-                  if (form.name && form instanceof BaseFormArray) {
-                    let group = (formGroup.get(form.name) as FormArray).controls;
-                    group.forEach((y) => {
-                      form.formArray.forEach((x: BaseForm<string>) => {
-                        if (x.name && x instanceof BaseFormGroup) {
-                          addValidators(x, y as FormGroup);
-                        } else if (x.name && x instanceof BaseFormArray) {
-                          addValidators(x, y as FormGroup);
-                        } else if (x.name) {
-                          let validators: any[] = x.required ? [Validators.required] : [];
-                          (y as FormGroup).controls[x.name].setValidators([
-                            ...validators,
-                            ...x.validators
-                          ]);
-                          (y as FormGroup).controls[x.name].updateValueAndValidity({
-                            onlySelf: false,
-                            emitEvent: false
-                          });
-                        }
-                      });
-                    });
-                  }
-                };
-
-                const removeValidators = (form: BaseFormGroup, formGroup: FormGroup) => {
-                  if (form.name && form instanceof BaseFormGroup) {
-                    let group = formGroup.get(form.name) as FormGroup;
-                    form.formGroup.forEach((x: BaseForm<string>) => {
-                      if (x.name && x instanceof BaseFormGroup) {
-                        removeValidators(x, group as FormGroup);
-                      } else if (x.name && x instanceof BaseFormArray) {
-                        removeValidators(x, group as FormGroup);
-                      } else if (x.name) {
-                        (group as FormGroup).controls[x.name].setValue('', {
-                          onlySelf: false,
-                          emitEvent: false
-                        });
-                        (group as FormGroup).controls[x.name].clearValidators();
-                        (group as FormGroup).controls[x.name].updateValueAndValidity({
-                          onlySelf: false,
-                          emitEvent: false
-                        });
-                      }
-                    });
-                  }
-                  if (form.name && form instanceof BaseFormArray) {
-                    let group = (formGroup.get(form.name) as FormArray).controls;
-                    group.forEach((y) => {
-                      form.formArray.forEach((x: BaseForm<string>) => {
-                        if (x.name && x instanceof BaseFormGroup) {
-                          removeValidators(x, y as FormGroup);
-                        } else if (x.name && x instanceof BaseFormArray) {
-                          removeValidators(x, y as FormGroup);
-                        } else if (x.name) {
-                          (y as FormGroup).controls[x.name].setValue('', {
-                            onlySelf: false,
-                            emitEvent: false
-                          });
-                          (y as FormGroup).controls[x.name].clearValidators();
-                          (y as FormGroup).controls[x.name].updateValueAndValidity({
-                            onlySelf: false,
-                            emitEvent: false
-                          });
-                        }
-                      });
-                    });
-                  }
-                };
-
-                const hasCriteria = (form: BaseFormGroup | any, group: any) => {
-                  if (form.name && form.criteriaValue) {
-                    if (
-                      form.criteriaValue &&
-                      matchValue(form.criteriaValue.value, group.value[form.criteriaValue.key])
-                    ) {
-                      addValidators(form, group);
-                      return true;
-                    } else {
-                      removeValidators(form, group);
-                      return false;
-                    }
-                  }
-                  return true;
-                };
-
                 switch (formField.controlType) {
-                  case 'form_group':
-                    return (
-                      <div
-                        key={index}
-                        className={`flex flex-wrap ${formField.columns} ${formField.altClass}`}
-                      >
-                        {hasCriteria(formField, formGroup) && (
-                          <FormLayoutControl
-                            formLayout={formField.formGroup}
-                            formGroup={formGroup.get(formField.name)}
-                            initValues={props.initValues && props.initValues[formField.name]}
-                            // selectedField={selectedField}
-                            // onClick={(field) => {
-                            //   setSelectedField(field);
-                            // }}
-                            // onRemove={onRemoveField}
-                            // onAdd={onAddField}
-                          />
-                        )}
-                      </div>
-                    );
-                  //   case 'form_array':
-                  //     return (
-                  //       <div key={index} className={`w-full ${formField.altClass}`}>
-                  //         {
-                  //           <FieldGroup
-                  //             control={formGroup}
-                  //             render={(form: any) => {
-                  //               return (
-                  //                 <div className="form-array">
-                  //                   <FormTableControl
-                  //                     formField={formField}
-                  //                     formLayout={formField.formArray}
-                  //                     formArray={formGroup.get(formField.name) as FormArray}
-                  //                     //   selectedField={selectedField}
-                  //                     //   onClick={(field) => {
-                  //                     //     setSelectedField(field);
-                  //                     //   }}
-                  //                     //   onRemove={onRemoveField}
-                  //                     //   onAdd={onAddField}
-                  //                     initValues={
-                  //                       (props.initValues && props.initValues[formField.name]) || []
-                  //                     }
-                  //                   />
-                  //                 </div>
-                  //               );
-                  //             }}
-                  //           />
-                  //         }
-                  //       </div>
-                  //     );
                   default:
                     return (
                       <SortableFormField
@@ -353,19 +187,32 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
         onAdded={(formField) => {
           const newField = {
             ...formField,
-            unqKey: selectedField?.unqKey ?? uuid() // retain the same key for editing
+            unqKey: selectedField?.unqKey ?? uuid() // retain the same key for editing or generate new
           };
 
           setFormLayout((prev) => {
-            const index = prev.findIndex((f) => f.unqKey === selectedField?.unqKey);
-
-            if (index >= 0) {
-              const updatedLayout = [...prev];
-              updatedLayout[index] = newField;
-              return updatedLayout;
-            } else {
-              return [...prev, newField];
+            // If editing an existing field
+            if (selectedField) {
+              const index = prev.findIndex((f) => f.unqKey === selectedField.unqKey);
+              if (index >= 0) {
+                const updatedLayout = [...prev];
+                updatedLayout[index] = newField;
+                return updatedLayout;
+              }
             }
+
+            // If inserting a new field after a specific inputField
+            if (inputField) {
+              const insertIndex = prev.findIndex((f) => f.unqKey === inputField.unqKey);
+              if (insertIndex >= 0) {
+                const updatedLayout = [...prev];
+                updatedLayout.splice(insertIndex + 1, 0, newField);
+                return updatedLayout;
+              }
+            }
+
+            // Default: just append at the end
+            return [...prev, newField];
           });
 
           setSelectedField(null);
@@ -648,7 +495,11 @@ function SortableFormField({
                   </div>
                 );
               case 'hidden':
-                return <span className="text-md mt-2 flex items-center">Hidden Input</span>;
+                return (
+                  <span className="text-md mt-2 flex items-center">
+                    Hidden Input ({formField.name})
+                  </span>
+                );
               case 'label':
               case 'sub_title':
               case 'checkbox':

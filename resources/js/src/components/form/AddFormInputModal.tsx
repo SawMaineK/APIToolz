@@ -66,8 +66,7 @@ const AddFormInputModal = ({ open, initValue, onOpenChange, onAdded }: IModalPro
   };
 
   const handleSubmit = () => {
-    if (!form.label || !form.name) return;
-
+    if (!form.controlType) return;
     if (selectedType === 'FormInput') {
       onAdded(new BaseForm({ ...form }));
     } else {
@@ -175,7 +174,7 @@ const AddFormInputModal = ({ open, initValue, onOpenChange, onAdded }: IModalPro
 
             {isGroupOrArray(selectedType) && (
               <>
-                {floatingInput('name', form.name || '', 'Name', (e) =>
+                {floatingInput('name', form.name || '', 'Name (e.g, category_id)', (e) =>
                   setForm({ ...form, name: e.target.value })
                 )}
                 {floatingInput('label', form.label || '', 'Label', (e) =>
@@ -253,7 +252,7 @@ const AddFormInputModal = ({ open, initValue, onOpenChange, onAdded }: IModalPro
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleSubmit}
-                disabled={!form.label || !form.name}
+                disabled={!form.controlType}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
               >
                 {initValue ? `Update Field` : `Add Field`}

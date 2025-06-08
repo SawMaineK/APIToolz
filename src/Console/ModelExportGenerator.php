@@ -18,7 +18,7 @@ class ModelExportGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:export {--model=} {--include-data}';
+    protected $signature = 'apitoolz:export {--model=} {--include-data} {--doc}';
 
     /**
      * The console command description.
@@ -32,6 +32,11 @@ class ModelExportGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDocumentation();
+            return;
+        }
+
         $this->info('Model exporting start...');
         $models = [];
         if($this->option('model')) {
@@ -112,6 +117,30 @@ class ModelExportGenerator extends Command
             $this->error("Empty models or provided model not found.");
         }
 
+    }
+
+    protected function printDocumentation()
+    {
+        $this->info("📦 API Toolz Model Export Command Documentation");
+        $this->line("");
+        $this->line("Usage:");
+        $this->line("  php artisan apitoolz:export [--model=ModelName] [--include-data] [--doc]");
+        $this->line("");
+        $this->line("Options:");
+        $this->line("  --model           Export a specific model by name. If omitted, all models will be exported.");
+        $this->line("  --include-data    Include model data (JSON) in the export.");
+        $this->line("  --doc             Show this command's usage documentation.");
+        $this->line("");
+        $this->info("Export Content:");
+        $this->line("  - Model metadata (models.json)");
+        $this->line("  - Request, Resource, Controller, Service, and Model classes");
+        $this->line("  - Policy and Observer (if configured)");
+        $this->line("  - Table migration file");
+        $this->line("  - Data JSON file (if --include-data is passed)");
+        $this->line("");
+        $this->info("Example:");
+        $this->line("  php artisan apitoolz:export --model=Product --include-data");
+        $this->line("  php artisan apitoolz:export --doc");
     }
 
 }

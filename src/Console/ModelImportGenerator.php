@@ -18,7 +18,7 @@ class ModelImportGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:import {--file=} {--model=} {--exclude-data}';
+    protected $signature = 'apitoolz:import {--file=} {--model=} {--exclude-data} {--doc}';
 
     /**
      * The console command description.
@@ -32,6 +32,10 @@ class ModelImportGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDocumentation();
+            return;
+        }
         $this->info('Model import start...');
         $zip = new \ZipArchive();
         $res = $zip->open($this->option('file'));
@@ -91,6 +95,32 @@ class ModelImportGenerator extends Command
         } else {
             $this->error("File not found for {$this->option('file')}");
         }
+    }
+
+    protected function printDocumentation()
+    {
+        $this->info("📥 API Toolz Model Import Command Documentation");
+        $this->line("");
+        $this->line("Usage:");
+        $this->line("  php artisan apitoolz:import --file=path/to/export.zip [--model=ModelName] [--exclude-data] [--doc]");
+        $this->line("");
+        $this->line("Options:");
+        $this->line("  --file           The full path to the exported ZIP file containing model definitions and resources.");
+        $this->line("  --model          Import a specific model by name from the archive. If omitted, all models will be imported.");
+        $this->line("  --exclude-data   Skip importing model data from the ZIP archive.");
+        $this->line("  --doc            Display this documentation.");
+        $this->line("");
+        $this->info("What it does:");
+        $this->line("  - Unzips the provided export file into a temp directory");
+        $this->line("  - Recreates or updates model records in the database");
+        $this->line("  - Copies Requests, Resources, Controllers, Services, and Models");
+        $this->line("  - Applies Policy and Observer files if enabled");
+        $this->line("  - Runs the migration file for the model's table");
+        $this->line("  - Optionally imports table data from JSON");
+        $this->line("");
+        $this->info("Example:");
+        $this->line("  php artisan apitoolz:import --file=storage/apitoolz/exports/2025_06_07_123000_export.zip");
+        $this->line("  php artisan apitoolz:import --file=path/to/export.zip --model=Product --exclude-data");
     }
 
 }

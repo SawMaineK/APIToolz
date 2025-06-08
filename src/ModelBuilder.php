@@ -57,6 +57,8 @@ class ModelBuilder
             if($form['cast']) {
                 if($form['cast'] == 'decimal') {
                     $casts[] = "'{$form['field']}' => 'float'";
+                } else if($form['cast'] == 'enum') {
+                    $casts[] = "'{$form['field']}' => 'string'";
                 } else {
                     $casts[] = "'{$form['field']}' => '{$form['cast']}'";
                 }
@@ -110,7 +112,7 @@ class ModelBuilder
                     $codes['relationships'][] = APIToolzGenerator::blend('relationship.tpl', $relation);
                 }
 
-                if($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany') {
+                if($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany' || $relation['relation'] == 'belongsToMany') {
                     $resource[] = "'{$relation['title']}' => {$relation['model']}Resource::collection(\$this->{$relation['title']})";
                 } else {
                     $resource[] = "'{$relation['title']}' => new {$relation['model']}Resource(\$this->{$relation['title']})";

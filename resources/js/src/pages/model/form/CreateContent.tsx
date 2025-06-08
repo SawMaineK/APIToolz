@@ -6,10 +6,10 @@ import { FormHighlight } from './FormHighlight';
 import { Fragment } from 'react/jsx-runtime';
 import { toAbsoluteUrl } from '@/utils';
 
-const CreateContent = ({ model, onCreated }: ModelContentProps) => {
+const CreateContent = ({ model, modelData, onCreated }: ModelContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <Create model={model} onCreated={onCreated} />
+      <Create model={model} modelData={modelData} onCreated={onCreated} />
       <FormHighlight
         image={
           <Fragment>

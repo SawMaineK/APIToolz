@@ -304,6 +304,40 @@ Below are the available option parameters for configuring the request body:
 | `--select-multiple=`    | Allow multiple selections (`true` or `false`).                             |
 | `--reset`               | Reset the field configuration to default.                                 |
 
+## Response List Configuration
+### How can I configure the response list for a model?
+
+You can configure which fields are visible in the API response list for a model using the `apitoolz:response` Artisan command. This allows you to control field visibility, exportability, labels, and ordering in the response.
+
+#### Example Usage
+
+1. To set a field as visible and exportable in the response list:
+    ```shell
+    php artisan apitoolz:response Product --field=name --label="Product Name" --visible=true --export=true --position=1
+    ```
+
+2. To hide a field from the response list:
+    ```shell
+    php artisan apitoolz:response Product --field=internal_notes --visible=false
+    ```
+
+3. To reset a field's response configuration to default:
+    ```shell
+    php artisan apitoolz:response Product --field=price --reset
+    ```
+
+#### Available Option Parameters for Response List Configuration
+
+| Parameter      | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| `--field=`     | The name of the field to configure.                                         |
+| `--label=`     | The label to display for the field in the response.                         |
+| `--visible=`   | Set field visibility in the response list (`true` or `false`).              |
+| `--export=`    | Set field exportability (`true` or `false`).                                |
+| `--position=`  | The position/order of the field in the response list.                       |
+| `--reset`      | Reset the field's response configuration to default.                        |
+
+This command helps you customize the API response structure for each model, ensuring only the desired fields are included and properly formatted.
 
 ## Model Relationship
 

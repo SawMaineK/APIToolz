@@ -21,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--use-observer} {--use-hook=} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete}';
+    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--use-observer} {--use-hook=} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete} {--doc}';
 
     /**
      * The console command description.
@@ -35,6 +35,11 @@ class ModelGenerator extends Command
      */
     public function handle()
     {
+        if ($this->option('doc')) {
+            $this->printDocumentation();
+            return;
+        }
+
         $this->info('Generating Restful API...');
 
         $name = $this->argument('model');
@@ -164,6 +169,40 @@ class ModelGenerator extends Command
             $this->fields[] = $field;
         }
         return $this->fields;
+    }
+
+    protected function printDocumentation()
+    {
+        $this->info("📘 API Toolz Model Generator Documentation");
+        $this->line("");
+        $this->line("Usage:");
+        $this->line("  php artisan apitoolz:model {model} [options]");
+        $this->line("");
+        $this->line("Arguments:");
+        $this->line("  model                  The name of the model to generate.");
+        $this->line("");
+        $this->line("Options:");
+        $this->line("  --table                Table name for the model.");
+        $this->line("  --type                 Model type (e.g., readonly, normal).");
+        $this->line("  --use-auth             Enable authentication support.");
+        $this->line("  --use-roles            Specify roles for this model.");
+        $this->line("  --use-policy           Generate and register policy.");
+        $this->line("  --use-observer         Generate model observer.");
+        $this->line("  --use-hook             Add model lifecycle hook.");
+        $this->line("  --soft-delete          Enable soft deletes.");
+        $this->line("  --sql                  SQL to generate the table.");
+        $this->line("  --lock                 Lock specific components (comma-separated: request,controller,service,model,resource).");
+        $this->line("  --force                Force override or create actions.");
+        $this->line("  --update               Update an existing model.");
+        $this->line("  --rebuild              Rebuild an existing model's resources.");
+        $this->line("  --remove               Remove the model.");
+        $this->line("  --remove-table         Drop the related table.");
+        $this->line("  --force-delete         Hard delete the model from the DB.");
+        $this->line("  --doc                  Show this documentation.");
+        $this->line("");
+        $this->info("Examples:");
+        $this->line("  php artisan apitoolz:model User --table=users --use-auth --use-policy");
+        $this->line("  php artisan apitoolz:model Product --remove --remove-table");
     }
 
 }
