@@ -18,7 +18,17 @@ class SendOTPNotification extends Notification
 
     public function via($notifiable)
     {
-        \Log::info('Sending OTP notification to notifiable:', ['notifiable' => $notifiable]);
+        \Log::info('Sending OTP notification to notifiable:', [
+            'notifiable' => $notifiable,
+            'user_agent' => request()->header('User-Agent')
+        ]);
+        if (request()->header('User-Agent') && str_contains(strtolower(request()->header('User-Agent')), 'mobile')) {
+            if (!empty($notifiable->phone)) {
+                return ['sms'];
+            }
+        } elseif (!empty($notifiable->email)) {
+            return ['mail'];
+        }
         if (!empty($notifiable->phone)) {
             return ['sms'];
         }

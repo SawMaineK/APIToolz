@@ -7,9 +7,10 @@ import { toast } from 'sonner';
 
 type MarkdownViewerProps = {
   content: string;
+  onLinkClick?: (href: string) => void;
 };
 
-const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
+const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, onLinkClick }) => {
   return (
     <div className="prose prose-lg max-w-none">
       <ReactMarkdown
@@ -46,7 +47,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
                     borderRadius: '4px',
                     padding: '0.25rem 0.5rem',
                     cursor: 'pointer',
-                    fontSize: '0.75rem'
+                    fontSize: '0.75rem',
                   }}
                 >
                   Copy
@@ -60,7 +61,27 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
                 {children}
               </code>
             );
-          }
+          },
+
+          a({ href, children, ...props }) {
+            const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+              if (onLinkClick && href?.startsWith('#')) {
+                e.preventDefault();
+                onLinkClick(href);
+              }
+            };
+
+            return (
+              <a
+                href={href}
+                onClick={handleClick}
+                className="text-blue-600 hover:underline font-medium"
+                {...props}
+              >
+                {children}
+              </a>
+            );
+          },
         }}
       >
         {content}

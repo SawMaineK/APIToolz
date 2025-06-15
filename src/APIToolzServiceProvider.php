@@ -9,6 +9,7 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
+use Sawmainek\Apitoolz\Console\ModelSummaryGenerator;
 use Sawmainek\Apitoolz\Http\Middleware\RequestLogger;
 use Sawmainek\Apitoolz\Http\Middleware\ResponseLogger;
 use Sawmainek\Apitoolz\Console\ModelGenerator;
@@ -52,6 +53,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:filter', function ($app) {
             return $app->make(ModelFilterGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:summary', function ($app) {
+            return $app->make(ModelSummaryGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:export', function ($app) {
@@ -147,6 +152,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ResponseConfigGenerator::class,
             ModelRelationGenerator::class,
             ModelFilterGenerator::class,
+            ModelSummaryGenerator::class,
             ModelExportGenerator::class,
             ModelImportGenerator::class,
             ActivateGenerator::class,
@@ -172,6 +178,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.response',
             'command.apitoolz.relation',
             'command.apitoolz.filter',
+            'command.apitoolz.summary',
             'command.apitoolz.export',
             'command.apitoolz.import',
             'command.apitoolz.activate',
@@ -215,6 +222,7 @@ class APIToolzServiceProvider extends ServiceProvider
             $routeProvider = \Sawmainek\Apitoolz\Providers\RouteServiceProvider::class;
             $permissionProvider = \Sawmainek\Apitoolz\Providers\PermissionMiddlewareServiceProvider::class;
             $observerProvider = \Sawmainek\Apitoolz\Providers\ObserverServiceProvider::class;
+            $policyProvider = \Sawmainek\Apitoolz\Providers\PolicyServiceProvider::class;
 
             if (!in_array($routeProvider, $providers)) {
                 $providers[] = $routeProvider;
@@ -226,6 +234,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
             if (!in_array($observerProvider, $providers)) {
                 $providers[] = $observerProvider;
+            }
+
+            if (!in_array($policyProvider, $providers)) {
+                $providers[] = $policyProvider;
             }
 
             file_put_contents($providersFile, "<?php\n\nreturn " . var_export($providers, true) . ";\n");

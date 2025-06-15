@@ -100,6 +100,8 @@ Below are the available options for the `apitoolz:model` Artisan command:
 |-------------------------|-----------------------------------------------------------------------------|
 | `--update`              | Update an existing model without creating a new one.                       |
 | `--table=`              | Specify the database table name for the model.                             |
+| `--title=`              | Set the title or display name for the model.                               |
+| `--desc=`               | Provide a description for the model.                                       |
 | `--type=`               | Define the type of model (e.g., `basic`, `advanced`).                      |
 | `--use-auth`            | Enable authentication support for the model.                              |
 | `--use-roles=`          | Enable role-based access control for the model. Specify roles as a comma-separated list, e.g., `admin,user`. |
@@ -335,9 +337,72 @@ You can configure which fields are visible in the API response list for a model 
 | `--visible=`   | Set field visibility in the response list (`true` or `false`).              |
 | `--export=`    | Set field exportability (`true` or `false`).                                |
 | `--position=`  | The position/order of the field in the response list.                       |
+| `--width=`    | Set the display width for the field in the response list (e.g., `100px`, `20%`).           |
+| `--only-roles=`| Restrict field visibility in the response list to specific roles. Specify roles as a comma-separated list, e.g., `admin,user`. |
 | `--reset`      | Reset the field's response configuration to default.                        |
 
 This command helps you customize the API response structure for each model, ensuring only the desired fields are included and properly formatted.
+
+## Model Summary Report
+### How can I create a model summary report?
+
+You can create summary reports for your models using the `apitoolz:summary` Artisan command. This command allows you to define summary cards or charts (such as counts, sums, averages, and grouped statistics) that can be displayed in your API dashboard or UI.
+
+#### Example Usage
+
+1. To create a simple count summary for a model:
+    ```shell
+    php artisan apitoolz:summary Product --title="Total Products" --type=kpi --icon=box --method=count
+    ```
+
+2. To create a sum summary for a specific column:
+    ```shell
+    php artisan apitoolz:summary Sale --title="Total Sales Amount" --type=kpi --icon=dollar-sign --method=sum --column=amount
+    ```
+
+3. To create a grouped bar chart summary:
+    ```shell
+    php artisan apitoolz:summary Order --title="Orders by Status" --type=chart --chart-type=bar --group-by=status --aggregate=count
+    ```
+
+4. To remove a summary:
+    ```shell
+    php artisan apitoolz:summary Product --title="Total Products" --remove
+    ```
+
+5. To force remove a summary without confirmation:
+    ```shell
+    php artisan apitoolz:summary Product --title="Total Products" --remove --force
+    ```
+
+6. To generate documentation for the summary:
+    ```shell
+    php artisan apitoolz:summary Product --doc
+    ```
+
+#### Available Options for Model Summary
+
+| Option             | Description                                                                                   |
+|--------------------|-----------------------------------------------------------------------------------------------|
+| `{model}`          | The model name for which to create the summary.                                               |
+| `--title=`         | The display title for the summary.                                              |
+| `--type=`          | The type of summary (`kpi` or `chart` or `progress`).                                                      |
+| `--icon=`          | The icon to display for the summary card (e.g., `box`, `dollar-sign`).                        |
+| `--method=`        | The summary method (`count`, `sum`, `avg`, `max`, `min`).                                     |
+| `--column=`        | The column to aggregate (required for `sum`, `avg`, etc.).                                    |
+| `--chart-type=`    | The chart type for visual summaries (`bar`, `pie`, `line`, etc.).                             |
+| `--group-by=`      | The column to group results by (for grouped charts).                                          |
+| `--aggregate=`     | The aggregate function to use in grouped summaries (`count`, `sum`, etc.).                    |
+| `--limit=`         | Limit the number of groups or results displayed.                                              |
+| `--value-method=`  | Custom method to calculate the value.                                                         |
+| `--value-column=`  | Custom column for value calculation.                                                          |
+| `--max-method=`    | Method to calculate the maximum value.                                                        |
+| `--unit=`          | Unit to display with the summary value (e.g., `USD`, `items`).                               |
+| `--remove`         | Remove the specified summary.                                                                 |
+| `--force`          | Force the removal operation without confirmation.                                             |
+| `--doc`            | Generate documentation for the summary configuration.                                         |
+
+These options allow you to create flexible and informative summary reports for your API models, enhancing your application's dashboard and analytics capabilities.
 
 ## Model Relationship
 

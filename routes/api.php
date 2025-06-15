@@ -37,7 +37,7 @@ Route::prefix('api')->group(function () {
         Route::post('/model', 'store')->middleware(['auth:sanctum']);
         Route::get('/model/{slug}', 'show')->middleware(['auth:sanctum']);
         Route::put('/model/{id}', 'update')->middleware(['auth:sanctum']);
-        Route::get('/model/{slug}/ask-request', 'askRequest')->middleware(['auth:sanctum']);
+        Route::post('/model/{slug}/ask', 'askRequest')->middleware(['auth:sanctum']);
         Route::delete('/model/{slug}/{table}/', 'destroy')->middleware(['auth:sanctum']);
     });
 

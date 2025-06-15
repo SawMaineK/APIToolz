@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { DataGrid, KeenIcon, useDataGrid } from '@/components';
+import { DataGrid, KeenIcon } from '@/components';
 import axios from 'axios';
 import {
   Toolbar,
@@ -9,25 +9,40 @@ import {
   ToolbarHeading,
   ToolbarPageTitle
 } from '@/partials/toolbar';
-import { Filter, ModelContentProps } from '../_models';
+import { Menu, MenuItem, MenuToggle } from '@/components';
+import { ChartNoAxesCombined, Cpu } from 'lucide-react';
+import { DropdownChatAI } from '@/partials/dropdowns/chat-ai';
+import { ModelContentProps } from '../_models';
 import { generateColumns } from '../_helper';
 import { CreateModal } from '../form/CreateModal';
-import FilterSelect from '@/components/filter/FilterSelect';
-import { Switch } from '@/components/ui/switch';
-import FilterRadio from '@/components/filter/FilterRadio';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n';
+import { useRef } from 'react';
+import { DataTableFilter } from './DataTableFilter';
+import { report } from 'process';
+import { SummaryWidgetCard } from '../summary/SummaryWidgetCard';
 
 const DataTable = ({ model }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
+  const [widgets, setWidgets] = useState<any[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
+  const { isRTL } = useLanguage();
+
+  const itemAIChatRef = useRef<any>(null);
+
+  const handleShow = () => {
+    window.dispatchEvent(new Event('resize'));
+  };
 
   useEffect(() => {
-    // Trigger refresh and reset UI state when model changes
     setRefreshKey((prev) => prev + 1);
     setModelData(null);
     setCreateModalOpen(false);
+    if (model.config.reports?.filter((report) => report.type == 'kpi').length > 0) {
+      fetchSummaryWidgets(model.slug);
+    }
   }, [model]);
 
   const columns = useMemo(() => {
@@ -42,16 +57,11 @@ const DataTable = ({ model }: ModelContentProps) => {
           <button
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => {
-              if (model.config.forms.length > 8) {
-                navigate(`/apitoolz/model/${model.slug}/update`, {
-                  state: {
-                    modelData: row.original
-                  }
-                });
-              } else {
-                setModelData(row.original);
-                setCreateModalOpen(true);
-              }
+              navigate(`/apitoolz/model/${model.slug}/update`, {
+                state: {
+                  modelData: row.original
+                }
+              });
             }}
           >
             <KeenIcon icon="notepad-edit" />
@@ -116,6 +126,15 @@ const DataTable = ({ model }: ModelContentProps) => {
     }
   };
 
+  const fetchSummaryWidgets = async (modelId: string) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/${modelId}/summary`);
+      setWidgets(response.data.reports.filter((item: any) => item.type === 'kpi'));
+    } catch (error) {
+      console.error('Error fetching model:', error);
+    }
+  };
+
   const handleDeleteClick = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this record?')) {
       try {
@@ -133,111 +152,6 @@ const DataTable = ({ model }: ModelContentProps) => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const Filters = () => {
-    const { table, setQuerySearch } = useDataGrid();
-    const [searchQuery, setSearchQuery] = useState('');
-
-    useEffect(() => {
-      // Reset search and filters on model change
-      setSearchQuery('');
-      setQuerySearch('');
-      table.setColumnFilters([]);
-      table.setPageIndex(0);
-    }, [model]);
-
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      table.setPageIndex(0);
-      setSearchQuery(value);
-      setQuerySearch(value);
-    };
-
-    const filterCols = (old: any, key: string, value: any) => {
-      const index = old.findIndex((f: any) => f.id === key);
-      if (index > -1) {
-        if (value === '') {
-          return old.filter((f: any) => f.id !== key);
-        } else {
-          const updated = [...old];
-          updated[index].value = value;
-          return updated;
-        }
-      } else {
-        return value === '' ? old : [...old, { id: key, value }];
-      }
-    };
-
-    return (
-      <div className="card-header border-b-0 px-5 flex-wrap">
-        <h3 className="card-title font-medium text-sm">
-          Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
-          {model?.slug}s
-        </h3>
-        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <div className="flex gap-2">
-            <div className="flex gap-6">
-              <div className="relative">
-                <KeenIcon
-                  icon="magnifier"
-                  className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
-                />
-                <input
-                  type="text"
-                  placeholder={`Search ${model.title}`}
-                  className="input ps-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-              </div>
-            </div>
-            {model.config?.filters?.map((filter: Filter) => {
-              if (filter.type === 'select') {
-                return (
-                  <FilterSelect
-                    key={filter.key}
-                    filter={filter}
-                    onValueChange={(value: string) => {
-                      table.setPageIndex(0);
-                      table.setColumnFilters((old) => filterCols(old, filter.key, value));
-                    }}
-                  />
-                );
-              }
-              if (filter.type === 'checkbox') {
-                return (
-                  <div key={filter.key} className="flex items-center">
-                    <Switch
-                      id={filter.key}
-                      defaultChecked={false}
-                      onCheckedChange={(checked) => {
-                        table.setPageIndex(0);
-                        table.setColumnFilters((old) => filterCols(old, filter.key, checked));
-                      }}
-                    />
-                    <label htmlFor={filter.key} className="form-label ms-2">
-                      {filter.query}
-                    </label>
-                  </div>
-                );
-              }
-              if (filter.type === 'radio') {
-                return (
-                  <FilterRadio
-                    key={filter.key}
-                    filter={filter}
-                    table={table}
-                    filterCols={filterCols}
-                  />
-                );
-              }
-              return null;
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <Toolbar>
@@ -248,26 +162,64 @@ const DataTable = ({ model }: ModelContentProps) => {
           </ToolbarDescription>
         </ToolbarHeading>
         <ToolbarActions>
-          <Link to={`/apitoolz/model/${model.slug}/builder`} className="btn btn-sm btn-light">
-            <KeenIcon icon="setting-2" className="!text-base" />
-            Builder
-          </Link>
+          <Menu>
+            <MenuItem
+              ref={itemAIChatRef}
+              onShow={handleShow}
+              toggle="dropdown"
+              trigger="click"
+              dropdownProps={{
+                placement: isRTL() ? 'bottom-start' : 'bottom-end',
+                modifiers: [
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: isRTL() ? [-170, 10] : [50, -100]
+                    }
+                  }
+                ]
+              }}
+            >
+              <MenuToggle className="btn btn-sm btn-light">
+                <Cpu size={16} />
+                AI Assist
+              </MenuToggle>
+
+              {DropdownChatAI({ menuTtemRef: itemAIChatRef, model: model, type: 'response' })}
+            </MenuItem>
+          </Menu>
+
+          {model.config.reports && model.config.reports.length > 0 && (
+            <button
+              className="btn btn-sm btn-light"
+              onClick={() => {
+                navigate(`/apitoolz/model/${model.slug}/summary`);
+              }}
+            >
+              <ChartNoAxesCombined size={16} />
+              Summary
+            </button>
+          )}
+
           <button
             onClick={() => {
-              if (model.config.forms.length > 8) {
-                navigate(`/apitoolz/model/${model.slug}/create`);
-              } else {
-                setModelData(null);
-                setCreateModalOpen(true);
-              }
+              navigate(`/apitoolz/model/${model.slug}/create`);
             }}
             className="btn btn-sm btn-primary"
           >
             <KeenIcon icon="plus" />
-            {`Add ${model?.name || ''}`}
+            {`Add ${model?.title || ''}`}
           </button>
         </ToolbarActions>
       </Toolbar>
+
+      {widgets.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
+          {widgets.slice(0, 4).map((widget: any, i: number) => (
+            <SummaryWidgetCard key={i} widget={widget} />
+          ))}
+        </div>
+      )}
 
       <DataGrid
         key={refreshKey}
@@ -277,7 +229,7 @@ const DataTable = ({ model }: ModelContentProps) => {
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
         pagination={{ size: 10 }}
-        toolbar={<Filters />}
+        toolbar={<DataTableFilter model={model} />}
         layout={{ card: true }}
       />
 

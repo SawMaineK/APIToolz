@@ -21,7 +21,7 @@ class ModelGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--use-observer} {--use-hook=} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete} {--doc}';
+    protected $signature = 'apitoolz:model {model} {--update} {--table=} {--title=} {--desc=} {--type=} {--use-auth} {--use-roles=} {--use-policy} {--use-observer} {--use-hook=} {--soft-delete} {--sql=} {--lock=} {--force} {--rebuild} {--remove} {--remove-table} {--force-delete} {--doc}';
 
     /**
      * The console command description.
@@ -97,8 +97,8 @@ class ModelGenerator extends Command
             $model = new  Model();
             $model->name = \Str::studly($name);
             $model->slug = \Str::slug($name, '-');
-            $model->title = \Str::title($name);
-            $model->desc = "";
+            $model->title = \Str::title($this->option('title') ?? $name);
+            $model->desc = $this->option('desc') ?? "";
             $model->table = $table;
             $model->key = ModelConfigUtils::findPrimaryKey($table);
             $model->type = $this->option('type'); //"1" for Ready Only
@@ -127,7 +127,8 @@ class ModelGenerator extends Command
                         return in_array($item, $lockOptions);
                     });
                 }
-
+                $model->title = $this->option('title') ?? $model->title;
+                $model->desc = $this->option('desc') ?? $model->description;
                 $model->update();
                 ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('use-hook'), $this->option('soft-delete'));
                 return $this->info("This $name model update successfully.");
@@ -183,6 +184,8 @@ class ModelGenerator extends Command
         $this->line("");
         $this->line("Options:");
         $this->line("  --table                Table name for the model.");
+        $this->line("  --title                Model title (default: model name).");
+        $this->line("  --desc                 Model description (default: empty).");
         $this->line("  --type                 Model type (e.g., readonly, normal).");
         $this->line("  --use-auth             Enable authentication support.");
         $this->line("  --use-roles            Specify roles for this model.");

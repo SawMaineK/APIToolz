@@ -109,7 +109,7 @@ class ModelFilterGenerator extends Command
         $this->line("");
         $this->info("Examples:");
         $this->line("  php artisan apitoolz:filter Product --title=Category --filter-type=select --filter-model=Category --filter-label=name --filter-value=id --filter-key=category_id");
-        $this->line("  php artisan apitoolz:filter Product --title=Status --filter-type=radio --filter-query='[{\"label\":\"Active\",\"value\":1},{\"label\":\"Inactive\",\"value\":0}]' --filter-key=status");
+        $this->line("  php artisan apitoolz:filter Product --title=Status --filter-type=radio --filter-query='pending:Panding|success:Success|failed:Failed' --filter-key=status");
         $this->line("  php artisan apitoolz:filter Product --title=Status --remove");
     }
 

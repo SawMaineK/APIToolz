@@ -17,6 +17,7 @@ import { RolesPage } from '@/pages/roles/RolesPage';
 import { MenuConfigPage } from '@/pages/menu-config/MenuConfigPage';
 import { FormBuilderPage } from '@/pages/model/form/FormBuilderPage';
 import { ModelHightlightPage } from '@/pages/model/ModelHightlightPage';
+import { SummaryWidgetPage } from '@/pages/model/summary/SummaryWidgetPage';
 const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
@@ -42,6 +43,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/apitoolz/model/:id/builder" element={<FormBuilderPage />} />
           <Route path="/apitoolz/model/:id/:config" element={<ModelHightlightPage />} />
           <Route path="/apitoolz/model/:id/settings/:page" element={<SettingsPage />} />
+          <Route path="/apitoolz/model/:id/summary" element={<SummaryWidgetPage />} />
           <Route path="/apitoolz/users" element={<UsersPage />} />
           <Route path="/apitoolz/roles" element={<RolesPage />} />
           <Route path="/apitoolz/menu-config" element={<MenuConfigPage />} />

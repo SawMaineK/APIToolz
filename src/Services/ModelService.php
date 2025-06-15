@@ -124,7 +124,7 @@ class ModelService
         return null;
     }
 
-    public function askRequest($slug) {
+    public function ask($slug, Request $request) {
         $model = $this->model->where('slug', $slug)->first();
         if ($model) {
             $config = ModelConfigUtils::decryptJson($model->config);
@@ -133,9 +133,10 @@ class ModelService
                        !in_array($field['field'], ['id', 'created_at', 'updated_at', 'deleted_at']);
             })->map(function ($field) {
                 return $field['field'];
-            })->implode(', ');
-            $question = "Create $model->name model's request field configuration for $fields fields with above format.";
-            return APIToolzGenerator::askRequestHint($question);
+            });
+            $question = $request->get('question', "What is the {$model->title} {$fields}?");
+            $hint = $request->get('hint', null);
+            return APIToolzGenerator::ask($question, $hint, $model->slug, $fields, $request->type ?? 'request');
         }
         return null;
     }

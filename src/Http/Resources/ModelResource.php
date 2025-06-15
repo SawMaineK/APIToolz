@@ -14,7 +14,7 @@ class ModelResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
@@ -30,5 +30,15 @@ class ModelResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+        $grids = $data['config']['grid'] ?? [];
+        foreach ($grids as $i => $grid) {
+            if(isset($grid['only_roles']) && count($grid['only_roles']) > 0) {
+                $grids[$i]['view'] = $request->user() && collect($grid['only_roles'])->contains(function ($role) use ($request) {
+                    return $request->user()->hasRole($role);
+                });
+            }
+        }
+        $data['config']['grid'] = $grids;
+        return $data;
     }
 }

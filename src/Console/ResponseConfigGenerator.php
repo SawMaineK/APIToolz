@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\ResponseConfigBuilder;
+use Spatie\Permission\Models\Role;
 
 class ResponseConfigGenerator extends Command
 {
@@ -16,6 +17,8 @@ class ResponseConfigGenerator extends Command
         {--visible=true : Show in response (true|false)}
         {--export=true : Allow export (true|false)}
         {--position= : Sorting position}
+        {--width= : Optional columns width for the field in the response}
+        {--only-roles= : Comma-separated list of roles to apply this config}
         {--reset : Reset existing field config}
         {--doc : Show detailed documentation}';
 
@@ -42,12 +45,26 @@ class ResponseConfigGenerator extends Command
             'field' => 'required|in:' . implode(',', array_map(fn($form) => $form['field'], $config['grid'])),
         ];
 
+        if ($this->option('only-roles')) {
+            $roleNames = array_map('trim', explode(',', $this->option('only-roles')));
+            $existingRoles = Role::whereIn('name', $roleNames)->pluck('name')->toArray();
+            $invalidRoles = array_diff($roleNames, $existingRoles);
+
+            if (!empty($invalidRoles)) {
+                $this->error('Invalid roles: ' . implode(', ', $invalidRoles));
+                return;
+            }
+            $roles['only_roles'] = 'array';
+        }
+
         $data = [
             'field' => $this->option('field'),
             'label' => $this->option('label'),
             'view' => $this->option('visible') === 'true',
             'download' => $this->option('export') === 'true',
             'sortlist' => $this->option('position'),
+            'width' => $this->option('width'),
+            'only_roles' => $this->option('only-roles') ? explode(',', $this->option('only-roles')) : []
         ];
 
         $validator = \Validator::make($data, $roles);
@@ -81,6 +98,8 @@ class ResponseConfigGenerator extends Command
         $this->line("  --visible=BOOL     Whether to show the field in response (default: true)");
         $this->line("  --export=BOOL      Whether to include field in export (default: true)");
         $this->line("  --position=NUM     Optional position index for ordering");
+        $this->line("  --width=WIDTH      Optional width for the field in the response");
+        $this->line("  --only-roles=ROLES Comma-separated list of roles to apply this config");
         $this->line("  --reset            Reset the field's existing response config");
         $this->line("  --doc              Show this doc message");
 

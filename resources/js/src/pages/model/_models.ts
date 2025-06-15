@@ -114,6 +114,7 @@ export interface ModelConfig {
   relationships: Relationship[];
   filters: Filter[];
   formLayout: BaseForm<string>[];
+  reports: any[];
 }
 
 export interface Model {

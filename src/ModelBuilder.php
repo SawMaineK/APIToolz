@@ -29,6 +29,9 @@ class ModelBuilder
         $codes['policy_show'] = "";
         $codes['policy_update'] = "";
         $codes['policy_delete'] = "";
+        $codes['policy_restore'] = "";
+        $codes['policy_force_delete'] = "";
+        $codes['only_roles'] = "";
         $codes['authentication'] = $model->auth ? "security={{\"apiAuth\":{}}}," : "";
         $codes['schema_requset'] = OASchemaBuilder::generateSchema($model->table, $model->name);
         $codes['schema_resource'] = OASchemaBuilder::generateSchema($model->table, $model->name, true);
@@ -50,25 +53,25 @@ class ModelBuilder
             $grids[] = ModelConfigUtils::getGridConfig($codes['class'], $codes['table'], $field, $config['grid'], $i);
         }
 
-        $fillable   = [];
-        $search     = [];
-        $hidden     = [];
+        $fillable = [];
+        $search = [];
+        $hidden = [];
         foreach ($forms as $form) {
-            if($form['cast']) {
-                if($form['cast'] == 'decimal') {
+            if ($form['cast']) {
+                if ($form['cast'] == 'decimal') {
                     $casts[] = "'{$form['field']}' => 'float'";
-                } else if($form['cast'] == 'enum') {
+                } else if ($form['cast'] == 'enum') {
                     $casts[] = "'{$form['field']}' => 'string'";
                 } else {
                     $casts[] = "'{$form['field']}' => '{$form['cast']}'";
                 }
             }
             if ($form['search'] && $form['field'] != 'id') {
-                if($form['cast'] == 'object') {
+                if ($form['cast'] == 'object') {
                     $searchable[] = "'{$form['field']}' => is_object(\$this->{$form['field']}) ? json_encode(\$this->{$form['field']}) : \$this->{$form['field']}";
-                } elseif($form['cast'] == 'array') {
+                } elseif ($form['cast'] == 'array') {
                     $searchable[] = "'{$form['field']}' => is_array(\$this->{$form['field']}) ? json_encode(\$this->{$form['field']}) : \$this->{$form['field']}";
-                } elseif($form['cast'] == 'decimal') {
+                } elseif ($form['cast'] == 'decimal') {
 
                 } else {
                     $searchable[] = "'{$form['field']}' => \$this->{$form['field']}";
@@ -77,12 +80,12 @@ class ModelBuilder
 
             if ($form['view'] == true) {
                 $fillable[] = "'{$form['field']}'";
-                $search[]   = "'{$form['field']}'";
+                $search[] = "'{$form['field']}'";
                 $resource[] = "'{$form['field']}' => \$this->{$form['field']}";
-                 if($form['field'] == 'id') {
-                    $codes['validation'][] ="\t\t\t'{$form['field']}'=>'nullable|integer',\n";
+                if ($form['field'] == 'id') {
+                    $codes['validation'][] = "\t\t\t'{$form['field']}'=>'nullable|integer',\n";
                 } else {
-                    $codes['validation'][] ="\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                    $codes['validation'][] = "\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
                 }
                 $request['field'] = $form['field'];
                 $request['type'] = $form['cast'];
@@ -100,26 +103,26 @@ class ModelBuilder
 
         usort($forms, "self::_sort");
         usort($grids, "self::_sort");
-        $config['forms'] =  $forms;
+        $config['forms'] = $forms;
         $config['grid'] = $grids;
 
-        if(isset($config['relationships']) && count($config['relationships']) > 0) {
+        if (isset($config['relationships']) && count($config['relationships']) > 0) {
             $loader = [];
-            foreach($config['relationships'] as $relation) {
-                if(isset($relation['key']) && $relation['key'] != '') {
+            foreach ($config['relationships'] as $relation) {
+                if (isset($relation['key']) && $relation['key'] != '') {
                     $codes['relationships'][] = APIToolzGenerator::blend('relationship.key.tpl', $relation);
                 } else {
                     $codes['relationships'][] = APIToolzGenerator::blend('relationship.tpl', $relation);
                 }
 
-                if($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany' || $relation['relation'] == 'belongsToMany') {
+                if ($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany' || $relation['relation'] == 'belongsToMany') {
                     $resource[] = "'{$relation['title']}' => {$relation['model']}Resource::collection(\$this->{$relation['title']})";
                 } else {
                     $resource[] = "'{$relation['title']}' => new {$relation['model']}Resource(\$this->{$relation['title']})";
                 }
 
-                if(isset($relation['sub']) && explode(',',$relation['sub']) > 0) {
-                    foreach(explode(',',$relation['sub']) as $sub) {
+                if (isset($relation['sub']) && explode(',', $relation['sub']) > 0) {
+                    foreach (explode(',', $relation['sub']) as $sub) {
                         $loader[] = "'{$relation['title']}.{$sub}'";
                     }
                 } else {
@@ -131,6 +134,34 @@ class ModelBuilder
             $codes['show_loader'] = "\${$codes['alias']}->with([{$relations}]);";
         }
         $codes['resources'] = implode(",\n\t\t\t", $resource ?? []);
+        $only_roles_fields = collect($config['grid'])
+            ->filter(fn($item) => isset($item['only_roles']) && count($item['only_roles']) > 0)
+            ->pluck('field');
+
+        $only_roles = collect($config['grid'])
+            ->filter(fn($item) => isset($item['only_roles']) && count($item['only_roles']) > 0)
+            ->pluck('only_roles')
+            ->flatten()
+            ->unique();
+
+        $codes['only_roles'] .= $only_roles_fields->isNotEmpty() ? "unset(" . $only_roles_fields->map(fn($field) => "\$data['{$field}']")->implode(', ') . ");\n" : "";
+        // Generate role-based data assignment code from $only_roles
+        if ($only_roles->isNotEmpty()) {
+            $roleCases = [];
+            foreach ($only_roles as $role) {
+                $fields = $only_roles_fields->filter(function ($field, $key) use ($config, $role) {
+                    $item = collect($config['grid'])->firstWhere('field', $field);
+                    return isset($item['only_roles']) && in_array($role, $item['only_roles']);
+                });
+                if ($fields->isNotEmpty()) {
+                    $assignments = $fields->map(function ($field) {
+                        return "\$data['{$field}'] = \$this->{$field};";
+                    })->implode("\n                ");
+                    $roleCases[] = "if (\$request->user()->hasRole('{$role}')) {\n                {$assignments}\n            }";
+                }
+            }
+            $codes['only_roles'] .= "\t\tif (\$request->user()) {\n            " . implode(" else", $roleCases) . "\n        }\n";
+        }
 
         $codes['subject'] = "";
         $codes['receivers'] = [];
@@ -141,19 +172,21 @@ class ModelBuilder
         $codes['update_event'] = "";
         $codes['delete_event'] = "";
 
-        if($model->auth && $config['policy']) {
+        if ($model->auth && $config['policy']) {
             $codes['policy_index'] = "\$this->authorize('viewAny', {$codes['model']}::class);";
             $codes['policy_store'] = "\$this->authorize('create', {$codes['model']}::class);";
-            $codes['policy_show'] = "\$this->authorize('view', \${$codes['alias']});";
+            $codes['policy_show'] = "\$this->authorize('show', \${$codes['alias']});";
             $codes['policy_update'] = "\$this->authorize('update', \${$codes['alias']});";
-            $codes['policy_delete'] = "\$this->authorize('delete', \${$codes['alias']});";
+            $codes['policy_delete'] = "\$this->authorize('destroy', \${$codes['alias']});";
+            $codes['policy_restore'] = "\$this->authorize('restore', \${$codes['alias']});";
+            $codes['policy_force_delete'] = "\$this->authorize('forceDestroy', \${$codes['alias']});";
         }
 
-        if($model->auth && $config['policy']) {
+        if ($model->auth && $config['policy']) {
             $policyFile = app_path("Policies/{$codes['model']}Policy.php");
             $buildPolicy = APIToolzGenerator::blend('policy.tpl', $codes);
-            if(!file_exists($policyFile)) {
-                if ( !is_dir( app_path("Policies") ) )
+            if (!file_exists($policyFile)) {
+                if (!is_dir(app_path("Policies")))
                     mkdir(app_path("Policies"), 0775, true);
                 file_put_contents($policyFile, $buildPolicy);
             }
@@ -162,11 +195,11 @@ class ModelBuilder
             @unlink($policyFile);
         }
 
-        if($config['observer']) {
+        if ($config['observer']) {
             $observerFile = app_path("Observers/{$codes['model']}Observer.php");
             $buildObserver = APIToolzGenerator::blend('observer.tpl', $codes);
-            if(!file_exists($observerFile)) {
-                if ( !is_dir( app_path("Observers") ) )
+            if (!file_exists($observerFile)) {
+                if (!is_dir(app_path("Observers")))
                     mkdir(app_path("Observers"), 0775, true);
                 file_put_contents($observerFile, $buildObserver);
             }
@@ -184,29 +217,29 @@ class ModelBuilder
         $codes['hook_deleted'] = "";
         $codes['hook_restored'] = "";
 
-        if($config['hook'] != null) {
-            foreach(explode(",", $config['hook']) as $value) {
-                if(trim($value) == 'handle')
+        if ($config['hook'] != null) {
+            foreach (explode(",", $config['hook']) as $value) {
+                if (trim($value) == 'handle')
                     $codes['hook_handle'] = "\$this->callHook('handle', \$request, \$query);";
-                elseif(trim($value) == 'creating')
-                    $codes['hook_creating'] = "\$this->callHook('creating', \$request, \$data);";
-                elseif(trim($value) == "created")
+                elseif (trim($value) == 'creating')
+                    $codes['hook_creating'] = "\$data = \$this->callHook('creating', \$request, \$data);";
+                elseif (trim($value) == "created")
                     $codes['hook_created'] = "\$this->callHook('created', \${$codes['alias']}, \$request);";
-                elseif(trim($value) == 'updating')
-                    $codes['hook_updating'] = "\$this->callHook('updating', \$request, \${$codes['alias']}, \$data);";
-                elseif(trim($value) == 'updated')
+                elseif (trim($value) == 'updating')
+                    $codes['hook_updating'] = "\$data = \$this->callHook('updating', \$request, \${$codes['alias']}, \$data);";
+                elseif (trim($value) == 'updated')
                     $codes['hook_updated'] = "\$this->callHook('updated', \${$codes['alias']}, \$request);";
-                elseif(trim($value) == 'deleting')
+                elseif (trim($value) == 'deleting')
                     $codes['hook_deleting'] = "\$this->callHook('deleting', \${$codes['alias']});";
-                elseif(trim($value) == 'deleted')
+                elseif (trim($value) == 'deleted')
                     $codes['hook_deleted'] = "\$this->callHook('deleted', \${$codes['alias']});";
-                elseif(trim($value) == 'restored')
+                elseif (trim($value) == 'restored')
                     $codes['hook_restored'] = "\$this->callHook('restored', \${$codes['alias']});";
             }
             $hookFile = app_path("Hooks/{$codes['model']}Hook.php");
             $buildHook = APIToolzGenerator::blend('hook.tpl', $codes);
-            if(!file_exists($hookFile)) {
-                if ( !is_dir( app_path("Hooks") ) )
+            if (!file_exists($hookFile)) {
+                if (!is_dir(app_path("Hooks")))
                     mkdir(app_path("Hooks"), 0775, true);
                 file_put_contents($hookFile, $buildHook);
             }
@@ -215,30 +248,30 @@ class ModelBuilder
             @unlink($hookFile);
         }
 
-        if(!$model->lock || ($model->lock && !in_array('request', $model->lock))) {
+        if (!$model->lock || ($model->lock && !in_array('request', $model->lock))) {
             $requestFile = app_path("Http/Requests/{$codes['class']}Request.php");
             $buildRequest = APIToolzGenerator::blend('request.tpl', $codes);
-            if(!is_dir(app_path("Http/Requests")))
-                mkdir(app_path("Http/Requests"),0775,true);
+            if (!is_dir(app_path("Http/Requests")))
+                mkdir(app_path("Http/Requests"), 0775, true);
             file_put_contents($requestFile, $buildRequest);
         }
 
-        if(!$model->lock || ($model->lock && !in_array('resource', $model->lock))) {
+        if (!$model->lock || ($model->lock && !in_array('resource', $model->lock))) {
             $resourceFile = app_path("Http/Resources/{$codes['class']}Resource.php");
             $buildResource = APIToolzGenerator::blend('resource.tpl', $codes);
-            if(!is_dir(app_path("Http/Resources")))
-                mkdir(app_path("Http/Resources"),0775,true);
+            if (!is_dir(app_path("Http/Resources")))
+                mkdir(app_path("Http/Resources"), 0775, true);
             file_put_contents($resourceFile, $buildResource);
         }
-        if(!$model->lock || ($model->lock && !in_array('service', $model->lock))) {
+        if (!$model->lock || ($model->lock && !in_array('service', $model->lock))) {
             $serviceFile = app_path(path: "Services/{$codes['class']}Service.php");
             $buildService = APIToolzGenerator::blend('service.tpl', $codes);
-            if(!is_dir(app_path("Services")))
-                mkdir(app_path("Services"),0775,true);
+            if (!is_dir(app_path("Services")))
+                mkdir(app_path("Services"), 0775, true);
             file_put_contents($serviceFile, $buildService);
         }
 
-        if(!$model->lock || ($model->lock && !in_array('controller', $model->lock))) {
+        if (!$model->lock || ($model->lock && !in_array('controller', $model->lock))) {
             $controllerFile = app_path("Http/Controllers/{$codes['class']}Controller.php");
             $buildController = APIToolzGenerator::blend('controller.tpl', $codes);
 
@@ -267,7 +300,8 @@ class ModelBuilder
         \Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
     }
 
-    public static function remove(Model $model) {
+    public static function remove(Model $model)
+    {
         //\Artisan::call('scout:flush', ["model" => "App\\Models\\{$model->name}"]);
 
         @unlink(app_path("Http/Controllers/{$model->name}Controller.php"));

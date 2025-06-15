@@ -1,7 +1,7 @@
 import Flatpickr from 'react-flatpickr';
 import { FormGroup } from 'react-reactive-form';
 import moment from 'moment';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import 'flatpickr/dist/flatpickr.min.css';
 
 interface IFlatpickerProps {
@@ -37,6 +37,17 @@ export const Flatpicker = ({
     return moment(formField?.value).toDate();
   };
 
+  useEffect(() => {
+    if (formGroup && formField?.name) {
+      const control = formGroup.controls[formField.name];
+      const formatted = moment(formField.value).format(
+        dateFormat || (enableTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD')
+      );
+      control.setValue(formatted);
+      control.markAsTouched();
+    }
+  }, []);
+
   const handleChange = (selectedDates: Date[]) => {
     const date = selectedDates[0];
     try {
@@ -55,7 +66,7 @@ export const Flatpicker = ({
 
   const getDateLimit = (value: string) => {
     try {
-      return value == 'today'
+      return value === 'today'
         ? new Date().toISOString().split('T')[0]
         : value
           ? new Date(value).toISOString().split('T')[0]
