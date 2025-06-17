@@ -21,7 +21,7 @@
 }
 .flatpickr-calendar {
     z-index: 9999 !important; /* Or higher than your modal's z-index */
-  }
+}
 .prose table {
     border-collapse: collapse;
     width: 100%;
@@ -30,11 +30,12 @@
 .prose table th,
 .prose table td {
     border: 1px solid #e5e7eb;
-    padding: 4px;
-}
-.prose table th {
+    padding: 8px;
     text-align: left;
 }
-.prose table th,td {
+.chat-messages .prose table td,th {
     font-size: 0.8125rem;
+    padding: 4px;
 }
+
+

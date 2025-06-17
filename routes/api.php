@@ -73,6 +73,7 @@ Route::prefix('api')->group(function () {
     ->group(function () {
         Route::get('/', 'index')->middleware([]);
         Route::post('/', 'store')->middleware(['role:super']);
+        Route::get('/summary', 'summary')->middleware(['role:super', 'role:admin']);
         Route::get('/{appSetting}', 'show')->middleware(['role:super', 'role:admin']);
         Route::put('/{appSetting}', 'update')->middleware(['role:super']);
         Route::delete('/{appSetting}', 'destroy')->middleware(['role:super']);

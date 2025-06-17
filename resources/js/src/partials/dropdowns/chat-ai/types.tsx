@@ -1,8 +1,6 @@
-import { Model } from "@/pages/model/_models";
-
 export interface IDropdownChatProps {
   menuTtemRef: any;
-  model: Model;
+  slug: string;
   type: string;
 }
 

@@ -12,7 +12,7 @@ import { useAuthContext } from '@/auth';
 import { Cpu } from 'lucide-react';
 import axios from 'axios';
 
-const DropdownChatAI = ({ menuTtemRef, model, type }: IDropdownChatProps) => {
+const DropdownChatAI = ({ menuTtemRef, slug, type }: IDropdownChatProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -33,25 +33,31 @@ const DropdownChatAI = ({ menuTtemRef, model, type }: IDropdownChatProps) => {
   const promptTable = () => `
 Get started with a prompt:
 
-[> How do I configure a relationship for ${model.slug} model?](#how-do-i-configure-a-relationship) \n
-[> How do I configure a table column position for ${model.slug} model?](#how-do-i-configure-table-column-position) \n
-[> How do I configure a column show-hide for ${model.slug} model?](#how-do-i-configure-column-show-hide) \n
-[> How do I configure a table filter for ${model.slug} model?](#how-do-i-configure-table-filter) \n
-[> How do I configure a kpi summary report for ${model.slug} model?](#how-do-i-configure-a-summary) \n
+[> How do I configure a relationship for ${slug} model?](#how-do-i-configure-a-relationship) \n
+[> How do I configure a table column position for ${slug} model?](#how-do-i-configure-table-column-position) \n
+[> How do I configure a column show-hide for ${slug} model?](#how-do-i-configure-column-show-hide) \n
+[> How do I configure a table filter for ${slug} model?](#how-do-i-configure-table-filter) \n
+[> How do I configure a kpi summary report for ${slug} model?](#how-do-i-configure-a-summary) \n
 `;
 
   const promptForm = () => `
 Get started with a prompt:
 
-[> How do I configure a form input for ${model.slug} model?](#how-do-i-configure-a-form-input) \n
-[> How do I configure a form validator for ${model.slug} model?](#how-do-i-configure-a-form-validator) \n
-[> How do I configure a form input type (e.g., select, checkbox) for ${model.slug} model?](#how-do-i-configure-a-form-select)
+[> How do I configure a form input for ${slug} model?](#how-do-i-configure-a-form-input) \n
+[> How do I configure a form validator for ${slug} model?](#how-do-i-configure-a-form-validator) \n
+[> How do I configure a form input type (e.g., select, checkbox) for ${slug} model?](#how-do-i-configure-a-form-select)
 `;
 
   const promptSummary = () => `
 Get started with a prompt:
 
-[> How do I configure a summary report for ${model.slug} model?](#how-do-i-configure-a-summary) \n
+[> How do I configure a summary report for ${slug} model?](#how-do-i-configure-a-summary) \n
+`;
+
+  const promptDashboard = () => `
+Get started with a prompt:
+
+[> How do I configure a summary report for ${slug}?](#how-do-i-configure-a-dashboard) \n
 `;
 
   const hints = [
@@ -126,6 +132,25 @@ Get started with a prompt:
     php artisan apitoolz:summary Order --title="Orders by Status" --type=chart --chart-type=bar --group-by=status --aggregate=count
 
 \`\`\``
+    },
+    {
+      link: 'how-do-i-configure-a-dashboard',
+      hint: `
+1. To create a simple count summary for a dashboard:
+    \`\`\`shell
+    php artisan apitoolz:summary Dashboard --model=Product --title="Total Products" --type=kpi --icon=box --method=count
+    \`\`\`
+
+2. To create a sum summary for a specific column:
+    \`\`\`shell
+    php artisan apitoolz:summary Dashboard --model=Sale --title="Total Sales Amount" --type=kpi --icon=dollar-sign --method=sum --column=amount
+    \`\`\`
+
+3. To create a grouped bar chart summary:
+    \`\`\`shell
+    php artisan apitoolz:summary Dashboard --model=Order --title="Orders by Status" --type=chart --chart-type=bar --group-by=status --aggregate=count
+
+\`\`\``
     }
   ];
 
@@ -147,15 +172,25 @@ Get started with a prompt:
       in: true
     },
     {
-      text:
-        type === 'request' ? promptForm() : type === 'summary' ? promptSummary() : promptTable(),
+      text: (() => {
+        switch (type) {
+          case 'request':
+            return promptForm();
+          case 'summary':
+            return promptSummary();
+          case 'dashboard':
+            return promptDashboard();
+          default:
+            return promptTable();
+        }
+      })(),
       time: currentTime,
       in: true
     }
   ];
 
   useEffect(() => {
-    fetchModelChatHistory(model?.slug, '', type, '');
+    fetchModelChatHistory(slug, '', type, '');
     if (messagesRef.current) {
       let availableHeigh: number = viewportHeight - offset;
 
@@ -187,12 +222,19 @@ Get started with a prompt:
     if (href.startsWith('#')) {
       const link = href.replace('#', '');
       let question: string = '';
-      if (type === 'request') {
-        question = extractPromptValue(promptForm(), link) || '';
-      } else if (type === 'summary') {
-        question = extractPromptValue(promptSummary(), link) || '';
-      } else {
-        question = extractPromptValue(promptTable(), link) || '';
+      switch (type) {
+        case 'request':
+          question = extractPromptValue(promptForm(), link) || '';
+          break;
+        case 'summary':
+          question = extractPromptValue(promptSummary(), link) || '';
+          break;
+        case 'dashboard':
+          question = extractPromptValue(promptDashboard(), link) || '';
+          break;
+        default:
+          question = extractPromptValue(promptTable(), link) || '';
+          break;
       }
       if (!question) return null;
       setMessages((prevMessages) => [
@@ -205,7 +247,7 @@ Get started with a prompt:
       ]);
       scrollToBottom();
       const hint = hints.find((h) => h.link == link)?.hint;
-      fetchModelChatHistory(model?.slug, question, type, hint || '');
+      fetchModelChatHistory(slug, question, type, hint || '');
       return false;
     } else {
       window.open(href, '_blank');
@@ -223,7 +265,7 @@ Get started with a prompt:
       }
     ]);
     scrollToBottom();
-    fetchModelChatHistory(model?.slug, ask, type, '');
+    fetchModelChatHistory(slug, ask, type, '');
   };
 
   const fetchModelChatHistory = async (
@@ -287,7 +329,7 @@ Get started with a prompt:
 
   const buildMessages = (messages: IDropdownMessage[]) => {
     return (
-      <div className="flex flex-col gap-5 py-5">
+      <div className="flex flex-col gap-5 py-5 chat-messages">
         {messages.map((message, index) => {
           if (message.out) {
             return (

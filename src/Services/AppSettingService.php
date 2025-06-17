@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Log;
 
 class AppSettingService
 {
+    public function getSummary(Request $request) {
+        $key = $request->key ?? 'default_settings';
+        $dashConfig = AppSetting::where("key", $key)->value("dashboard_config");
+        return $dashConfig;
+    }
     public function get(Request $request)
     {
         $query = AppSetting::filter($request);

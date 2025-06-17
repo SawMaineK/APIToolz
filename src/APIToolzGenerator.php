@@ -60,15 +60,15 @@ class APIToolzGenerator
         }
     }
 
-    public static function ask($question, $hint = "", $model = null, $fields = [], $type = 'request')
+    public static function ask($question, $hint = "", $slug = null, $fields = [], $type = 'request')
     {
         self::verifyValitation();
         $response = \Http::post(config('apitoolz.host').'/apps/ask', [
             'ask' => $question,
             'hint' => $hint,
-            'slug' => $model,
+            'slug' => $slug,
             'fields' => $fields,
-            'tags' => [$type, $model],
+            'tags' => [$type, $slug],
             'key' => config('apitoolz.activated_key')
         ]);
         if($response->failed()) {

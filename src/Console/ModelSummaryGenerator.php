@@ -17,7 +17,7 @@ class ModelSummaryGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:summary {model} {--title=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}';
+    protected $signature = 'apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--group-model=} {--group-label=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}';
 
     /**
      * The console command description.
@@ -39,6 +39,12 @@ class ModelSummaryGenerator extends Command
         $this->info('Adding summary report');
 
         $name = $this->argument('model');
+        if($name == 'Dashboard') {
+            if($this->option('model') == '') {
+                $this->error("--model option is required.");
+            }
+            $name = $this->option('model');
+        }
         $model = Model::where('name', $name)->first();
         if($model) {
             $roles = [
@@ -72,6 +78,8 @@ class ModelSummaryGenerator extends Command
                 'column'       => $this->option('column'),
                 'chart_type'   => $this->option('chart-type'),
                 'group_by'     => $this->option('group-by'),
+                'group_model'  => $this->option('group-model'),
+                'group_label'  => $this->option('group-label'),
                 'aggregate'    => $this->option('aggregate'),
                 'limit'        => $this->option('limit'),
                 'value_method' => $this->option('value-method'),
@@ -93,10 +101,18 @@ class ModelSummaryGenerator extends Command
                 return;
             }
             if($this->option('remove')) {
-                SummaryBuilder::build($model, $data, $this->option('force'), $this->option('remove'));
+                if($this->argument('model') == 'Dashboard') {
+                    SummaryBuilder::buildDashboard($data, $this->option('force'), $this->option('remove'));
+                } else {
+                    SummaryBuilder::build($model, $data, $this->option('force'), $this->option('remove'));
+                }
                 return $this->info("The " . strtolower($this->option('title')) . " summary has removed successfully.");
             } else {
-                SummaryBuilder::build($model, $data, $this->option('force'));
+                if($this->argument('model') == 'Dashboard') {
+                    SummaryBuilder::buildDashboard($data, $this->option('force'));
+                } else {
+                    SummaryBuilder::build($model, $data, $this->option('force'));
+                }
                 return $this->info("The " . strtolower($this->option('title')) . " summary has created successfully.");
             }
 
@@ -109,15 +125,18 @@ class ModelSummaryGenerator extends Command
     protected function printDocumentation()
     {
         $this->info('Usage:');
-        $this->info('  apitoolz:summary {model} {--title=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}');
+        $this->info('  apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}');
         $this->info('Options:');
         $this->info('  --title          The title of the summary report.');
+        $this->info('  --model          The model of the dashboard summary report'         );
         $this->info('  --type           The type of the summary (kpi, chart, progress).');
         $this->info('  --icon           The icon for the summary report.');
         $this->info('  --method         The method for KPI (count, sum, avg, min, max).');
         $this->info('  --column         The column to apply the method on.');
         $this->info('  --chart-type     The type of chart (bar, line, pie, doughnut, area).');
         $this->info('  --group-by       The column to group by in charts.');
+        $this->info('  --group-model    The model to group by in charts');
+        $this->info('  --group-label    The model display field to group by in charts');
         $this->info('  --aggregate      The aggregation method for charts (count, sum, avg, min, max).');
         $this->info('  --limit          The limit for chart results.');
         $this->info('  --value-method   The method for progress value (where).');

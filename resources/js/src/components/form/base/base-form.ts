@@ -238,7 +238,7 @@ export class BaseForm<T> {
     this.style = options.style || {};
     this.inputClass = options.inputClass || '';
     this.altClass = options.altClass || '';
-    this.columns = options.columns || 'w-full md:w-2/3';
+    this.columns = options.columns || 'w-full';
     this.dateView = options.dateView || 'day';
 
     this.childs = options.childs || [];

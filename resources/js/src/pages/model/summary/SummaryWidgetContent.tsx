@@ -58,7 +58,7 @@ const SummaryWidgetContent = ({ widgets, model }: SummaryWidgetContentProps) => 
                 AI Assist
               </MenuToggle>
 
-              {DropdownChatAI({ menuTtemRef: itemAIChatRef, model: model, type: 'summary' })}
+              {DropdownChatAI({ menuTtemRef: itemAIChatRef, slug: model.slug, type: 'summary' })}
             </MenuItem>
           </Menu>
         </ToolbarActions>

@@ -7,9 +7,11 @@ use Sawmainek\Apitoolz\Services\AppSettingService;
 use Illuminate\Http\Request;
 use Sawmainek\Apitoolz\Http\Resources\AppSettingResource;
 use Sawmainek\Apitoolz\Http\Controllers\APIToolzController;
+use Sawmainek\Apitoolz\Traits\HandlesReportWidgets;
 
 class AppSettingController extends APIToolzController
 {
+    use HandlesReportWidgets;
     protected $appSettingService;
     public $slug = 'appsetting';
 
@@ -17,6 +19,15 @@ class AppSettingController extends APIToolzController
     public function __construct(AppSettingService $appSettingService)
     {
         $this->appSettingService = $appSettingService;
+    }
+
+    public function summary(Request $request) {
+        $reports = $this->appSettingService->getSummary($request) ?? [];
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        return response()->json([
+            'reports' => $this->resolveAllWidgets($reports, $startDate, $endDate),
+        ]);
     }
 
    /**

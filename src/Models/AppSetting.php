@@ -52,7 +52,7 @@ class AppSetting extends Model
     protected function casts(): array
     {
         return [
-            'id' => 'integer', 'key' => 'string', 'menu_config' => 'json', 'branding' => 'json', 'email_config' => 'json', 'sms_config' => 'json', 'other' => 'json', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
+            'id' => 'integer', 'key' => 'string', 'menu_config' => 'json', 'dashboard_config' => 'json', 'branding' => 'json', 'email_config' => 'json', 'sms_config' => 'json', 'other' => 'json', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
         ];
     }
 
@@ -79,6 +79,7 @@ class AppSetting extends Model
         return [
             'key' => $this->key,
 			'menu_config' => $this->menu_config,
+			'dashboard_config' => $this->dashboard_config,
 			'branding' => $this->branding,
 			'email_config' => $this->email_config,
 			'sms_config' => $this->sms_config,

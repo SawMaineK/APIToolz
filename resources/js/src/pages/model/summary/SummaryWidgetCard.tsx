@@ -1,7 +1,9 @@
 import React from 'react';
-import { Bar, Line } from 'react-chartjs-2';
+import ApexChart from 'react-apexcharts';
+import { ApexOptions } from 'apexcharts';
 import * as LucideIcons from 'lucide-react';
 import { SummaryWidgetProps } from './types';
+import { toAbsoluteUrl } from '@/utils';
 
 function toPascalCase(str: string): string {
   return str
@@ -16,43 +18,95 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
   switch (widget.type) {
     case 'kpi':
       return (
-        <div className="bg-white shadow rounded-xl p-4 w-full">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm text-gray-500">{widget.title}</h4>
-              <p className="text-2xl font-semibold text-gray-800 mt-4">{widget.value}</p>
+        <>
+          <style>
+            {`
+                .channel-stats-bg {
+                    background-image: url('${toAbsoluteUrl('/media/images/2600x1600/bg-3.png')}');
+                }
+                .dark .channel-stats-bg {
+                    background-image: url('${toAbsoluteUrl('/media/images/2600x1600/bg-3-dark.png')}');
+                }
+            `}
+          </style>
+          <div className="card flex-col justify-between gap-6 px-4 w-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1 pb-4 px-0 py-5">
+                <span className="text-2sm font-bold text-gray-700">{widget.title}</span>
+                <p className="text-3xl font-semibold text-gray-900 mt-4">{widget.value}</p>
+              </div>
+              {Icon && <Icon className="w-8 h-8 text-primary" />}
             </div>
-            {Icon && <Icon className="w-8 h-8 text-primary" />}
           </div>
-        </div>
+        </>
       );
 
     case 'chart': {
       const chartData = {
         labels: widget.labels,
-        datasets: [
+        series: [
           {
-            label: widget.title,
-            data: widget.data,
-            backgroundColor: 'rgba(59, 130, 246, 0.5)',
-            borderColor: 'rgba(59, 130, 246, 1)',
-            borderWidth: 1
+            name: widget.title,
+            data: widget.data ?? []
           }
         ]
       };
-      const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false
+      const options: ApexOptions = {
+        chart: {
+          type: widget.chartType,
+          height: 250,
+          toolbar: {
+            show: false
+          }
+        },
+        stroke: {
+          curve: 'smooth',
+          width: 2
+        },
+        xaxis: {
+          categories: widget.labels,
+          labels: {
+            style: {
+              colors: 'var(--tw-gray-500)',
+              fontSize: '12px'
+            }
+          }
+        },
+        yaxis: {
+          labels: {
+            style: {
+              colors: 'var(--tw-gray-500)',
+              fontSize: '12px'
+            }
+          }
+        },
+        grid: {
+          borderColor: 'var(--tw-gray-200)',
+          strokeDashArray: 5
+        },
+        tooltip: {
+          theme: 'light'
+        },
+        fill: {
+          opacity: 0.5
+        }
       };
 
       return (
-        <div className="bg-white shadow rounded-xl p-4 w-full h-64">
-          <h4 className="text-sm text-gray-500 mb-2">{widget.title}</h4>
-          {widget.chartType === 'line' ? (
-            <Line data={chartData} options={chartOptions} />
-          ) : (
-            <Bar data={chartData} options={chartOptions} />
-          )}
+        <div className="card h-full">
+          <div className="card-header">
+            <h3 className="card-title">{widget.title}</h3>
+          </div>
+          <div className="card-body flex flex-col justify-end items-stretch grow px-3 py-1">
+            <ApexChart
+              id="earnings_chart"
+              options={options}
+              series={chartData.series}
+              type={widget.chartType}
+              max-width="694"
+              height="250"
+            />
+          </div>
         </div>
       );
     }
@@ -62,7 +116,7 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
 
       return (
         <div className="bg-white shadow rounded-xl p-4 w-full">
-          <h4 className="text-sm text-gray-500">{widget.title}</h4>
+          <h4 className="text-2sm font-bold text-gray-700">{widget.title}</h4>
           <div className="text-lg font-semibold text-gray-800">
             {widget.value} / {widget.max} {widget.unit}
           </div>

@@ -142,7 +142,11 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
                       AI Assist
                     </MenuToggle>
 
-                    {DropdownChatAI({ menuTtemRef: itemAIChatRef, model: model, type: 'request' })}
+                    {DropdownChatAI({
+                      menuTtemRef: itemAIChatRef,
+                      slug: model.slug,
+                      type: 'request'
+                    })}
                   </MenuItem>
                 </Menu>
               </ToolbarActions>

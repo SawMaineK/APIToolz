@@ -191,6 +191,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'password',
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -201,6 +202,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'email',
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -211,6 +213,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'number',
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -221,6 +224,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormTextArea({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           defaultLength: 3,
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
@@ -231,6 +235,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInputEditor({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -240,6 +245,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormCheckBox({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -253,6 +259,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         });
         return new FormRadioGroup({
           name: field.field,
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           ...(field.criteria
             ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -273,6 +280,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDate({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -284,6 +292,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormDateTime({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           handler: () => {},
           ...(field.criteria
@@ -295,6 +304,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
           name: field.field,
           label: field.label,
           type: 'file',
+          columns: 'w-full md:w-2/3',
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           multiple: field?.file?.image_multiple,
           //   filePreview: field?.file?.upload_type == 'image' ? true : false,
@@ -310,6 +320,7 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
         return new FormInput({
           name: field.field,
           label: field.label,
+          columns: 'w-full md:w-2/3',
           placeholder: field.option?.placeholder || `Enter ${field.label}`,
           required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
           validators:
@@ -373,6 +384,7 @@ function createFormSelectField(field: any): FormSelect {
     name: field.field,
     label: field.label,
     multiple: field.option.select_multiple,
+    columns: 'w-full md:w-2/3',
     required: isRequired,
     ...(field.criteria
       ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }

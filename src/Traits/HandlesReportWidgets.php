@@ -13,8 +13,8 @@ trait HandlesReportWidgets
         $query = $model->newQuery();
 
         // Date filters
-        if ($startDate) $query->where('created_at', '>=', Carbon::parse($startDate));
-        if ($endDate) $query->where('created_at', '<=', Carbon::parse($endDate));
+        if ($startDate) $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
+        if ($endDate) $query->where("{$model->getTable()}.created_at", '<=', Carbon::parse($endDate));
 
         switch ($widget['type']) {
             case 'kpi':
@@ -29,10 +29,42 @@ trait HandlesReportWidgets
                     'value' => $value,
                 ];
 
-            case 'chart':
-                $groupBy = $widget['group_by'] ?? "DATE_FORMAT(created_at, '%Y-%m')";
+            case 'chart': {
                 $column = $widget['column'] ?? 'id';
                 $aggregate = $widget['aggregate'] ?? 'count';
+
+                // Use group_model and group_label if provided
+                if (!empty($widget['group_model']) && !empty($widget['group_label']) && !empty($widget['group_by'])) {
+                    $groupField = $widget['group_by'];
+                    $relatedModel = "\\App\\Models\\" . $widget['group_model'];
+                    $labelColumn = $widget['group_label'];
+
+                    // Infer table name from model (you can make this more robust if needed)
+                    $relatedInstance = new $relatedModel;
+                    $relatedTable = $relatedInstance->getTable();
+
+                    $query->leftJoin($relatedTable, "{$model->getTable()}.{$groupField}", '=', "{$relatedTable}.id")
+                        ->selectRaw("{$relatedTable}.{$labelColumn} as label, $aggregate({$model->getTable()}.{$column}) as value")
+                        ->groupBy('label')
+                        ->orderByRaw("MIN({$model->getTable()}.created_at)");
+
+                    if (!empty($widget['limit'])) {
+                        $query->limit((int)$widget['limit']);
+                    }
+
+                    $data = $query->pluck('value', 'label')->toArray();
+
+                    return [
+                        'type' => 'chart',
+                        'chartType' => $widget['chart_type'] ?? 'bar',
+                        'title' => $widget['title'],
+                        'labels' => array_keys($data),
+                        'data' => array_values($data),
+                    ];
+                }
+
+                // Fallback to raw group_by (e.g., DATE(created_at), category_id, etc.)
+                $groupBy = $widget['group_by'] ?? "DATE(created_at)";
 
                 $chartQuery = $query->selectRaw("$groupBy as label, $aggregate($column) as value")
                     ->groupBy('label')
@@ -51,6 +83,8 @@ trait HandlesReportWidgets
                     'labels' => array_keys($data),
                     'data' => array_values($data),
                 ];
+            }
+
 
             case 'progress':
                 $max = $query->{$widget['max_method'] ?? 'count'}();
@@ -80,7 +114,7 @@ trait HandlesReportWidgets
         }
     }
 
-    public function resolveAllWidgets(array $widgets, ?string $startDate = null, ?string $endDate = null): array
+    public function resolveAllWidgets(array $widgets = [], ?string $startDate = null, ?string $endDate = null): array
     {
         return collect($widgets)->map(function ($widget) use ($startDate, $endDate) {
             return $this->resolveWidgetData($widget, $startDate, $endDate);

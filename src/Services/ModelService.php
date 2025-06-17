@@ -125,20 +125,23 @@ class ModelService
     }
 
     public function ask($slug, Request $request) {
-        $model = $this->model->where('slug', $slug)->first();
-        if ($model) {
-            $config = ModelConfigUtils::decryptJson($model->config);
-            $fields = collect($config['forms'])->filter(function ($field) {
-                return isset($field['view']) && $field['view'] == true &&
-                       !in_array($field['field'], ['id', 'created_at', 'updated_at', 'deleted_at']);
-            })->map(function ($field) {
-                return $field['field'];
-            });
-            $question = $request->get('question', "What is the {$model->title} {$fields}?");
-            $hint = $request->get('hint', null);
-            return APIToolzGenerator::ask($question, $hint, $model->slug, $fields, $request->type ?? 'request');
+        if($slug == 'dashboard') {
+            $fields = $this->model->pluck('title');
+        } else {
+            $model = $this->model->where('slug', $slug)->first();
+            if ($model) {
+                $config = ModelConfigUtils::decryptJson($model->config);
+                $fields = collect($config['forms'])->filter(function ($field) {
+                    return isset($field['view']) && $field['view'] == true &&
+                        !in_array($field['field'], ['id', 'created_at', 'updated_at', 'deleted_at']);
+                })->map(function ($field) {
+                    return $field['field'];
+                });
+            }
         }
-        return null;
+        $question = $request->get('question', "What is the {$slug} {$fields}?");
+        $hint = $request->get('hint', null);
+        return APIToolzGenerator::ask($question, $hint, $slug, $fields, $request->type ?? 'request');
     }
 
     public function delete($slug, $deleteTable)

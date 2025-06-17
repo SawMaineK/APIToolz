@@ -40,6 +40,7 @@ const DataTable = ({ model }: ModelContentProps) => {
     setRefreshKey((prev) => prev + 1);
     setModelData(null);
     setCreateModalOpen(false);
+    setWidgets([]);
     if (model.config.reports?.filter((report) => report.type == 'kpi').length > 0) {
       fetchSummaryWidgets(model.slug);
     }
@@ -180,24 +181,26 @@ const DataTable = ({ model }: ModelContentProps) => {
                 ]
               }}
             >
-              <MenuToggle className="btn btn-sm btn-light">
+              <MenuToggle className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap">
                 <Cpu size={16} />
-                AI Assist
+                <span className="truncate max-sm:hidden">AI Assist</span>
+                <span className="sm:hidden">AI</span>
               </MenuToggle>
 
-              {DropdownChatAI({ menuTtemRef: itemAIChatRef, model: model, type: 'response' })}
+              {DropdownChatAI({ menuTtemRef: itemAIChatRef, slug: model.slug, type: 'response' })}
             </MenuItem>
           </Menu>
 
           {model.config.reports && model.config.reports.length > 0 && (
             <button
-              className="btn btn-sm btn-light"
+              className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap"
               onClick={() => {
                 navigate(`/apitoolz/model/${model.slug}/summary`);
               }}
             >
               <ChartNoAxesCombined size={16} />
-              Summary
+              <span className="truncate max-sm:hidden">Summary</span>
+              <span className="sm:hidden">Sum</span>
             </button>
           )}
 
@@ -205,10 +208,12 @@ const DataTable = ({ model }: ModelContentProps) => {
             onClick={() => {
               navigate(`/apitoolz/model/${model.slug}/create`);
             }}
-            className="btn btn-sm btn-primary"
+            className="btn btn-sm btn-primary flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]"
+            title={`Add ${model?.title || ''}`}
           >
             <KeenIcon icon="plus" />
-            {`Add ${model?.title || ''}`}
+            <span className="truncate max-sm:hidden">{`Add ${model?.title || ''}`}</span>
+              <span className="sm:hidden">Add</span>
           </button>
         </ToolbarActions>
       </Toolbar>
