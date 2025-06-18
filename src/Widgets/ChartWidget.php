@@ -10,6 +10,7 @@ class ChartWidget extends BaseWidget
     public ?string $groupLabel;
     public string $aggregate;
     public string $column;
+    public ?string $where;
     public ?int $limit = null;
 
     public function __construct(array $config)
@@ -21,6 +22,7 @@ class ChartWidget extends BaseWidget
         $this->groupLabel = $config['group_label'] ?? 'name';
         $this->aggregate = $config['aggregate'];
         $this->column = $config['column'] ?? 'id';
+        $this->where = $config['where'] ?? null;
         $this->limit = $config['limit'] ?? null;
     }
 
@@ -36,6 +38,7 @@ class ChartWidget extends BaseWidget
             'group_label' => $this->groupLabel,
             'aggregate' => $this->aggregate,
             'column' => $this->column,
+            'where'  => $this->where,
             'limit' => $this->limit,
             'model' => $this->model,
         ];

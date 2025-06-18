@@ -42,15 +42,23 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
       );
 
     case 'chart': {
-      const chartData = {
-        labels: widget.labels,
-        series: [
-          {
-            name: widget.title,
-            data: widget.data ?? []
+      const isPie = widget.chartType === 'pie' || widget.chartType === 'donut';
+
+      const chartData = isPie
+        ? {
+            labels: widget.labels,
+            series: widget.data ?? []
           }
-        ]
-      };
+        : {
+            labels: widget.labels,
+            series: [
+              {
+                name: widget.title,
+                data: widget.data ?? []
+              }
+            ]
+          };
+
       const options: ApexOptions = {
         chart: {
           type: widget.chartType,
@@ -59,36 +67,45 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
             show: false
           }
         },
-        stroke: {
-          curve: 'smooth',
-          width: 2
-        },
-        xaxis: {
-          categories: widget.labels,
-          labels: {
-            style: {
-              colors: 'var(--tw-gray-500)',
-              fontSize: '12px'
+        ...(isPie
+          ? {
+              labels: widget.labels,
+              legend: {
+                position: 'bottom'
+              }
             }
-          }
-        },
-        yaxis: {
-          labels: {
-            style: {
-              colors: 'var(--tw-gray-500)',
-              fontSize: '12px'
-            }
-          }
-        },
-        grid: {
-          borderColor: 'var(--tw-gray-200)',
-          strokeDashArray: 5
-        },
+          : {
+              stroke: {
+                curve: 'smooth',
+                width: 2
+              },
+              xaxis: {
+                categories: widget.labels,
+                labels: {
+                  style: {
+                    colors: 'var(--tw-gray-500)',
+                    fontSize: '12px'
+                  }
+                }
+              },
+              yaxis: {
+                labels: {
+                  style: {
+                    colors: 'var(--tw-gray-500)',
+                    fontSize: '12px'
+                  }
+                }
+              },
+              grid: {
+                borderColor: 'var(--tw-gray-200)',
+                strokeDashArray: 5
+              }
+            }),
         tooltip: {
           theme: 'light'
         },
         fill: {
-          opacity: 0.5
+          opacity: 0.8
         }
       };
 
@@ -104,7 +121,7 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
               series={chartData.series}
               type={widget.chartType}
               max-width="694"
-              height="250"
+              height="360"
             />
           </div>
         </div>

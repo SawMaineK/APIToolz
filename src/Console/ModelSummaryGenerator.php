@@ -17,7 +17,7 @@ class ModelSummaryGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--group-model=} {--group-label=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}';
+    protected $signature = 'apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--group-model=} {--group-label=} {--aggregate=} {--limit=} {--value-method=} {--where=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}';
 
     /**
      * The console command description.
@@ -55,11 +55,27 @@ class ModelSummaryGenerator extends Command
 
                 // KPI
                 'method' => 'required_if:type,kpi|in:count,sum,avg,min,max',
-                'column' => 'required_if:method,sum,avg,min,max|string',
+                'column' => [
+                    'required_if:method,sum,avg,min,max',
+                    'string',
+                    function ($attribute, $value, $fail) use ($model) {
+                        if (!empty($value) && !\Schema::hasColumn($model->table, $value)) {
+                            $fail("The selected column '{$value}' does not exist in the model table.");
+                        }
+                    }
+                ],
 
                 // Chart
                 'chart_type' => 'required_if:type,chart|in:bar,line,pie,doughnut,area',
-                'group_by'   => 'required_if:type,chart|string',
+                'group_by'   => [
+                    'required_if:type,chart',
+                    'string',
+                    function ($attribute, $value, $fail) use ($model) {
+                        if (!empty($value) && strpos($value, '(') === false && !\Schema::hasColumn($model->table, $value)) {
+                            $fail("The selected group_by column '{$value}' does not exist in the model table.");
+                        }
+                    }
+                ],
                 'aggregate' => 'required_if:type,chart|in:count,sum,avg,min,max',
                 'limit'     => 'nullable|integer|min:1|max:100',
 
@@ -85,6 +101,7 @@ class ModelSummaryGenerator extends Command
                 'value_method' => $this->option('value-method'),
                 'value_column' => $this->option('value-column'),
                 'max_method'   => $this->option('max-method'),
+                'where'        => $this->option('where'),
                 'unit'         => $this->option('unit'),
             ];
 
@@ -142,6 +159,7 @@ class ModelSummaryGenerator extends Command
         $this->info('  --value-method   The method for progress value (where).');
         $this->info('  --value-column   The column for progress value.');
         $this->info('  --max-method     The method for maximum value in progress (count, sum, avg, min, max).');
+        $this->info('  --where          The where condition(s) for filtering data.');
         $this->info('  --unit           The unit for progress.');
         $this->info('  --remove         Remove the existing summary report.');
         $this->info('  --force          Force overwrite existing summary report.');

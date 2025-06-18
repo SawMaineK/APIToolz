@@ -4,6 +4,7 @@ import { Filter, ModelContentProps } from '../_models';
 import FilterSelect from '@/components/filter/FilterSelect';
 import { Switch } from '@/components/ui/switch';
 import FilterRadio from '@/components/filter/FilterRadio';
+import { isBoolean } from 'lodash';
 
 const DataTableFilter = ({ model }: ModelContentProps) => {
   const { table, setQuerySearch } = useDataGrid();
@@ -26,6 +27,9 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
 
   const filterCols = (old: any, key: string, value: any) => {
     const index = old.findIndex((f: any) => f.id === key);
+    if (isBoolean(value)) {
+      value = value === true ? '1' : '0';
+    }
     if (index > -1) {
       if (value === '') {
         return old.filter((f: any) => f.id !== key);
@@ -82,6 +86,7 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                     id={filter.key}
                     defaultChecked={false}
                     onCheckedChange={(checked) => {
+                      console.log(checked);
                       table.setPageIndex(0);
                       table.setColumnFilters((old) => filterCols(old, filter.key, checked));
                     }}

@@ -8,6 +8,8 @@ export type SummaryWidgetProps = {
     unit?: string;
     labels?: string[];
     data?: number[];
-    chartType?: 'bar' | 'line';
+    chartType?: 'bar' | 'line' | 'pie' | 'donut';
+    height: number;
+    colors: string[];
   };
 };

@@ -12,6 +12,55 @@ trait HandlesReportWidgets
         $model = new $modelClass;
         $query = $model->newQuery();
 
+        if (!empty($widget['where'])) {
+            foreach (explode(',', $widget['where']) as $condition) {
+                $condition = trim($condition);
+
+                // Match key:operator(value) or key=value
+                if (preg_match('/^([^:=]+)\s*[:=]\s*(.+)$/', $condition, $matches)) {
+                    $field = trim($matches[1]);
+                    $expression = trim($matches[2]);
+
+                    // Handle null and notnull
+                    if (in_array(strtolower($expression), ['null', 'notnull'])) {
+                        if (strtolower($expression) === 'null') {
+                            $query->whereNull($field);
+                        } else {
+                            $query->whereNotNull($field);
+                        }
+                        continue;
+                    }
+
+                    // Handle IN (in(value1,value2))
+                    if (preg_match('/^in\((.+)\)$/i', $expression, $inMatches)) {
+                        $values = array_map('trim', explode(',', $inMatches[1]));
+                        $query->whereIn($field, $values);
+                        continue;
+                    }
+
+                    // Handle LIKE (like(value))
+                    if (preg_match('/^like\((.+)\)$/i', $expression, $likeMatches)) {
+                        $query->where($field, 'like', '%' . $likeMatches[1] . '%');
+                        continue;
+                    }
+
+                    // Handle comparison operators in colon or equal styles
+                    if (preg_match('/^(>=|<=|!=|=|<|>)(.+)$/', $expression, $opMatches)) {
+                        $operator = $opMatches[1];
+                        $value = trim($opMatches[2]);
+
+                        if (is_numeric($value)) $value += 0;
+                        $query->where($field, $operator, $value);
+                        continue;
+                    }
+
+                    // Default fallback (equals)
+                    $query->where($field, $expression);
+                }
+            }
+        }
+
+
         // Date filters
         if ($startDate) $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
         if ($endDate) $query->where("{$model->getTable()}.created_at", '<=', Carbon::parse($endDate));
@@ -74,7 +123,26 @@ trait HandlesReportWidgets
                     $chartQuery->limit((int)$widget['limit']);
                 }
 
-                $data = $chartQuery->pluck('value', 'label')->toArray();
+                // Format label if grouping by MONTH(created_at)
+                if (isset($widget['group_by']) && preg_match('/^MONTH\((.+)\)$/i', $widget['group_by'])) {
+                    $data = $chartQuery->get(['label', 'value'])->mapWithKeys(function ($item) use ($model, $startDate, $endDate) {
+                        // Try to get the year for each month
+                        $month = $item->label;
+                        // Find the year by getting the MIN(year) for that month in the date range
+                        $dateQuery = $model->newQuery();
+                        if ($startDate) $dateQuery->where('created_at', '>=', Carbon::parse($startDate));
+                        if ($endDate) $dateQuery->where('created_at', '<=', Carbon::parse($endDate));
+                        $dateQuery->whereRaw("MONTH(created_at) = ?", [$month]);
+                        $year = $dateQuery->min(\DB::raw('YEAR(created_at)')) ?? date('Y');
+                        $label = Carbon::createFromDate($year, $month, 1)->format('F, Y');
+                        return [$label => $item->value];
+                    })->toArray();
+
+                    // Overwrite chartQuery/data for chart output
+                    $chartQuery = null;
+                } else {
+                    $data = $chartQuery->pluck('value', 'label')->toArray();
+                }
 
                 return [
                     'type' => 'chart',

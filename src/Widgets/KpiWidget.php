@@ -6,12 +6,14 @@ class KpiWidget extends BaseWidget
 {
     public string $method;
     public ?string $column;
+    public ?string $where;
 
     public function __construct(array $config)
     {
         parent::__construct($config);
         $this->method = $config['method'] ?? 'count';
         $this->column = $config['column'] ?? null;
+        $this->where = $config['where'] ?? null;
     }
 
     public function toArray(): array
@@ -23,6 +25,7 @@ class KpiWidget extends BaseWidget
             'model' => $this->model,
             'method' => $this->method,
             'column' => $this->column,
+            'where' => $this->where,
         ];
     }
 }

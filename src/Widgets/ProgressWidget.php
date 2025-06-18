@@ -7,6 +7,7 @@ class ProgressWidget extends BaseWidget
     public string $valueMethod;
     public string $valueColumn;
     public ?string $unit;
+    public ?string $where;
 
     public function __construct(array $config)
     {
@@ -14,6 +15,7 @@ class ProgressWidget extends BaseWidget
         $this->valueMethod = $config['value_method'];
         $this->valueColumn = $config['value_column'];
         $this->unit = $config['unit'] ?? '';
+        $this->where = $config['where'] ?? null;
     }
 
     public function toArray(): array
@@ -24,6 +26,7 @@ class ProgressWidget extends BaseWidget
             'value_method' => $this->valueMethod,
             'value_column' => $this->valueColumn,
             'unit' => $this->unit,
+            'where' => $this->where,
             'model' => $this->model,
         ];
     }
