@@ -393,6 +393,12 @@ You can create summary reports for your models using the `apitoolz:summary` Arti
 | `--chart-type=`    | The chart type for visual summaries (`bar`, `pie`, `line`, etc.).                             |
 | `--group-by=`      | The column to group results by (for grouped charts).                                          |
 | `--aggregate=`     | The aggregate function to use in grouped summaries (`count`, `sum`, etc.).                    |
+| `--where=`         | Add a custom filter condition to the summary query. Supports operators and functions:  
+    - `status=success` or `status:success` → `status = 'success'`  
+    - `status:in(pending,paid)` → `status IN ('pending', 'paid')`  
+    - `created_at:>=2025-01-01` → `created_at >= '2025-01-01'`  
+    - `email:notnull` → `email IS NOT NULL`  
+    - `name:like(john)` → `name LIKE '%john%'`  
 | `--limit=`         | Limit the number of groups or results displayed.                                              |
 | `--value-method=`  | Custom method to calculate the value.                                                         |
 | `--value-column=`  | Custom column for value calculation.                                                          |
