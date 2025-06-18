@@ -1,6 +1,7 @@
 <?php
 
 namespace Sawmainek\Apitoolz;
+use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\APIToolzGenerator;
 
@@ -15,5 +16,15 @@ class SeederBuilder
 
         $buildSeeder = APIToolzGenerator::blend('model.seeder.tpl', $codes);
         file_put_contents($seederFile, $buildSeeder);
+
+        $settings = AppSetting::all();
+
+        $codes['model'] = 'AppSetting';
+        $codes['dataList'] = json_encode($settings);
+        $seederFile = base_path("database/seeders/SettingsSeeder.php");
+
+        $buildSeeder = APIToolzGenerator::blend('settings.seeder.tpl', $codes);
+        file_put_contents($seederFile, $buildSeeder);
+
     }
 }

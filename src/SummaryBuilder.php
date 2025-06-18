@@ -85,6 +85,7 @@ class SummaryBuilder
             }
             $settings->dashboard_config = $dashConfigs;
             $settings->update();
+            SeederBuilder::build();
         } else {
             echo "This default settings report is not exist.\n";
             echo "Abort...\n";
