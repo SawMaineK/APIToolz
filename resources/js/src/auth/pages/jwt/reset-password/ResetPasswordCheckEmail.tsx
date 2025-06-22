@@ -38,7 +38,7 @@ const ResetPasswordCheckEmail = () => {
 
         <div className="flex justify-center mb-5">
           <Link
-            to={'/apitoolz/auth/reset-password/changed'}
+            to={'/admin/auth/reset-password/changed'}
             className="btn btn-primary flex justify-center"
           >
             Skip for now
@@ -48,7 +48,7 @@ const ResetPasswordCheckEmail = () => {
         <div className="flex items-center justify-center gap-1">
           <span className="text-xs text-gray-600">Didn’t receive an email?</span>
           <Link
-            to={'/apitoolz/auth/reset-password/enter-email'}
+            to={'/admin/auth/reset-password/enter-email'}
             className="text-xs font-medium link"
           >
             Resend

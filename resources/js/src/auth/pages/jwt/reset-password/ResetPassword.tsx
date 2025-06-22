@@ -49,7 +49,7 @@ const ResetPassword = () => {
       const params = new URLSearchParams();
       params.append('email', values.email);
       navigate({
-        pathname: '/apitoolz/auth/reset-password/check-email',
+        pathname: '/admin/auth/reset-password/check-email',
         search: params.toString()
       });
     } catch (error) {
@@ -84,7 +84,7 @@ const ResetPassword = () => {
 
         <div className="flex flex-col gap-5 items-stretch">
           <Link
-            to={'/apitoolz/auth/login'}
+            to={'/admin/auth/login'}
             className="flex items-center justify-center text-sm gap-2 text-gray-700 hover:text-primary"
           >
             <KeenIcon icon="black-left" />

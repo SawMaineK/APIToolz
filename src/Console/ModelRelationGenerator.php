@@ -29,6 +29,7 @@ class ModelRelationGenerator extends Command
         {--display-field= : Field to use for display purposes}
         {--sub-relation-model= : Sub-related model to include (optional)}
         {--remove : Remove the specified relationship}
+        {--list : List all relations for the specified model}
         {--force : Force overwrite the existing relation}
         {--doc : Show command documentation}';
 
@@ -54,6 +55,10 @@ class ModelRelationGenerator extends Command
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
         if ($model) {
+            if($this->option('list')) {
+                $this->printRelationLists($model);
+                return;
+            }
             $roles = [
                 'title' => 'required|alpha_dash|min:3',
                 'relation_type' => 'required|in:belongsTo,hasOne,hasMany,belongsToMany',
@@ -93,6 +98,22 @@ class ModelRelationGenerator extends Command
         }
     }
 
+    protected function printRelationLists(Model $model) {
+        $this->info("Relations for model '{$model->name}':");
+        $relations = RelationBuilder::getRelations($model);
+        if (empty($relations)) {
+            $this->line("  No relations configured for this model.");
+            return;
+        }
+        foreach ($relations as $relation) {
+            $this->line('-');
+            foreach ($relation as $key => $value) {
+                $this->line("    {$key}: " . (is_array($value) ? json_encode($value, JSON_PRETTY_PRINT) : $value));
+            }
+            $this->line('');
+        }
+    }
+
     /**
      * Return usage documentation.
      */
@@ -119,6 +140,7 @@ This command creates or removes relationships between two models.
   --display-field=       Field to display from related model.
   --sub-relation-model=  Optional nested relation (e.g., for chained relations).
   --remove               Remove this relationship instead of creating it.
+  --list                 List all relations for the specified model.
   --force                Force overwrite if relation already exists.
   --doc                  Show this help message.
 

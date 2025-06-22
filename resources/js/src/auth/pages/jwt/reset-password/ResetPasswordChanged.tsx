@@ -29,7 +29,7 @@ const ResetPasswordChanged = () => {
         </div>
 
         <div className="flex justify-center">
-          <Link to={'/apitoolz/auth/login'} className="btn btn-primary">
+          <Link to={'/admin/auth/login'} className="btn btn-primary">
             Sign in
           </Link>
         </div>

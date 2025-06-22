@@ -58,6 +58,11 @@ class RelationBuilder
         ModelBuilder::build($model);
     }
 
+    static public function getRelations(Model $model) {
+        $config = ModelConfigUtils::decryptJson($model->config);
+        return $config['relationships'] ?? [];
+    }
+
     static function getRelation()
     {
         $relation = [

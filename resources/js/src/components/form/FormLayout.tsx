@@ -446,8 +446,12 @@ export const FormTableControl = (props: IFormTableControl) => {
           props.formArray.push(formControl);
         };
 
-        const removeAt = (index: number) => {
-          props.formArray.removeAt(index);
+        const removeAt = (trIdx: any) => {
+          //props.formArray.removeAt(index);
+          console.log(props.formArray, trIdx);
+          if (trIdx > -1) {
+            props.formArray.removeAt(trIdx);
+          }
         };
 
         return (
@@ -478,7 +482,7 @@ export const FormTableControl = (props: IFormTableControl) => {
 
             {props.formField.useTable && (
               <div className="card min-w-full">
-                <div className="card-table scrollable-x-auto">
+                <div className="card-table overflow-x-auto">
                   <table className="table align-middle text-gray-700 font-medium text-sm">
                     <thead>
                       {props.formField.tableHeader &&
@@ -502,18 +506,18 @@ export const FormTableControl = (props: IFormTableControl) => {
                                 );
                               })}
                               {/* ADD BUTTON */}
-                          {!props.formField.readonly && (
-                            <th className="pl-2 w-[20px]">
-                              <button
-                                onClick={addMore}
-                                className="text-gray-600 hover:text-gray-800 focus:outline-none"
-                                type="button"
-                                title={props.formField.addMoreText || 'Add Row'}
-                              >
-                                <i className="ki-filled ki-plus-squared text-2xl" />
-                              </button>
-                            </th>
-                          )}
+                              {!props.formField.readonly && (
+                                <th className="pl-2 w-[20px]">
+                                  <button
+                                    onClick={addMore}
+                                    className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                                    type="button"
+                                    title={props.formField.addMoreText || 'Add Row'}
+                                  >
+                                    <i className="ki-filled ki-plus-squared text-2xl" />
+                                  </button>
+                                </th>
+                              )}
                             </tr>
                           );
                         })}
@@ -523,7 +527,7 @@ export const FormTableControl = (props: IFormTableControl) => {
                             return (
                               <th
                                 className={`px-3 py-2 ${field.columns}`}
-                                style={field.style}
+                                style={field.controlType == 'hidden' ? { display: 'none' } : {}}
                                 key={index}
                               >
                                 {field.label}
@@ -551,7 +555,7 @@ export const FormTableControl = (props: IFormTableControl) => {
                         return (
                           <tr key={trIdx} className="border-b">
                             <FieldGroup
-                              control={formGroup}
+                              control={props.formArray.at(trIdx)}
                               render={() => (
                                 <>
                                   {props.formLayout.map(
@@ -559,7 +563,9 @@ export const FormTableControl = (props: IFormTableControl) => {
                                       return (
                                         <td
                                           className={`${field.columns} px-3 py-2`}
-                                          style={field.style}
+                                          style={
+                                            field.controlType == 'hidden' ? { display: 'none' } : {}
+                                          }
                                           key={tdIdx}
                                         >
                                           {field.controlType !== 'form_group' &&
@@ -579,19 +585,17 @@ export const FormTableControl = (props: IFormTableControl) => {
                                 </>
                               )}
                             />
-                            {/* enable row deletion */}
-                            {/* enable row deletion */}
-                          {!props.formField.readonly && (
-                            <td className="pl-1 w-[20px]">
-                              <button
-                                onClick={() => removeAt(trIdx)}
-                                className="text-red-600 hover:text-red-800 focus:outline-none"
-                                type="button"
-                              >
-                                <i className="ki-filled ki-trash text-xl"></i>
-                              </button>
-                            </td>
-                          )}
+                            {!props.formField.readonly && (
+                              <td className="pl-1 w-[20px]">
+                                <button
+                                  onClick={() => removeAt(trIdx)}
+                                  className="text-red-600 hover:text-red-800 focus:outline-none"
+                                  type="button"
+                                >
+                                  <i className="ki-filled ki-trash text-xl"></i>
+                                </button>
+                              </td>
+                            )}
                           </tr>
                         );
                       })}

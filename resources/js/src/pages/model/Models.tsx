@@ -162,7 +162,7 @@ const Models = () => {
         cell: ({ row }) => (
           <Link
             className="btn btn-sm btn-icon btn-clear btn-light"
-            to={`/apitoolz/model/${row.original.slug}`}
+            to={`/admin/model/${row.original.slug}`}
           >
             <KeenIcon icon="eye" />
           </Link>

@@ -125,8 +125,17 @@ class ModelService
     }
 
     public function ask($slug, Request $request) {
-        if($slug == 'dashboard') {
-            $fields = $this->model->pluck('title');
+        if($slug == 'dashboard' || $slug == 'general_configuration') {
+            preg_match_all('/#([A-Za-z0-9_]+)/', $request->get('question', ''), $matches);
+            $fields = [];
+            foreach($matches[1] as $model) {
+                $model = $this->model->where("name",$model)->first();
+                if ($model) {
+                    $fields[] = "{$model->name} Model's fields >> ";
+                    $tableFields = collect(\Schema::getColumns($model->table))->map(fn($column) => $column['name'] . ':' . $column['type']);
+                    $fields = array_merge($fields, $tableFields->toArray());
+                }
+            }
         } else {
             $model = $this->model->where('slug', $slug)->first();
             if ($model) {
@@ -139,9 +148,17 @@ class ModelService
                 });
             }
         }
-        $question = $request->get('question', "What is the {$slug} {$fields}?");
+        $question = $request->get('question');
         $hint = $request->get('hint', null);
-        return APIToolzGenerator::ask($question, $hint, $slug, $fields, $request->type ?? 'request');
+        $tags = $request->type ? [$request->type, $slug] : [$slug];
+        return APIToolzGenerator::ask(
+            $question,
+            $hint,
+            $slug,
+            $fields,
+            $tags,
+            $request->lastone
+        );
     }
 
     public function delete($slug, $deleteTable)

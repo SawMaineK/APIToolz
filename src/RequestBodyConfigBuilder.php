@@ -72,19 +72,21 @@ class RequestBodyConfigBuilder
 
                         // Option Database Link Input Type
                         if ($request['opt_type'] == 'external') {
-                            $lookupModel = Model::where('slug', $request['lookup_model'])->first();
-                            $config['forms'][$i]['option']['opt_type'] = $request['opt_type'];
-                            $config['forms'][$i]['option']['lookup_model'] = $request['lookup_model'];
-                            $config['forms'][$i]['option']['lookup_table'] = $lookupModel->table;
-                            $config['forms'][$i]['option']['lookup_key'] = $request['lookup_key'] ?? $lookupModel->key ?? 'id';
-                            $config['forms'][$i]['option']['lookup_value'] = $request['lookup_value'];
-                            if ($request['lookup_dependency_key']) {
-                                $config['forms'][$i]['option']['is_dependency'] = true;
-                                $config['forms'][$i]['option']['lookup_dependency_key'] = $request['lookup_dependency_key'];
-                                $config['forms'][$i]['option']['lookup_filter_key'] = $request['lookup_filter_key'] ??  $request['lookup_dependency_key'];
-                            } else {
-                                $config['forms'][$i]['option']['is_dependency'] = false;
-                                $config['forms'][$i]['option']['lookup_dependency_key'] = '';
+                            $lookupModel = Model::where('name', $request['lookup_model'])->first();
+                            if($lookupModel || 'User') {
+                                $config['forms'][$i]['option']['opt_type'] = $request['opt_type'];
+                                $config['forms'][$i]['option']['lookup_model'] = $request['lookup_model'] == 'User' ? 'Users' : $request['lookup_model'];
+                                $config['forms'][$i]['option']['lookup_table'] = $lookupModel->table ?? 'users';
+                                $config['forms'][$i]['option']['lookup_key'] = $request['lookup_key'] ?? $lookupModel->key ?? 'id';
+                                $config['forms'][$i]['option']['lookup_value'] = $request['lookup_value'];
+                                if ($request['lookup_dependency_key']) {
+                                    $config['forms'][$i]['option']['is_dependency'] = true;
+                                    $config['forms'][$i]['option']['lookup_dependency_key'] = $request['lookup_dependency_key'];
+                                    $config['forms'][$i]['option']['lookup_filter_key'] = $request['lookup_filter_key'] ??  $request['lookup_dependency_key'];
+                                } else {
+                                    $config['forms'][$i]['option']['is_dependency'] = false;
+                                    $config['forms'][$i]['option']['lookup_dependency_key'] = '';
+                                }
                             }
                         }
 

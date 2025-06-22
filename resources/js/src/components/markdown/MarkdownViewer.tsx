@@ -52,7 +52,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, onLinkClick })
                 >
                   Copy
                 </button>
-                <SyntaxHighlighter style={oneDark} language={match[1]} PreTag="div" {...props}>
+                <SyntaxHighlighter PreTag="div" {...props}>
                   {String(children).replace(/\n$/, '')}
                 </SyntaxHighlighter>
               </div>

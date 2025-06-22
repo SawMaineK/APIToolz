@@ -3,8 +3,10 @@ import { KeenIcon } from '@/components/keenicons';
 import { toAbsoluteUrl } from '@/utils';
 
 import { useDemo1Layout } from '../';
+import { useSettings } from '@/providers';
 
 const HeaderLogo = () => {
+  const { settings } = useSettings();
   const { setMobileSidebarOpen, setMobileMegaMenuOpen, megaMenuEnabled } = useDemo1Layout();
 
   const handleSidebarOpen = () => {

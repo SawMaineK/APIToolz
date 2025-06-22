@@ -79,7 +79,7 @@ const Signup = () => {
   const { register } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/apitoolz';
+  const from = location.state?.from?.pathname || '/admin';
   const [showError, setError] = useState(false);
 
   const formSubmit = async (value: any, formGroup: FormGroup, submitted$: Subject<boolean>) => {
@@ -118,7 +118,7 @@ const Signup = () => {
           <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">Sign up</h3>
           <div className="flex items-center justify-center font-medium">
             <span className="text-2sm text-gray-600 me-1.5">Already have an Account ?</span>
-            <Link to={'/apitoolz/auth/login'} className="text-2sm link">
+            <Link to={'/admin/auth/login'} className="text-2sm link">
               Sign In
             </Link>
           </div>

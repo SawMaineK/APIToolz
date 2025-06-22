@@ -53,6 +53,26 @@ class DatatableBuilder
     public static function buildWithSql($table, $sql, $softDelete = false)
     {
         try {
+            // If using SQLite, replace ENUM with TEXT in the SQL
+            if (\DB::getDriverName() === 'sqlite') {
+                // Replace ENUM with CHECK constraint for SQLite
+                $sql = preg_replace_callback('/ENUM\s*\(([^)]+)\)/i', function ($matches) {
+                    $values = array_map(function($v) {
+                        return trim($v, " '\"");
+                    }, explode(',', $matches[1]));
+                    // Find the column name before ENUM
+                    // e.g. `"type" ENUM('a','b')` or `type ENUM('a','b')`
+                    // We'll look back for the last word before ENUM
+                    $pattern = '/([`"\w]+)\s+ENUM\s*\([^)]+\)/i';
+                    if (preg_match($pattern, $matches[0], $colMatch)) {
+                        $colName = trim($colMatch[1], '`"');
+                    } else {
+                        $colName = 'VALUE';
+                    }
+                    $check = "TEXT CHECK(\"{$colName}\" IN ('" . implode("', '", array_map('addslashes', $values)) . "'))";
+                    return $check;
+                }, $sql);
+            }
             \DB::unprepared($sql);
             $columns = \Schema::getColumns(\Str::lower($table));
             $foreignKeys = \Schema::getForeignKeys(\Str::lower($table));
@@ -206,7 +226,8 @@ class DatatableBuilder
            $column = "\t\t\t\$table->{$type}('{$field}')";
         }
         if ($option['default'] != "") {
-            $column = "{$column}->default('{$option['default']}')";
+            $defaultValue = str_replace("'", "", $option['default']);
+            $column = "{$column}->default('{$defaultValue}')";
         }
         if ($option['null'] == 'yes' || $option['null'] == 'y') {
             $column = "{$column}->nullable()";

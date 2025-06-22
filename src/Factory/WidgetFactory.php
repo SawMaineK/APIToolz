@@ -13,6 +13,7 @@ class WidgetFactory
             'kpi' => new KpiWidget($config),
             'chart' => new ChartWidget($config),
             'progress' => new ProgressWidget($config),
+            'position' => $config['position'],
             default => throw new \InvalidArgumentException("Unknown widget type: {$config['type']}"),
         };
     }

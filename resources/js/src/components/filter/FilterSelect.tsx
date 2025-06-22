@@ -86,6 +86,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({ filter, onValueChange }) =>
         <AsyncSelect
           isClearable
           classNamePrefix="form-select"
+          className="min-w-[180px]"
           placeholder={`Filter by ${filter.title}`}
           styles={styles}
           defaultOptions={dataList}

@@ -21,7 +21,7 @@ const Login = () => {
   const { login } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/apitoolz';
+  const from = location.state?.from?.pathname || '/admin';
   const [showError, setError] = useState(false);
 
   const formLayout: BaseForm<string>[] = [
@@ -57,7 +57,7 @@ const Login = () => {
       display: 'flex flex-col gap-1',
       component: () => {
         return (
-          <Link to={'/apitoolz/auth/reset-password'} className="text-2sm link shrink-0">
+          <Link to={'/admin/auth/reset-password'} className="text-2sm link shrink-0">
             Forgot Password?
           </Link>
         );
@@ -90,7 +90,7 @@ const Login = () => {
       submitted$.next(true);
       console.log(error.message);
       if (error.message.includes('Two-factor authentication is required.')) {
-        navigate('/apitoolz/auth/2fa', { state: { from, email: value.email } });
+        navigate('/admin/auth/2fa', { state: { from, email: value.email } });
       } else {
         setError(true);
       }
@@ -105,7 +105,7 @@ const Login = () => {
             <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">Sign in</h3>
             <div className="flex items-center justify-center font-medium">
               <span className="text-2sm text-gray-600 me-1.5">Sign in to your account?</span>
-              {/* <Link to={'/apitoolz/auth/signup'} className="text-2sm link">
+              {/* <Link to={'/admin/auth/signup'} className="text-2sm link">
                 Sign up
               </Link> */}
             </div>

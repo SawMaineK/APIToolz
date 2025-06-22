@@ -175,6 +175,14 @@ export interface IMenuItemConfig {
 
 export type TMenuConfig = IMenuItemConfig[];
 
+export interface TBranding {
+  app_name?: string;
+  logo_url?: string;
+  logo_small_url?: string;
+  logo_dark_url?: string;
+  logo_dark_small_url?: string;
+}
+
 export interface IMenuBreadcrumb {
   title?: string;
   path?: string;

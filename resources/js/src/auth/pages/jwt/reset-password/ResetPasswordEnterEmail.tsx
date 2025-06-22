@@ -29,8 +29,8 @@ const ResetPasswordEnterEmail = () => {
         <Link
           to={
             currentLayout?.name === 'auth-branded'
-              ? '/apitoolz/auth/reset-password/check-email'
-              : '/apitoolz/auth/classic/reset-password/check-email'
+              ? '/admin/auth/reset-password/check-email'
+              : '/admin/auth/classic/reset-password/check-email'
           }
           className="btn btn-primary flex justify-center grow"
         >

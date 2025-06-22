@@ -80,8 +80,24 @@ class RequestBodyConfigGenerator extends Command
                 if($this->option('input-type') == 'select' || $this->option('input-type') == 'radio') {
                     $roles['opt_type'] = 'required|in:datalist,external';
                     if($this->option('opt-type') == 'external') {
-                        $roles['lookup_model'] = 'required';
-                        $roles['lookup_value'] = 'required';
+                        $roles['lookup_model'] = 'required|exists:Sawmainek\Apitoolz\Models\Model,name';
+                        $roles['lookup_value'] = [
+                            'required',
+                            function ($attribute, $value, $fail) {
+                                $lookupModelName = $this->option('lookup-model');
+                                if (!$lookupModelName) {
+                                    return $fail('The lookup-model option is required.');
+                                }
+                                $modelClass = '\\App\\Models\\' . $lookupModelName;
+                                if (!class_exists($modelClass)) {
+                                    return $fail("Model class $modelClass does not exist.");
+                                }
+                                $table = (new $modelClass)->getTable();
+                                if (!\Schema::hasColumn($table, $value)) {
+                                    return $fail("The column '$value' does not exist in the '$table' table.");
+                                }
+                            }
+                        ];
                         $roles['lookup_dependency-key'] = '';
                     }
                     if($this->option('opt-type') == 'datalist') {

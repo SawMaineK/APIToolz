@@ -45,12 +45,12 @@ const MegaMenuInner: React.FC = () => {
     return (
       <Fragment>
         <MenuItem key="models">
-          <MenuLink path="apitoolz/model" className={linkClass}>
+          <MenuLink path="admin/model" className={linkClass}>
             <MenuTitle className={titleClass}>Models</MenuTitle>
           </MenuLink>
         </MenuItem>
         <MenuItem key="menu-config">
-          <MenuLink path="apitoolz/menu-config" className={linkClass}>
+          <MenuLink path="admin/menu-config" className={linkClass}>
             <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>
           </MenuLink>
         </MenuItem>

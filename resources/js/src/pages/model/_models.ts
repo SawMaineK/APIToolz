@@ -104,6 +104,7 @@ export interface Filter {
   query: string;
   title: string;
   type: string;
+  position: number;
 }
 
 export interface ModelConfig {

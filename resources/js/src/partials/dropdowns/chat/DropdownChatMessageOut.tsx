@@ -6,12 +6,13 @@ interface IDropdownChatMessageOutProps {
   text: string;
   time: string;
   read: boolean;
+  avatar: string;
 }
 
-const DropdownChatMessageOut = ({ text, time, read }: IDropdownChatMessageOutProps) => {
+const DropdownChatMessageOut = ({ text, time, read, avatar }: IDropdownChatMessageOutProps) => {
   return (
     <div className="flex items-end justify-end gap-3.5 px-5">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 max-w-xs sm:max-w-sm md:max-w-3xl">
         <div
           className="card shadow-none flex bg-primary text-primary-inverse text-2sm font-medium flex-col gap-2.5 p-3 rounded-be-none"
           dangerouslySetInnerHTML={{ __html: text }}
@@ -27,11 +28,7 @@ const DropdownChatMessageOut = ({ text, time, read }: IDropdownChatMessageOutPro
       </div>
 
       <div className="relative shrink-0">
-        <img
-          src={toAbsoluteUrl('/media/avatars/300-2.png')}
-          className="rounded-full size-9"
-          alt=""
-        />
+        <img src={avatar} className="rounded-full size-9" alt="" />
         <span className="size-[4.8px] badge badge-circle badge-success absolute top-7 end-0 transform -translate-y-1/2"></span>
       </div>
     </div>

@@ -4,10 +4,11 @@ namespace Sawmainek\Apitoolz;
 use Sawmainek\Apitoolz\Factory\WidgetFactory;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\Models\AppSetting;
+use Sawmainek\Apitoolz\Models\Model;
 
 class SummaryBuilder
 {
-    public static function build($model, $request, $force = false, $remove = false)
+    public static function build(Model $model, $request, $force = false, $remove = false)
     {
         $config = ModelConfigUtils::decryptJson($model->config);
         if (isset($config['reports'])) {
@@ -92,6 +93,12 @@ class SummaryBuilder
             dd();
         }
 
+    }
+
+    static function getSummaries(Model $model): array
+    {
+        $config = ModelConfigUtils::decryptJson($model->config);
+        return $config['reports'] ?? [];
     }
 
     static function getDefaultReport($config)

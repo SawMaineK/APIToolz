@@ -4,11 +4,21 @@ import { Filter, ModelContentProps } from '../_models';
 import FilterSelect from '@/components/filter/FilterSelect';
 import { Switch } from '@/components/ui/switch';
 import FilterRadio from '@/components/filter/FilterRadio';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { isBoolean } from 'lodash';
+import { CalendarCog } from 'lucide-react';
+import { DateRange } from 'react-day-picker';
+import { addDays, format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
 
 const DataTableFilter = ({ model }: ModelContentProps) => {
   const { table, setQuerySearch } = useDataGrid();
   const [searchQuery, setSearchQuery] = useState('');
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date()
+  });
 
   useEffect(() => {
     // Reset search and filters on model change
@@ -16,6 +26,12 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
     setQuerySearch('');
     table.setColumnFilters([]);
     table.setPageIndex(0);
+    // Sort filters by position on model change
+    if (model.config?.filters) {
+      model.config.filters = [...model.config.filters].sort(
+        (a, b) => (a.position ?? 0) - (b.position ?? 0)
+      );
+    }
   }, [model]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,12 +61,9 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
 
   return (
     <div className="card-header border-b-0 px-5 flex-wrap">
-      <h3 className="card-title font-medium text-sm">
-        Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length}{' '}
-        {model?.slug}s
-      </h3>
+      <h3 className="card-title font-medium text-md">Filter by:</h3>
       <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <div className="flex gap-6">
             <div className="relative">
               <KeenIcon
@@ -59,8 +72,8 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
               />
               <input
                 type="text"
-                placeholder={`Search ${model.title}`}
-                className="input ps-8"
+                placeholder={`Search by keywords`}
+                className="input ps-8 min-w-[180px]"
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -86,7 +99,6 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                     id={filter.key}
                     defaultChecked={false}
                     onCheckedChange={(checked) => {
-                      console.log(checked);
                       table.setPageIndex(0);
                       table.setColumnFilters((old) => filterCols(old, filter.key, checked));
                     }}
@@ -105,6 +117,50 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                   table={table}
                   filterCols={filterCols}
                 />
+              );
+            }
+            if (filter.type === 'date') {
+              return (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      id="date"
+                      className={
+                        cn(
+                          'btn btn-light data-[state=open]:bg-light-active',
+                          !date && 'text-gray-400'
+                        ) + ' min-w-[240px]'
+                      }
+                    >
+                      <CalendarCog size={16} />
+                      {date?.from ? (
+                        date.to ? (
+                          <>
+                            {format(date.from, 'LLL dd, y')} - {format(date.to, 'LLL dd, y')}
+                          </>
+                        ) : (
+                          format(date.from, 'LLL dd, y')
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={date?.from}
+                      selected={date}
+                      onSelect={(selected: DateRange | undefined) => {
+                        setDate(selected);
+                        table.setPageIndex(0);
+                        table.setColumnFilters((old) => filterCols(old, filter.key, selected));
+                      }}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
               );
             }
             return null;

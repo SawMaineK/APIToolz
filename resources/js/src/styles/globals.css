@@ -37,5 +37,10 @@
     font-size: 0.8125rem;
     padding: 4px;
 }
+.form-select__placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 

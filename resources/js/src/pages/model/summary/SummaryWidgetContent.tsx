@@ -13,6 +13,7 @@ import { useLanguage } from '@/i18n';
 import { useRef } from 'react';
 import { Cpu } from 'lucide-react';
 import { DropdownChatAI } from '@/partials/dropdowns/chat-ai';
+import { isArray } from 'lodash';
 
 interface SummaryWidgetContentProps {
   widgets: any[];
@@ -64,7 +65,7 @@ const SummaryWidgetContent = ({ widgets, model }: SummaryWidgetContentProps) => 
         </ToolbarActions>
       </Toolbar>
       <div className="grid gap-5 lg:gap-7.5 mt-4">
-        {widgets.filter((widget: any) => widget.type == 'kpi').length > 0 && (
+        {isArray(widgets) && widgets.filter((widget: any) => widget.type == 'kpi').length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {widgets
               .filter((widget: any) => widget.type === 'kpi')
@@ -74,7 +75,7 @@ const SummaryWidgetContent = ({ widgets, model }: SummaryWidgetContentProps) => 
           </div>
         )}
 
-        {widgets.filter((widget: any) => widget.type == 'chart').length > 0 && (
+        {isArray(widgets) && widgets.filter((widget: any) => widget.type == 'chart').length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {widgets
               .filter((widget: any) => widget.type === 'chart')
@@ -84,15 +85,16 @@ const SummaryWidgetContent = ({ widgets, model }: SummaryWidgetContentProps) => 
           </div>
         )}
 
-        {widgets.filter((widget: any) => widget.type == 'progress').length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {widgets
-              .filter((widget: any) => widget.type === 'progress')
-              .map((widget: any, i: number) => (
-                <SummaryWidgetCard key={i} widget={widget} />
-              ))}
-          </div>
-        )}
+        {isArray(widgets) &&
+          widgets.filter((widget: any) => widget.type == 'progress').length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {widgets
+                .filter((widget: any) => widget.type === 'progress')
+                .map((widget: any, i: number) => (
+                  <SummaryWidgetCard key={i} widget={widget} />
+                ))}
+            </div>
+          )}
 
         <MiscFaq />
 

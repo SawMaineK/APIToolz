@@ -9,7 +9,7 @@ const TwoFactorAuth = () => {
   const { verify2fa } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/apitoolz';
+  const from = location.state?.from?.pathname || '/admin';
   const [isLoading, setLoading] = useState(false);
   const [showError, hasError] = useState(false);
   const [error, setError] = useState(undefined);
@@ -127,7 +127,7 @@ const TwoFactorAuth = () => {
         <div className="flex items-center justify-center mb-2">
           <span className="text-xs text-gray-700 me-1.5">Didn’t receive a code? ({timeLeft}s)</span>
           <Link
-            to="/apitoolz/auth/login"
+            to="/admin/auth/login"
             className="text-xs link"
             onClick={(e) => e.preventDefault()}
             style={{ pointerEvents: timeLeft > 0 ? 'none' : 'auto' }}
@@ -141,7 +141,7 @@ const TwoFactorAuth = () => {
         </button>
 
         <Link
-          to="/apitoolz/auth/login"
+          to="/admin/auth/login"
           className="flex items-center justify-center text-sm gap-2 text-gray-700 hover:text-primary"
         >
           <KeenIcon icon="black-left" />

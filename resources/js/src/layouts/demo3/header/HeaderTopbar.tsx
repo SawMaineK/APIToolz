@@ -62,7 +62,7 @@ const HeaderTopbar = () => {
           </MenuItem>
         </Menu>
 
-        <Menu>
+        {/* <Menu>
           <MenuItem
             ref={itemChatRef}
             onShow={handleDropdownChatShow}
@@ -86,7 +86,7 @@ const HeaderTopbar = () => {
 
             {DropdownChat({ menuTtemRef: itemChatRef })}
           </MenuItem>
-        </Menu>
+        </Menu> */}
 
         <Menu>
           <MenuItem

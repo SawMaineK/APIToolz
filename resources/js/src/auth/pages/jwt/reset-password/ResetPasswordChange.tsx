@@ -57,7 +57,7 @@ const ResetPasswordChange = () => {
     try {
       await changePassword(email, token, values.password, values.password_confirmation);
       setHasErrors(false);
-      navigate('/apitoolz/auth/reset-password/changed');
+      navigate('/admin/auth/reset-password/changed');
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
         setError(error.response.data.message);

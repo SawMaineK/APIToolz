@@ -49,7 +49,7 @@ const SettingsProvider = ({ children }: PropsWithChildren) => {
         .then((settings) => {
           return settings.data.data[0] || null;
         });
-      updateSettings({ configId: data.id, menuConfig: data.menu_config });
+      updateSettings({ configId: data.id, menuConfig: data.menu_config, branding: data.branding });
     } catch (e) {
       return;
     }

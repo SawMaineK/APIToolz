@@ -3,9 +3,12 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Sawmainek\Apitoolz\APIToolzGenerator;
+use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\ModelBuilder;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
+use Spatie\Permission\Models\Role;
 
 class ModelImportGenerator extends Command
 {
@@ -18,7 +21,7 @@ class ModelImportGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:import {--file=} {--model=} {--exclude-data} {--doc}';
+    protected $signature = 'apitoolz:import {--file=} {--template=} {--model=} {--exclude-data} {--doc}';
 
     /**
      * The console command description.
@@ -37,6 +40,15 @@ class ModelImportGenerator extends Command
             return;
         }
         $this->info('Model import start...');
+        if($this->option('template')) {
+            $downlaodPath = APIToolzGenerator::downloadTemplate($this->option('template'));
+            $this->input->setOption('file', $downlaodPath);
+        }
+        if($this->option('file') && !file_exists($this->option('file'))) {
+            $this->warn($this->option('file'));
+            $this->error("Your imported file not found");
+            return;
+        }
         $zip = new \ZipArchive();
         $res = $zip->open($this->option('file'));
         $importPath = storage_path('apitoolz/imports/');
@@ -48,16 +60,30 @@ class ModelImportGenerator extends Command
         $modelPath = "app/Models";
         $policyPath = "app/Policies";
         $observerPath = "app/Observers";
+        $hookPath = "app/Hooks";
         $migratePath = "database/migrations";
         if ($res === TRUE) {
             $zip->extractTo($importPath);
+            if(file_exists("$importPath/appsettings.json")) {
+                $appSettings = json_decode(file_get_contents("$importPath/appsettings.json"), associative: true) ?? [];
+                foreach ($appSettings as $value) {
+                    AppSetting::updateOrCreate(["key"=> $value['key']], ["value"=> $value]);
+                }
+            }
             $models = json_decode(file_get_contents("$importPath/models.json")) ?? [];
             if($this->option('model') != "") {
                 $models = array_filter($models, fn($m) => $m->name === $this->option('model'));
             }
             \Schema::disableForeignKeyConstraints();
             foreach($models as $model) {
-                $model = Model::updateOrCreate(['id'=>$model->id], (array)$model);
+                $model = Model::updateOrCreate(['name'=>$model->name], (array)$model);
+                if($model->roles) {
+                    $roles = explode(',', $model->roles);
+                    foreach($roles as $role) {
+                        $roleName = trim($role);
+                        Role::updateOrCreate(['name' => $roleName], ['name' => $roleName, 'guard_name' => 'sanctum']);
+                    }
+                }
                 copy(storage_path("apitoolz/imports/$requestPath/{$model->name}Request.php"), base_path("$requestPath/{$model->name}Request.php"));
                 copy(storage_path("apitoolz/imports/$resourcePath/{$model->name}Resource.php"), base_path("$resourcePath/{$model->name}Resource.php"));
                 copy(storage_path("apitoolz/imports/$controllerPath/{$model->name}Controller.php"), base_path("$controllerPath/{$model->name}Controller.php"));
@@ -71,6 +97,9 @@ class ModelImportGenerator extends Command
                 }
                 if($config['observer']) {
                     copy(storage_path("apitoolz/imports/$observerPath/{$model->name}Observer.php"), base_path("$observerPath/{$model->name}Observer.php"));
+                }
+                if($config['hook'] != null) {
+                    copy(storage_path("apitoolz/imports/$hookPath/{$model->name}Hook.php"), base_path("$hookPath/{$model->name}Hook.php"));
                 }
                 if(count($migrateFile) > 0) {
                     copy($migrateFile[0], base_path("$migratePath/". basename($migrateFile[0])));

@@ -107,7 +107,7 @@ const Sidebar = () => {
                   <KeenIcon icon="messages" />
                 </MenuToggle>
 
-                {DropdownChat({ menuTtemRef: itemChatRef })}
+                {/* {DropdownChat({ menuTtemRef: itemChatRef })} */}
               </MenuItem>
             </Menu>
 

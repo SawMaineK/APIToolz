@@ -12,11 +12,7 @@ const RequireAuth = () => {
     return <ScreenLoader />;
   }
 
-  return auth ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/apitoolz/auth/login" state={{ from: location }} replace />
-  );
+  return auth ? <Outlet /> : <Navigate to="/admin/auth/login" state={{ from: location }} replace />;
 };
 
 export { RequireAuth };

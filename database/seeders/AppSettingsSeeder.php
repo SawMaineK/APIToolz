@@ -40,8 +40,9 @@ class AppSettingsSeeder extends Seeder
                     ]
                 ]),
                 'branding' => json_encode([
-                    'app_name' => 'My App',
-                    'logo_url' => '/assets/logo.png',
+                    'app_name' => 'APIToolz',
+                    'logo_url' => '/media/app/default-logo.svg',
+                    'logo_small_url' => '/media/app/mini-logo.svg',
                     'theme_color' => '#4f46e5'
                 ]),
                 'email_config' => json_encode([

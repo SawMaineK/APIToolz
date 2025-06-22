@@ -112,6 +112,8 @@ Below are the available options for the `apitoolz:model` Artisan command:
 | `--sql=`                | Provide an SQL table definition to generate the model.                    |
 | `--lock=`               | Lock specific components to prevent overwriting during regeneration. Options: `controller`, `model`, `request`, `resource`, `service`. |
 | `--force`               | Force the operation without confirmation.                                 |
+| `--use-ai-configuration` | Use AI to build the model configuration automatically.                  |
+| `--ask`                  | Provide optional input interactively during model generation.            |
 | `--rebuild`             | Rebuild the model and its associated API.                                 |
 | `--remove`              | Remove the model without deleting its database table.                     |
 | `--remove-table`        | Remove the model along with its database table.                           |
@@ -405,6 +407,7 @@ You can create summary reports for your models using the `apitoolz:summary` Arti
 | `--max-method=`    | Method to calculate the maximum value.                                                        |
 | `--unit=`          | Unit to display with the summary value (e.g., `USD`, `items`).                               |
 | `--remove`         | Remove the specified summary.                                                                 |
+| `--list`          | List all existing summaries for the specified model.                                             |
 | `--force`          | Force the removal operation without confirmation.                                             |
 | `--doc`            | Generate documentation for the summary configuration.                                         |
 
@@ -443,6 +446,7 @@ Below are the available options for configuring relationships:
 | `--foreign-key=`        | The foreign key for the relationship.                                      |
 | `--display-field=`      | The fields to display for the related model. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--remove`              | Remove the specified relationship.                                         |
+| `--list`               | List all existing relationships for the specified model.                         |
 | `--force`               | Force the removal operation without requiring confirmation.                |
 
 ### Example Usage
@@ -512,6 +516,7 @@ Below are some examples:
 | `--filter-value=`       | The value field for the filter option (used with external models).          |
 | `--filter-lable=`       | The fields to display for the filter options. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
 | `--remove`              | Remove the specified filter.                                               |
+| `--list`               | List all existing filters for the specified model.                                 |
 | `--force`               | Force the removal operation without requiring confirmation.                |
 
 ## Rebuild/Remove Model

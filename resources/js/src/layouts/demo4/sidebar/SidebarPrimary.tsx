@@ -122,7 +122,7 @@ const SidebarPrimary = () => {
       </div>
       <div ref={footerRef} className="flex flex-col gap-5 items-center shrink-0">
         <div className="flex flex-col gap-1.5">
-          <Menu>
+          {/* <Menu>
             <MenuItem
               ref={itemChatRef}
               onShow={handleDropdownChatShow}
@@ -146,7 +146,7 @@ const SidebarPrimary = () => {
 
               {DropdownChat({ menuTtemRef: itemChatRef })}
             </MenuItem>
-          </Menu>
+          </Menu> */}
 
           <Menu>
             <MenuItem

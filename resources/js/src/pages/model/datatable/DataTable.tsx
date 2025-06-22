@@ -21,6 +21,7 @@ import { useRef } from 'react';
 import { DataTableFilter } from './DataTableFilter';
 import { report } from 'process';
 import { SummaryWidgetCard } from '../summary/SummaryWidgetCard';
+import { format } from 'date-fns';
 
 const DataTable = ({ model }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
@@ -58,7 +59,7 @@ const DataTable = ({ model }: ModelContentProps) => {
           <button
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => {
-              navigate(`/apitoolz/model/${model.slug}/update`, {
+              navigate(`/admin/model/${model.slug}/update`, {
                 state: {
                   modelData: row.original
                 }
@@ -107,7 +108,16 @@ const DataTable = ({ model }: ModelContentProps) => {
         queryParams.set('sort_dir', params.sorting[0].desc ? 'desc' : 'asc');
       }
       if (params.columnFilters.length > 0) {
-        const values = params.columnFilters.map((f: any) => `${f.id}:${f.value}`);
+        const values = params.columnFilters.map((f: any) => {
+          if (f.value && typeof f.value === 'object' && f.value.from && f.value.to) {
+            const start_date = f.value?.from ? format(f.value.from, 'yyyy-MM-dd') : '';
+            const end_date = f.value?.to
+              ? format(new Date(f.value.to.getTime() + 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+              : '';
+            return `${f.id}:between:${start_date},${end_date}`;
+          }
+          return `${f.id}:${f.value}`;
+        });
         queryParams.set(`filter`, values.join('|'));
       }
       if (params.querySearch.length > 0) {
@@ -195,7 +205,7 @@ const DataTable = ({ model }: ModelContentProps) => {
             <button
               className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap"
               onClick={() => {
-                navigate(`/apitoolz/model/${model.slug}/summary`);
+                navigate(`/admin/model/${model.slug}/summary`);
               }}
             >
               <ChartNoAxesCombined size={16} />
@@ -206,14 +216,14 @@ const DataTable = ({ model }: ModelContentProps) => {
 
           <button
             onClick={() => {
-              navigate(`/apitoolz/model/${model.slug}/create`);
+              navigate(`/admin/model/${model.slug}/create`);
             }}
             className="btn btn-sm btn-primary flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]"
             title={`Add ${model?.title || ''}`}
           >
             <KeenIcon icon="plus" />
             <span className="truncate max-sm:hidden">{`Add ${model?.title || ''}`}</span>
-              <span className="sm:hidden">Add</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </ToolbarActions>
       </Toolbar>

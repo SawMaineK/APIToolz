@@ -66,7 +66,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
         formGroup.reset();
         onCreated?.(result.data);
       } else {
-        navigate(`/apitoolz/model/${model.slug}`, { replace: true });
+        navigate(`/admin/model/${model.slug}`, { replace: true });
       }
     } catch (error: any) {
       console.error('Form submission failed:', error);
@@ -115,7 +115,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
                 />
               </ToolbarHeading>
               <ToolbarActions>
-                <Link to={`/apitoolz/model/${model.slug}/builder`} className="btn btn-sm btn-light">
+                <Link to={`/admin/model/${model.slug}/builder`} className="btn btn-sm btn-light">
                   <KeenIcon icon="setting-2" className="!text-base" />
                   Builder
                 </Link>

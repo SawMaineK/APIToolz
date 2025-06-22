@@ -60,7 +60,7 @@ class APIToolzGenerator
         }
     }
 
-    public static function ask($question, $hint = "", $slug = null, $fields = [], $type = 'request')
+    public static function ask($question, $hint = "", $slug = null, $fields = [], $tags = [], $lastone = false)
     {
         self::verifyValitation();
         $response = \Http::post(config('apitoolz.host').'/apps/ask', [
@@ -68,7 +68,8 @@ class APIToolzGenerator
             'hint' => $hint,
             'slug' => $slug,
             'fields' => $fields,
-            'tags' => [$type, $slug],
+            'tags' => $tags,
+            'lastone' => $lastone,
             'key' => config('apitoolz.activated_key')
         ]);
         if($response->failed()) {
@@ -88,6 +89,69 @@ class APIToolzGenerator
         }
         if($response->successful()) {
             return json_decode($response->body());
+        }
+    }
+
+    static function publishTemplate($name, $desc, $path) {
+        self::verifyValitation();
+        // Log the start of the upload
+        echo "Uploading template file: " . basename($path) . "...\n";
+
+        $response = \Http::attach(
+            'file',
+            file_get_contents($path),
+            basename($path)
+        )->post(config('apitoolz.host').'/apps/templates', [
+            'name' => $name,
+            'type' => 'form',
+            'description' => $desc ?? '',
+            'is_free' => true,
+            'access_level' => 'free',
+            'key' => config('apitoolz.activated_key')
+        ]);
+
+        // Log the response status
+        echo "Upload response status: " . $response->status() . "\n";
+
+        if($response->failed()) {
+            echo "Upload failed: {$response->body()}\n";
+            echo "Abort...\n";
+            dd();
+        }
+
+        if($response->successful()) {
+            echo "Upload successful.\n";
+            return json_decode($response->body());
+        }
+    }
+
+    static function downloadTemplate($templateId) {
+        self::verifyValitation();
+
+        $response = \Http::get(config('apitoolz.host') . '/apps/templates/' . $templateId . '/download', [
+            'key' => config('apitoolz.activated_key')
+        ]);
+
+        if ($response->failed()) {
+            echo "Download failed: {$response->body()}\n";
+            echo "Abort...\n";
+            dd();
+        }
+
+        if ($response->successful()) {
+            // Save the file to disk
+            $disposition = $response->header('Content-Disposition');
+            $filename = "template_{$templateId}.zip";
+            if (preg_match('/filename="?([^"]+)"?/', $disposition, $matches)) {
+                $filename = $matches[1];
+            }
+            $storagePath = storage_path("apitoolz/imports/{$filename}");
+            if (!is_dir(dirname($storagePath))) {
+                mkdir(dirname($storagePath), 0755, true);
+            }
+            file_put_contents($storagePath, $response->body());
+            echo "Template downloaded as {$storagePath}\n";
+            return $storagePath;
         }
     }
 

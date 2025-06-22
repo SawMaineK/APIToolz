@@ -3,29 +3,35 @@ import { Link } from 'react-router-dom';
 import { useDemo1Layout } from '../';
 import { toAbsoluteUrl } from '@/utils';
 import { SidebarToggle } from './';
+import { useSettings } from '@/providers';
 
 const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { layout } = useDemo1Layout();
+  const { settings } = useSettings();
 
   const lightLogo = () => (
     <Fragment>
-      <Link to="/" className="dark:hidden">
+      <Link to="/admin" className="dark:hidden">
         <img
-          src={toAbsoluteUrl('/media/app/default-logo.svg')}
+          src={toAbsoluteUrl(`${settings.branding.logo_url || '/media/app/default-logo.svg'}`)}
           className="default-logo min-h-[22px] max-w-none"
         />
         <img
-          src={toAbsoluteUrl('/media/app/mini-logo.svg')}
+          src={toAbsoluteUrl(`${settings.branding.logo_small_url || '/media/app/mini-logo.svg'}`)}
           className="small-logo min-h-[22px] max-w-none"
         />
       </Link>
-      <Link to="/" className="hidden dark:block">
+      <Link to="/admin" className="hidden dark:block">
         <img
-          src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
+          src={toAbsoluteUrl(
+            `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
+          )}
           className="default-logo min-h-[22px] max-w-none"
         />
         <img
-          src={toAbsoluteUrl('/media/app/mini-logo.svg')}
+          src={toAbsoluteUrl(
+            `${settings.branding.logo_dark_small_url || '/media/app/mini-logo.svg'}`
+          )}
           className="small-logo min-h-[22px] max-w-none"
         />
       </Link>
@@ -33,13 +39,17 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   );
 
   const darkLogo = () => (
-    <Link to="/">
+    <Link to="/admin">
       <img
-        src={toAbsoluteUrl('/media/app/default-logo-dark.svg')}
+        src={toAbsoluteUrl(
+          `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
+        )}
         className="default-logo min-h-[22px] max-w-none"
       />
       <img
-        src={toAbsoluteUrl('/media/app/mini-logo.svg')}
+        src={toAbsoluteUrl(
+          `${settings.branding.logo_dark_small_url || '/media/app/mini-logo.svg'}`
+        )}
         className="small-logo min-h-[22px] max-w-none"
       />
     </Link>

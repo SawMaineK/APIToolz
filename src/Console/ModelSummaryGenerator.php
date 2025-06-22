@@ -17,7 +17,29 @@ class ModelSummaryGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--group-model=} {--group-label=} {--aggregate=} {--limit=} {--value-method=} {--where=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}';
+    protected $signature = 'apitoolz:summary {model : The model name or "Dashboard"}
+        {--title= : The title of the summary report}
+        {--model= : The model for dashboard summary}
+        {--type= : The type of summary (kpi, chart, progress)}
+        {--icon= : The icon for the summary report}
+        {--method= : The method for KPI (count, sum, avg, min, max)}
+        {--column= : The column to apply the method on}
+        {--chart-type= : The type of chart (bar, line, pie, doughnut, area)}
+        {--group-by= : The column to group by in charts}
+        {--group-model= : The model to group by in charts}
+        {--group-label= : The model display field to group by in charts}
+        {--aggregate= : The aggregation method for charts (count, sum, avg, min, max)}
+        {--limit= : The limit for chart results}
+        {--value-method= : The method for progress value (where)}
+        {--where= : The where condition(s) for filtering data}
+        {--value-column= : The column for progress value}
+        {--max-method= : The method for maximum value in progress (count, sum, avg, min, max)}
+        {--unit= : The unit for progress}
+        {--position= : The position of the summary}
+        {--remove : Remove the existing summary report}
+        {--force : Force overwrite existing summary report}
+        {--list : List all existing summary reports}
+        {--doc : Show this documentation}';
 
     /**
      * The console command description.
@@ -47,6 +69,10 @@ class ModelSummaryGenerator extends Command
         }
         $model = Model::where('name', $name)->first();
         if($model) {
+            if($this->option('list')) {
+                $this->printSummaries($model);
+                return;
+            }
             $roles = [
                 'type'   => 'required|in:kpi,chart,progress',
                 'model'  => 'required|string',
@@ -83,8 +109,27 @@ class ModelSummaryGenerator extends Command
                 'value_method' => 'required_if:type,progress|in:where',
                 'value_column' => 'required_if:type,progress|string',
                 'max_method'   => 'required_if:type,progress|in:count,sum,avg,min,max',
-                'unit'        => 'nullable|string'
+                'unit'        => 'nullable|string',
+                'position'    => 'nullable|integer'
             ];
+            if($this->option('group-model')) {
+                $roles['group_model'] = 'required|exists:Sawmainek\Apitoolz\Models\Model,name';
+                $groupModelName = $this->option('group-model');
+                $groupModel = Model::where('name', $groupModelName)->first();
+                if ($groupModel && $this->option('group-label')) {
+                    $roles['group_label'] = [
+                        'required',
+                        'string',
+                        function ($attribute, $value, $fail) use ($groupModel) {
+                            if (!empty($value) && !\Schema::hasColumn($groupModel->table, $value)) {
+                                $fail("The selected group_label column '{$value}' does not exist in the group model table.");
+                            }
+                        }
+                    ];
+                } else {
+                    $roles['group_label'] = '';
+                }
+            }
             $data = [
                 'type'         => $this->option('type'),
                 'model'        => $name,
@@ -103,6 +148,7 @@ class ModelSummaryGenerator extends Command
                 'max_method'   => $this->option('max-method'),
                 'where'        => $this->option('where'),
                 'unit'         => $this->option('unit'),
+                'position'     => $this->option('position'),
             ];
 
             // Remove keys with null values
@@ -110,7 +156,7 @@ class ModelSummaryGenerator extends Command
                 return !is_null($value);
             });
             $validator = \Validator::make($data, $roles);
-            if ($validator->fails()) {
+            if ($validator->fails() && !$this->option('remove')) {
 
                 foreach($validator->errors()->messages() as $key => $err) {
                     $this->error($err[0]);
@@ -139,6 +185,22 @@ class ModelSummaryGenerator extends Command
 
     }
 
+    protected function printSummaries(Model $model) {
+        $summaries = SummaryBuilder::getSummaries($model);
+        if (empty($summaries)) {
+            $this->info("No summary reports found for model '{$model->name}'.");
+        } else {
+            $this->info("Summary reports for model '{$model->name}':");
+            foreach ($summaries as $summary) {
+                $this->line('-');
+                foreach ($summary as $key => $value) {
+                    $this->line("    {$key}: " . (is_array($value) ? json_encode($value, JSON_PRETTY_PRINT) : $value));
+                }
+                $this->line('');
+            }
+        }
+    }
+
     protected function printDocumentation()
     {
         $this->info('Usage:');
@@ -162,6 +224,7 @@ class ModelSummaryGenerator extends Command
         $this->info('  --where          The where condition(s) for filtering data.');
         $this->info('  --unit           The unit for progress.');
         $this->info('  --remove         Remove the existing summary report.');
+        $this->info('  --list           List all existing summary reports.');
         $this->info('  --force          Force overwrite existing summary report.');
         $this->info('  --doc            Show this documentation.');
     }

@@ -18,6 +18,7 @@ import { MenuConfigPage } from '@/pages/menu-config/MenuConfigPage';
 import { FormBuilderPage } from '@/pages/model/form/FormBuilderPage';
 import { ModelHightlightPage } from '@/pages/model/ModelHightlightPage';
 import { SummaryWidgetPage } from '@/pages/model/summary/SummaryWidgetPage';
+import { GeneralAIAssistPage } from '@/pages/general-ai-assist/GeneralAIAssistPage';
 const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
@@ -35,23 +36,24 @@ const AppRoutingSetup = (): ReactElement => {
     <Routes>
       <Route element={<RequireAuth />}>
         <Route element={getLayout()}>
-          <Route path="/apitoolz" element={<DefaultPage />} />
-          <Route path="/apitoolz/model" element={<ModelsPage />} />
-          <Route path="/apitoolz/model/:id" element={<DataTablePage />} />
-          <Route path="/apitoolz/model/:id/create" element={<CreatePage />} />
-          <Route path="/apitoolz/model/:id/update" element={<CreatePage />} />
-          <Route path="/apitoolz/model/:id/builder" element={<FormBuilderPage />} />
-          <Route path="/apitoolz/model/:id/:config" element={<ModelHightlightPage />} />
-          <Route path="/apitoolz/model/:id/settings/:page" element={<SettingsPage />} />
-          <Route path="/apitoolz/model/:id/summary" element={<SummaryWidgetPage />} />
-          <Route path="/apitoolz/users" element={<UsersPage />} />
-          <Route path="/apitoolz/roles" element={<RolesPage />} />
-          <Route path="/apitoolz/menu-config" element={<MenuConfigPage />} />
+          <Route path="/admin" element={<DefaultPage />} />
+          <Route path="/admin/model" element={<ModelsPage />} />
+          <Route path="/admin/model/:id" element={<DataTablePage />} />
+          <Route path="/admin/model/:id/create" element={<CreatePage />} />
+          <Route path="/admin/model/:id/update" element={<CreatePage />} />
+          <Route path="/admin/model/:id/builder" element={<FormBuilderPage />} />
+          <Route path="/admin/model/:id/:config" element={<ModelHightlightPage />} />
+          <Route path="/admin/model/:id/settings/:page" element={<SettingsPage />} />
+          <Route path="/admin/model/:id/summary" element={<SummaryWidgetPage />} />
+          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/roles" element={<RolesPage />} />
+          <Route path="/admin/menu-config" element={<MenuConfigPage />} />
+          <Route path="/admin/general-aiassist" element={<GeneralAIAssistPage />} />
         </Route>
       </Route>
-      <Route path="/apitoolz/error/*" element={<ErrorsRouting />} />
-      <Route path="/apitoolz/auth/*" element={<AuthPage />} />
-      <Route path="/apitoolz/*" element={<Navigate to="/apitoolz/auth" />} />
+      <Route path="/admin/error/*" element={<ErrorsRouting />} />
+      <Route path="/admin/auth/*" element={<AuthPage />} />
+      <Route path="/admin/*" element={<Navigate to="/admin/auth" />} />
       <Route path="/*" element={<Navigate to="/error/404" />} />
     </Routes>
   );

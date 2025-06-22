@@ -354,36 +354,6 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
             };
 
             switch (formField.controlType) {
-              //   case 'form_group':
-              //     return (
-              //       <div
-              //         key={index}
-              //         className={`flex flex-wrap ${formField.columns} ${formField.altClass}`}
-              //       >
-              //         {hasCriteria(formField, props.formGroup) && (
-              //           <FormLayoutControl
-              //             formLayout={formField.formGroup}
-              //             formGroup={props.formGroup.get(formField.name)}
-              //             initValues={props.initValues && props.initValues[formField.name]}
-              //           />
-              //         )}
-              //       </div>
-              //     );
-              //   case 'form_array':
-              //     return (
-              //       <div key={index} className={`w-full ${formField.altClass}`}>
-              //         {hasCriteria(formField, props.formGroup) && (
-              //           <div className="form-array">
-              //             <FormTableControl
-              //               formField={formField}
-              //               formLayout={formField.formArray}
-              //               formArray={props.formGroup.get(formField.name) as FormArray}
-              //               initValues={(props.initValues && props.initValues[formField.name]) || []}
-              //             />
-              //           </div>
-              //         )}
-              //       </div>
-              //     );
               default:
                 formField.submitted$ = props.submitted$;
                 return (
@@ -621,7 +591,7 @@ export const FormTableControl = (props: IFormTableControl) => {
                           {props.formLayout.map((field: BaseForm<string>, index: number) => (
                             <th
                               className={`px-3 py-2 ${field.columns}`}
-                              style={field.style}
+                              style={field.controlType == 'hidden' ? { display: 'none' } : {}}
                               key={`auto-th-${index}`}
                             >
                               {field.label}
@@ -653,7 +623,7 @@ export const FormTableControl = (props: IFormTableControl) => {
                                 {props.formLayout.map((field: BaseForm<string>, tdIdx: number) => (
                                   <td
                                     className={`${field.columns} px-3 py-2`}
-                                    style={field.style}
+                                    style={field.controlType == 'hidden' ? { display: 'none' } : {}}
                                     key={`td-${trIdx}-${tdIdx}`}
                                   >
                                     {field.controlType !== 'form_group' &&

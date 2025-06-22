@@ -88,9 +88,9 @@ class ModelController extends Controller
     {
         $response = $this->modelService->ask($slug, $request);
 
-        if (isset($response['status']) && $response['status'] === 'error') {
-            return response()->json(['message' => $response['message']], 400);
-        }
+        // if (isset($response['status']) && $response['status'] === 'error') {
+        //     return response()->json(['message' => $response['message']], 400);
+        // }
 
         return response()->json($response);
     }

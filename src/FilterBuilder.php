@@ -39,6 +39,7 @@ class FilterBuilder
         $filter['value'] = $request['filter_value'] ?? 'id';
         $filter['query'] = $request['filter_query'] ?? '';
         $filter['key'] = $request['filter_key'];
+        $filter['position'] = $request['position'];
         $existedIdx = self::getExistedFilter($config['filters'], $filter['title']);
         if ($existedIdx != -1) {
             if($force) {
@@ -57,6 +58,12 @@ class FilterBuilder
         ModelBuilder::build($model);
     }
 
+    public static function getFilters(Model $model) {
+        $config = ModelConfigUtils::decryptJson($model->config);
+        return $config['filters'] ?? [];
+    }
+
+
     static function getDefaultFilter()
     {
         $filter = [
@@ -68,6 +75,7 @@ class FilterBuilder
             'value' => 'id',
             'query' => '',
             'key' => '',
+            'position' => 0
         ];
         return $filter;
     }

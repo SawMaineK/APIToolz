@@ -58,7 +58,7 @@ export const generateColumns = (
   return gridFields.map((field) => {
     const relation = relationships?.find((rel) => rel.key === field.field);
     const index = relation ? `${relation.title}.${relation?.display || 'name'}` : field.field;
-    const label = relation ? `${relation.title}` : field.label;
+    const label = field.label;
     const type = formFields.find((f) => f.field === field.field)?.type;
     const fileOpt = formFields.find((f) => f.field === field.field)?.file;
     return {
@@ -117,10 +117,10 @@ export const generateColumns = (
           const displayKeys = relation.display.split(',');
           return displayKeys
             .map((key) => {
-              return info.row.original[relation.title]?.[key || 'name'] || '-';
+              return info.row.original[relation.title]?.[key] || '-';
             })
             .join(' ');
-          //return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
+        //   return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
         }
         if (typeof value === 'string') {
           return truncateText(value);

@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-
+import * as LucideIcons from 'lucide-react';
 import { KeenIcon } from '@/components/keenicons';
 import {
   IMenuItemConfig,
@@ -17,6 +17,12 @@ import {
   MenuTitle
 } from '@/components/menu';
 import { useMenus } from '@/providers';
+
+function toPascalCase(str: string): string {
+  return str
+    .replace(/[-_](.)/g, (_, group1) => group1.toUpperCase()) // convert kebab to camel
+    .replace(/^(.)/, (_, group1) => group1.toUpperCase()); // capitalize first
+}
 
 const SidebarMenu = () => {
   const linkPl = 'ps-[10px]';
@@ -66,6 +72,8 @@ const SidebarMenu = () => {
 
   const buildMenuItemRoot = (item: IMenuItemConfig, index: number) => {
     if (item.children) {
+      const IconName = item.icon ? toPascalCase(item.icon) : null;
+      const Icon = IconName && (LucideIcons as any)[IconName];
       return (
         <MenuItem
           key={index}
@@ -82,7 +90,8 @@ const SidebarMenu = () => {
             )}
           >
             <MenuIcon className={clsx('items-start text-gray-500 dark:text-gray-400', iconWidth)}>
-              {item.icon && <KeenIcon icon={item.icon} className={iconSize} />}
+              {item.icon && Icon && <Icon className={iconSize} />}
+              {item.icon && !Icon && <KeenIcon icon={item.icon} className={iconSize} />}
             </MenuIcon>
             <MenuTitle className="text-sm font-medium text-gray-800 menu-item-active:text-primary menu-link-hover:!text-primary">
               {item.title}

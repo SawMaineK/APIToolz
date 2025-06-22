@@ -9,7 +9,7 @@ export const MENU_MODEL: TMenuConfig = [
     children: [
       {
         title: 'Overview',
-        path: '/apitoolz/model/:id/overview'
+        path: '/admin/model/:id/overview'
       },
       {
         title: 'Table',
@@ -365,11 +365,11 @@ export const MENU_MODEL: TMenuConfig = [
 export const MENU_MEGA: TMenuConfig = [
   {
     title: 'Home',
-    path: '/apitoolz'
+    path: '/admin'
   },
   {
     title: 'Models',
-    path: '/apitoolz/model'
+    path: '/admin/model'
   },
   {
     title: 'Database',

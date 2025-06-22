@@ -29,6 +29,7 @@ const DropdownChatAI = ({ menuTtemRef, slug, type }: IDropdownChatProps) => {
   const currentTime = `${pad(hour12)}:${minutes} ${ampm}`;
 
   const [messages, setMessages] = useState<IDropdownMessage[]>([]);
+  const [askInput, setAskInput] = useState('');
 
   const promptTable = () => `
 Get started with a prompt:
@@ -373,8 +374,6 @@ Get started with a prompt:
   };
 
   const buildForm = () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [askInput, setAskInput] = useState('');
     return (
       <div className="relative grow mx-5 mb-2.5">
         <img
@@ -389,9 +388,9 @@ Get started with a prompt:
 
         <textarea
           className="input h-auto py-4 pb-2 ps-12 bg-transparent"
+          value={askInput}
           onChange={(e) => setAskInput(e.target.value)}
           placeholder="Ask you question here..."
-          value={askInput}
         />
 
         <div className="flex items-center gap-2.5 absolute end-3 top-1/2 -translate-y-1/2">

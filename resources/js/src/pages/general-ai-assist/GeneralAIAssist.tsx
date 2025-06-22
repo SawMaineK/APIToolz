@@ -2,16 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { getHeight, toAbsoluteUrl } from '@/utils';
 import { KeenIcon } from '@/components';
-import { MenuSub } from '@/components/menu';
 import { useViewport } from '@/hooks';
-import { IDropdownChatProps, IDropdownMessage } from './types';
-import { DropdownChatMessageOut } from './DropdownChatMessageOut';
-import { DropdownChatMessageIn } from './DropdownChatMessageIn';
 import { useAuthContext } from '@/auth';
-import { Cpu } from 'lucide-react';
 import axios from 'axios';
+import { IDropdownChatProps } from '@/partials/dropdowns/chat/types';
+import { DropdownChatMessageOut } from '@/partials/dropdowns/chat/DropdownChatMessageOut';
+import { DropdownChatMessageIn } from '@/partials/dropdowns/chat/DropdownChatMessageIn';
+import { IDropdownMessage } from '@/partials/dropdowns/chat-ai/types';
 
-const DropdownChat = ({ menuTtemRef, slug, type }: IDropdownChatProps) => {
+const GeneralAIAssist = ({ menuTtemRef, slug, type }: IDropdownChatProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -162,18 +161,15 @@ Get started with a prompt:
 
   const defaultMessages = [
     {
-      text: `# Hello, ${currentUser?.name || 'User'}`,
-      time: currentTime,
-      in: true
-    },
-    {
-      text: `How can I help you?`,
+      text: `# Hello, ${currentUser?.name || 'User'}, How can I help you?`,
       time: currentTime,
       in: true
     },
     {
       text: (() => {
         switch (type) {
+          case 'promptTable':
+            return promptForm();
           case 'request':
             return promptForm();
           case 'summary':
@@ -181,7 +177,7 @@ Get started with a prompt:
           case 'dashboard':
             return promptDashboard();
           default:
-            return promptTable();
+            return `Get prompt by type #`;
         }
       })(),
       time: currentTime,
@@ -190,7 +186,7 @@ Get started with a prompt:
   ];
 
   useEffect(() => {
-    fetchModelChatHistory(slug, '', '', '');
+    fetchModelChatHistory(slug, '', type, '');
     if (messagesRef.current) {
       let availableHeigh: number = viewportHeight - offset;
 
@@ -199,13 +195,7 @@ Get started with a prompt:
 
       setScrollableHeight(availableHeigh);
     }
-  }, [menuTtemRef.current?.isOpen(), viewportHeight]);
-
-  const handleClose = () => {
-    if (menuTtemRef.current) {
-      menuTtemRef.current.hide(); // Call the closeMenu method to hide the submenu
-    }
-  };
+  }, []);
 
   const scrollToBottom = () => {
     if (messagesRef.current) {
@@ -285,7 +275,7 @@ Get started with a prompt:
         if (Array.isArray(data)) {
           return [
             ...defaultMessages,
-            ...data.slice(-1).flatMap((item: any) => [
+            ...data.slice(-5).flatMap((item: any) => [
               {
                 text: item.ask,
                 out: true,
@@ -318,25 +308,6 @@ Get started with a prompt:
     } catch (error) {
       console.error('Error fetching model:', error);
     }
-  };
-
-  const buildHeader = () => {
-    return (
-      <>
-        <div className="flex items-center justify-between gap-2.5 text-sm text-gray-900 font-semibold px-5 py-2.5">
-          <span className="flex items-center gap-2">
-            <Cpu size={16} /> AI Assist
-          </span>
-          <button
-            className="btn btn-sm btn-icon btn-light btn-clear shrink-0"
-            onClick={handleClose}
-          >
-            <KeenIcon icon="cross" />
-          </button>
-        </div>
-        <div className="border-b border-b-gray-200"></div>
-      </>
-    );
   };
 
   const buildMessages = (messages: IDropdownMessage[]) => {
@@ -384,8 +355,18 @@ Get started with a prompt:
     );
   };
 
-  const buildForm = () => {
-    return (
+  return (
+    <div className="w-full max-w-[100%] light:border-gray-300">
+      <div
+        ref={messagesRef}
+        className="scrollable-y-auto"
+        style={{ maxHeight: `${scrollableHeight}px`, minHeight: '500px' }}
+      >
+        {buildMessages(messages)}
+        {/* Typing/loading indicator */}
+        {messages.length > 0 && messages[messages.length - 1].out && buildLoader()}
+      </div>
+
       <div className="relative grow mx-5 mb-2.5">
         <img
           src={
@@ -420,29 +401,8 @@ Get started with a prompt:
           </button>
         </div>
       </div>
-    );
-  };
-
-  return (
-    <MenuSub rootClassName="w-full max-w-[700px]" className="light:border-gray-300">
-      <div ref={headerRef}>
-        {buildHeader()}
-        {/* {buildTopbar()} */}
-      </div>
-
-      <div
-        ref={messagesRef}
-        className="scrollable-y-auto"
-        style={{ maxHeight: `${scrollableHeight}px`, minHeight: '500px' }}
-      >
-        {buildMessages(messages)}
-        {/* Typing/loading indicator */}
-        {messages.length > 0 && messages[messages.length - 1].out && buildLoader()}
-      </div>
-
-      <div ref={footerRef}>{buildForm()}</div>
-    </MenuSub>
+    </div>
   );
 };
 
-export { DropdownChat };
+export { GeneralAIAssist };

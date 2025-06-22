@@ -1,6 +1,8 @@
 <?php
 
 namespace Sawmainek\Apitoolz;
+use Illuminate\Support\Facades\Artisan;
+use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\RouterBuilder;
@@ -116,9 +118,9 @@ class ModelBuilder
                 }
 
                 if ($relation['relation'] == 'hasManyThrough' || $relation['relation'] == 'hasMany' || $relation['relation'] == 'belongsToMany') {
-                    $resource[] = "'{$relation['title']}' => {$relation['model']}Resource::collection(\$this->{$relation['title']})";
+                    $resource[] = "'{$relation['title']}' => {$relation['model']}Resource::collection(\$this->whenLoaded('{$relation['title']}'))";
                 } else {
-                    $resource[] = "'{$relation['title']}' => new {$relation['model']}Resource(\$this->{$relation['title']})";
+                    $resource[] = "'{$relation['title']}' => new {$relation['model']}Resource(\$this->whenLoaded('{$relation['title']}'))";
                 }
 
                 if (isset($relation['sub']) && explode(',', $relation['sub']) > 0) {
@@ -295,9 +297,62 @@ class ModelBuilder
 
         RouterBuilder::build();
         SeederBuilder::build();
-        \Artisan::call('l5-swagger:generate');
-        \Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
-        \Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
+        Artisan::call('l5-swagger:generate');
+        Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
+        Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
+    }
+
+    public static function buildConfiguration(Model $model, string $ask="") {
+        $fields = \Schema::getColumns($model->table);
+        $fields = collect($fields)->map(function ($field) {
+            return $field["name"].":".$field["type"];
+        })->toArray();
+        $response = APIToolzGenerator::ask(
+            "Create possible configuration commands for $model->name. $ask",
+            self::getConfigurationHint(),
+            $model->slug,
+            $fields,
+            ['general_configuration'],
+            true);
+        if($response->content) {
+            preg_match_all("/'php artisan .*?'/", $response->content, $matches);
+            // Clean up the quotes
+            $commands = array_map(function ($cmd) {
+                return trim($cmd, "'");
+            }, $matches[0]);
+
+            // Output the result
+            foreach ($commands as $command) {
+                echo $command . PHP_EOL;
+                // Execute the artisan command
+                $artisanCommand = str_replace('php artisan ', '', $command);
+                Artisan::call($artisanCommand);
+            }
+        }
+    }
+
+    public static function buildMenuConfigure()
+    {
+        $models = Model::pluck('name');
+        $response = APIToolzGenerator::ask(
+            "Create complete menu configuration given json format, include dashbard, users and roles & permissions using lucide-react for icon. \n\n",
+            self::getMenuHint(),
+            'menu',
+            $models,
+            ['general_configuration'],
+            true);
+
+        // Extract JSON from the response content using regex
+        if (preg_match('/\[\s*{.*}\s*\]/s', $response->content, $matches)) {
+            $menuConfig = json_decode($matches[0], true);
+        } else {
+            $menuConfig = [];
+        }
+        $appSettings = AppSetting::where('key', 'default_settings')->first();
+        if($appSettings) {
+            $appSettings->menu_config = $menuConfig;
+            $appSettings->save();
+        }
     }
 
     public static function remove(Model $model)
@@ -338,4 +393,134 @@ class ModelBuilder
         }
         return strnatcmp($a['sortlist'], $b['sortlist']);
     }
+
+    static function getConfigurationHint()
+    {
+        return "
+for cmd in \
+    'php artisan apitoolz:request Product --field=category_id --input-type=select --opt-type=external --lookup-model=Category --lookup-value=name --label=\"Choose Category\' \
+    'php artisan apitoolz:request Product --field=name --validator=\"required|string|max:255\" --input-type=text' \
+    'php artisan apitoolz:request Product --field=price --validator=\"required|numeric|min:0\" --input-type=number' \
+    'php artisan apitoolz:request Product --field=description --input-type=textarea' \
+    'php artisan apitoolz:request Product --field=status --input-type=select --opt-type=datalist --lookup-query=\"0:In-Active|1:Active\"' \
+    'php artisan apitoolz:response Product --field=name --label=\"Product Name\" --visible=true --export=true --position=1' \
+    'php artisan apitoolz:response Product --field=price --label=\"Price\" --visible=true --export=true --position=2' \
+    'php artisan apitoolz:response Product --field=category_id --label=\"Category\" --visible=true --export=true --position=3' \
+    'php artisan apitoolz:summary Product --title=\"Total Products\" --type=kpi --method=count --position=1 --force' \
+    'php artisan apitoolz:summary Product --title=\"Total Inventory Value\" --type=kpi --method=sum --column=price --position=3 --force' \
+    'php artisan apitoolz:summary Purchaseorder --title=\"Product by Category\" --type=chart --chart-type=bar --group-by=category_id --group-model=Category --group-label=name --aggregate=count --position=3 --force'
+    'php artisan apitoolz:relation Product --title=category --relation-model=Category --relation-type=belongsTo --foreign-key=category_id --display-field=name --force' \
+    'php artisan apitoolz:filter Product --title=\"Cateory\" --filter-type=select --filter-model=Category --filter-key=category_id --filter-value=id --filter-label=name --position=1 --force' \
+    'php artisan apitoolz:filter Product --title=\"Date\" --filter-type=date --filter-key=created_at --position=9 --force'
+do
+    echo \"Running: \$cmd\"
+    eval \$cmd
+done";
+    }
+
+    static function getMenuHint()
+    {
+        return '[
+    {
+        "icon": "home-2",
+        "path": "/apitoolz",
+        "title": "Dashboards"
+    },
+    {
+        "icon": "shield-search",
+        "title": "News Feeds",
+        "children": [
+            {
+                "path": "/apitoolz/model/newsfeed",
+                "title": "News"
+            },
+            {
+                "path": "/apitoolz/model/author",
+                "title": "Authors"
+            }
+        ]
+    },
+    {
+        "icon": "discount",
+        "path": "/apitoolz/model/promotionbanner",
+        "title": "Promotion Banner"
+    },
+    {
+        "heading": "My Mandalay"
+    },
+    {
+        "icon": "map",
+        "path": "/apitoolz/model/zone",
+        "title": "Zone"
+    },
+    {
+        "icon": "two-credit-cart",
+        "path": "/apitoolz/model/payment",
+        "title": "Payments"
+    },
+    {
+        "icon": "users",
+        "title": "Customers",
+        "children": [
+            {
+                "path": "/apitoolz/model/customer",
+                "title": "Customers"
+            },
+            {
+                "path": "/apitoolz/model/country",
+                "title": "Countries"
+            },
+            {
+                "path": "/apitoolz/model/city",
+                "title": "Cities"
+            },
+            {
+                "path": "/apitoolz/model/township",
+                "title": "Township"
+            }
+        ]
+    },
+    {
+        "icon": "crown",
+        "title": "Loyalty & Rewards",
+        "children": [
+            {
+                "path": "/apitoolz/model/loyaltypoint",
+                "title": "Loyalty Points"
+            },
+            {
+                "path": "/apitoolz/model/redemption",
+                "title": "Redemptions"
+            },
+            {
+                "path": "/apitoolz/model/bonusreward",
+                "title": "Bonus Rewards"
+            },
+            {
+                "path": "/apitoolz/model/referral",
+                "title": "Referrals"
+            },
+            {
+                "path": "/apitoolz/model/pointtransfer",
+                "title": "Point Transfers"
+            }
+        ]
+    },
+    {
+        "heading": "Manage User"
+    },
+    {
+        "icon": "users",
+        "path": "/apitoolz/users",
+        "title": "Users"
+    },
+    {
+        "icon": "security-user",
+        "path": "/apitoolz/roles",
+        "title": "Roles & Permssions"
+    }
+]';
+    }
+
+
 }

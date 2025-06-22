@@ -3,6 +3,8 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Sawmainek\Apitoolz\APIToolzGenerator;
+use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\DatatableBuilder;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
@@ -18,7 +20,17 @@ class ModelExportGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:export {--model=} {--include-data} {--doc}';
+    /**
+     * The console command signature for exporting models with various options.
+     *
+     * Options:
+     * - --model: Specify the model to export.
+     * - --include-data: Include model data in the export.
+     * - --include-files: Specify files to include in the export.
+     * - --publish-template: Publish the export template.
+     * - --doc: Generate documentation for the export.
+     */
+    protected $signature = 'apitoolz:export {--model=} {--include-data} {--include-files=} {--app-settings} {--publish-template} {--doc}';
 
     /**
      * The console command description.
@@ -69,8 +81,6 @@ class ModelExportGenerator extends Command
                 $zip->addFile(base_path($controllerPath), $controllerPath);
                 $servicePath = "app/Services/{$model->name}Service.php";
                 $zip->addFile(base_path($servicePath), $servicePath);
-                // $exportPath = "app/Exports/{$model->name}Export.php";
-                // $zip->addFile(base_path($exportPath), $exportPath);
                 $modelPath = "app/Models/{$model->name}.php";
                 $zip->addFile(base_path($modelPath), $modelPath);
                 if($model->auth && $config['policy']) {
@@ -80,6 +90,10 @@ class ModelExportGenerator extends Command
                 if($config['observer']) {
                     $observerPath = "app/Observers/{$model->name}Observer.php";
                     $zip->addFile(base_path($observerPath), $observerPath);
+                }
+                if($config['hook'] != null) {
+                    $hookPath = "app/Hooks/{$model->name}Hook.php";
+                    $zip->addFile(base_path($hookPath), $hookPath);
                 }
                 $columns = \Schema::getColumns($model->table);
                 $indexes = \Schema::getIndexes($model->table);
@@ -107,11 +121,46 @@ class ModelExportGenerator extends Command
                     $zip->addFile($dataPath, "data/{$dataFile}");
                 }
             }
+            if ($this->option('include-files')) {
+                $files = explode(',', $this->option('include-files'));
+                foreach ($files as $file) {
+                    $file = trim($file);
+                    if ($file) {
+                        $fullPath = base_path($file);
+                        if (file_exists($fullPath)) {
+                            $zip->addFile($fullPath, $file);
+                        } else {
+                            $this->warn("File not found: $file");
+                        }
+                    }
+                }
+            }
+            if ($this->option('app-settings')) {
+                $appSettings = AppSetting::all();
+                file_put_contents("{$zipExportPath}/appsettings.json", json_encode($appSettings));
+                $zip->addFile("{$zipExportPath}/appsettings.json", "appsettings.json");
+            }
             $zip->close();
             system("rm -rf ".escapeshellarg("{$zipExportPath}/models.json"));
+            system("rm -rf ".escapeshellarg("{$zipExportPath}/appsettings.json"));
             system("rm -rf ".escapeshellarg("{$zipExportPath}/migrations"));
             system("rm -rf ".escapeshellarg("{$zipExportPath}/data"));
             $this->warn("Exported at storage/apitoolz/exports/$zipFile");
+            if($this->option('publish-template')) {
+                $appSetting = AppSetting::where('key', 'default_settings')->first();
+                if ($appSetting) {
+                    $reponse = APIToolzGenerator::publishTemplate(
+                        $appSetting->branding['app_name'],
+                        $appSetting->branding['app_desc'],
+                        base_path("storage/apitoolz/exports/$zipFile"));
+                    if($reponse->file_path) {
+                        $this->info("Your app published to template store successfully.");
+                    }
+
+                    return;
+                }
+            }
+
             $this->info("The model has exported successfully.");
         } else {
             $this->error("Empty models or provided model not found.");

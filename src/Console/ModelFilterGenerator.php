@@ -17,7 +17,20 @@ class ModelFilterGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:filter {model} {--title=} {--filter-type=} {--filter-model=} {--filter-query=} {--filter-value=} {--filter-label=} {--filter-key=} {--remove} {--force} {--doc}';
+    protected $signature = 'apitoolz:filter
+        {model : The name of the model to add/remove filters to}
+        {--title= : Title of the filter (used as label/display)}
+        {--filter-type= : Type of filter input (select, checkbox, radio, date)}
+        {--filter-model= : Related model name for dynamic filter options}
+        {--filter-query= : Static query string (used when filter-model not provided)}
+        {--filter-value= : Field to use as value in related model}
+        {--filter-label= : Field to use as label in related model}
+        {--filter-key= : Key used to apply the filter on the model}
+        {--position= : Position/order of the filter}
+        {--remove : Remove the specified filter}
+        {--list : List all filters for the specified model}
+        {--force : Overwrite existing filter if already exists}
+        {--doc : Show this documentation}';
 
     /**
      * The console command description.
@@ -41,27 +54,32 @@ class ModelFilterGenerator extends Command
         $name = $this->argument('model');
         $model = Model::where('name', $name)->first();
         if($model) {
+            if($this->option('list')) {
+                $this->printList($model);
+                return;
+            }
             $roles = [
-                'title' => 'required|alpha_dash|min:3',
+                'title' => 'required|min:3',
             ];
             if(!$this->option('remove')) {
                 $roles = array_merge($roles, [
-                    'filter_type' => 'required|in:select,checkbox,radio',
+                    'filter_type' => 'required|in:select,checkbox,radio,date',
                     'filter_model' => 'nullable|exists:Sawmainek\Apitoolz\Models\Model,name',
                     'filter_label' => $this->option('filter-model') ? 'required' : 'nullable',
                     'filter_value' => $this->option('filter-model') ? 'required' : 'nullable',
-                    'filter_query' => !$this->option('filter-model') ? 'required' : 'nullable',
+                    'filter_query' => 'nullable',
                     'filter_key' => 'required'
                 ]);
             }
             $data = [
-                'title' => $this->option('title'),
-                'filter_type' => $this->option('filter-type'),
+                'title'        => $this->option('title'),
+                'filter_type'  => $this->option('filter-type'),
                 'filter_model' => $this->option('filter-model'),
                 'filter_label' => $this->option('filter-label'),
                 'filter_value' => $this->option('filter-value'),
                 'filter_query' => $this->option('filter-query'),
-                'filter_key' => $this->option('filter-key')
+                'filter_key'   => $this->option('filter-key'),
+                'position'     => $this->option('position')
             ];
             $validator = \Validator::make($data, $roles);
             if ($validator->fails()) {
@@ -85,6 +103,22 @@ class ModelFilterGenerator extends Command
 
     }
 
+    protected function printList(Model $model) {
+        $filters = FilterBuilder::getFilters($model);
+        if (empty($filters)) {
+            $this->info("No filters configured for model '{$model->name}'.");
+        } else {
+            $this->info("Filters for model '{$model->name}':");
+            foreach ($filters as $filter) {
+                $this->line('-');
+                foreach ($filter as $key => $value) {
+                    $this->line("    {$key}: " . (is_array($value) ? json_encode($value, JSON_PRETTY_PRINT) : $value));
+                }
+                $this->line('');
+            }
+        }
+    }
+
     protected function printDocumentation()
     {
         $this->info("📘 API Toolz Filter Generator Documentation");
@@ -104,6 +138,7 @@ class ModelFilterGenerator extends Command
         $this->line("  --filter-value        Field to use as value in related model.");
         $this->line("  --filter-key          Key used to apply the filter on the model.");
         $this->line("  --remove              Remove the specified filter.");
+        $this->line("  --list                List all filters for the specified model.");
         $this->line("  --force               Overwrite existing filter if already exists.");
         $this->line("  --doc                 Show this documentation.");
         $this->line("");

@@ -184,6 +184,12 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
           ? 'var(--tw-gray-300)'
           : 'var(--tw-gray-700)'
         : base.color
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     })
   };
 
@@ -191,7 +197,7 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
     <AsyncSelect
       {...handler()}
       styles={styles}
-      className={props.inputClass}
+      className={`min-w-[200px] ${props.inputClass}`}
       classNamePrefix="form-select"
       name={props.name}
       value={value}
@@ -208,7 +214,7 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
     <Select
       {...handler()}
       styles={styles}
-      className={props.inputClass}
+      className={`min-w-[200px] ${props.inputClass}`}
       classNamePrefix="form-select"
       name={props.name}
       value={getValue}

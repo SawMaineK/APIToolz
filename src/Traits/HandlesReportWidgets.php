@@ -63,7 +63,7 @@ trait HandlesReportWidgets
 
         // Date filters
         if ($startDate) $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
-        if ($endDate) $query->where("{$model->getTable()}.created_at", '<=', Carbon::parse($endDate));
+        if ($endDate) $query->where("{$model->getTable()}.created_at", '<', Carbon::parse($endDate)->addDay());
 
         switch ($widget['type']) {
             case 'kpi':

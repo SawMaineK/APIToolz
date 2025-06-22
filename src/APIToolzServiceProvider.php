@@ -7,6 +7,8 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
+use Sawmainek\Apitoolz\Console\BrandingGenerator;
+use Sawmainek\Apitoolz\Console\ModelBuilderGenerator;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
 use Sawmainek\Apitoolz\Console\ModelSummaryGenerator;
@@ -31,6 +33,10 @@ class APIToolzServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton('command.apitoolz:build', function ($app) {
+            return $app->make(ModelBuilderGenerator::class);
+        });
+
         $this->app->singleton('command.apitoolz:model', function ($app) {
             return $app->make(ModelGenerator::class);
         });
@@ -73,6 +79,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:rebuild', function ($app) {
             return $app->make(ModelRebuildGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:branding', function ($app) {
+            return $app->make(BrandingGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:clean', function ($app) {
@@ -146,6 +156,7 @@ class APIToolzServiceProvider extends ServiceProvider
         }
         // Register the command if we are using the application via the CLI
         $this->commands([
+            ModelBuilderGenerator::class,
             ModelGenerator::class,
             DatatableGenerator::class,
             RequestBodyConfigGenerator::class,
@@ -158,6 +169,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ActivateGenerator::class,
             ModelCleanUpGenerator::class,
             ModelRebuildGenerator::class,
+            BrandingGenerator::class,
             OpenAIGenerator::class
         ]);
     }
@@ -172,6 +184,7 @@ class APIToolzServiceProvider extends ServiceProvider
     public function provides()
     {
         return [
+            'command.apitoolz.build',
             'command.apitoolz.model',
             'command.apitoolz.datatable',
             'command.apitoolz.request',
@@ -184,6 +197,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.activate',
             'command.apitoolz.clean',
             'command.apitoolz.rebuild',
+            'command.apitoolz.branding',
             'command.apitoolz.ai'
         ];
     }
