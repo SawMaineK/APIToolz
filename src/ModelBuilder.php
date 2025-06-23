@@ -423,7 +423,7 @@ done";
         return '[
     {
         "icon": "home-2",
-        "path": "/apitoolz",
+        "path": "/admin",
         "title": "Dashboards"
     },
     {
@@ -431,18 +431,18 @@ done";
         "title": "News Feeds",
         "children": [
             {
-                "path": "/apitoolz/model/newsfeed",
+                "path": "/admin/model/newsfeed",
                 "title": "News"
             },
             {
-                "path": "/apitoolz/model/author",
+                "path": "/admin/model/author",
                 "title": "Authors"
             }
         ]
     },
     {
         "icon": "discount",
-        "path": "/apitoolz/model/promotionbanner",
+        "path": "/admin/model/promotionbanner",
         "title": "Promotion Banner"
     },
     {
@@ -450,12 +450,12 @@ done";
     },
     {
         "icon": "map",
-        "path": "/apitoolz/model/zone",
+        "path": "/admin/model/zone",
         "title": "Zone"
     },
     {
         "icon": "two-credit-cart",
-        "path": "/apitoolz/model/payment",
+        "path": "/admin/model/payment",
         "title": "Payments"
     },
     {
@@ -463,19 +463,19 @@ done";
         "title": "Customers",
         "children": [
             {
-                "path": "/apitoolz/model/customer",
+                "path": "/admin/model/customer",
                 "title": "Customers"
             },
             {
-                "path": "/apitoolz/model/country",
+                "path": "/admin/model/country",
                 "title": "Countries"
             },
             {
-                "path": "/apitoolz/model/city",
+                "path": "/admin/model/city",
                 "title": "Cities"
             },
             {
-                "path": "/apitoolz/model/township",
+                "path": "/admin/model/township",
                 "title": "Township"
             }
         ]
@@ -485,23 +485,23 @@ done";
         "title": "Loyalty & Rewards",
         "children": [
             {
-                "path": "/apitoolz/model/loyaltypoint",
+                "path": "/admin/model/loyaltypoint",
                 "title": "Loyalty Points"
             },
             {
-                "path": "/apitoolz/model/redemption",
+                "path": "/admin/model/redemption",
                 "title": "Redemptions"
             },
             {
-                "path": "/apitoolz/model/bonusreward",
+                "path": "/admin/model/bonusreward",
                 "title": "Bonus Rewards"
             },
             {
-                "path": "/apitoolz/model/referral",
+                "path": "/admin/model/referral",
                 "title": "Referrals"
             },
             {
-                "path": "/apitoolz/model/pointtransfer",
+                "path": "/admin/model/pointtransfer",
                 "title": "Point Transfers"
             }
         ]
@@ -511,12 +511,12 @@ done";
     },
     {
         "icon": "users",
-        "path": "/apitoolz/users",
+        "path": "/admin/users",
         "title": "Users"
     },
     {
         "icon": "security-user",
-        "path": "/apitoolz/roles",
+        "path": "/admin/roles",
         "title": "Roles & Permssions"
     }
 ]';

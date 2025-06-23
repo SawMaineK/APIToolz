@@ -1,15 +1,18 @@
-<svg width="160" height="32" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" version="1.1">
+<svg width="200" height="40" xmlns="http://www.w3.org/2000/svg" version="1.1" xml:space="preserve">
  <g id="Layer_1">
   <title>Layer 1</title>
-  <g stroke="null">
-   <g stroke="null" id="svg_2" transform="matrix(0.396779 -0.185019 0.185019 0.396779 22.1102 15.4114)">
-    <path stroke=" none" fill-rule=" nonzero" fill=" rgb(0,161,147)" stroke-miterlimit="4" stroke-linejoin=" miter" stroke-dashoffset="0" stroke-dasharray=" none" stroke-linecap=" butt" d="m14.75877,2.72333c6.021,0.347 11.183,5.038 11.53,10.48l3.088,48.421c0.347,5.439 -4.253,9.567 -10.274,9.22s-11.184,-5.041 -11.531,-10.479l-3.088,-48.421c-0.346,-5.441 4.254,-9.567 10.275,-9.221z" transform="translate(-12.4646 -34.0806)"/>
+  <g stroke="null" id="svg_4">
+   <g stroke="null" transform="matrix(0.519744 -0.242358 0.242358 0.519744 27.9191 20.2405)" id="svg_2">
+    <path stroke=" none" id="svg_5" d="m2.29417,-31.35727c6.021,0.347 11.183,5.038 11.53,10.48l3.088,48.421c0.347,5.439 -4.253,9.567 -10.274,9.22s-11.184,-5.041 -11.531,-10.479l-3.088,-48.421c-0.346,-5.441 4.254,-9.567 10.275,-9.221z" stroke-linecap=" butt" stroke-dasharray=" none" stroke-dashoffset="0" stroke-linejoin=" miter" stroke-miterlimit="4" fill=" rgb(0,161,147)" fill-rule=" nonzero"/>
    </g>
-   <g stroke="null" id="svg_1" transform="matrix(0.39999 0.178072 -0.178072 0.39999 12.1254 15.4909)">
-    <path stroke=" none" fill-rule=" nonzero" fill=" rgb(241,65,108)" stroke-miterlimit="4" stroke-linejoin=" miter" stroke-dashoffset="0" stroke-dasharray=" none" stroke-linecap=" butt" d="m7.07262,-35.58859c6.034,-0.336 10.652,3.792 10.317,9.221l-2.991,48.326c-0.336,5.428 -5.5,10.1 -11.533,10.437s-10.652,-3.792 -10.316,-9.221l2.991,-48.326c0.336,-5.428 5.499,-10.101 11.532,-10.437z"/>
+   <g stroke="null" transform="matrix(0.52395 0.233258 -0.233258 0.52395 14.8399 20.3447)" id="svg_1">
+    <path stroke=" none" id="svg_6" d="m7.07262,-35.58859c6.034,-0.336 10.652,3.792 10.317,9.221l-2.991,48.326c-0.336,5.428 -5.5,10.1 -11.533,10.437s-10.652,-3.792 -10.316,-9.221l2.991,-48.326c0.336,-5.428 5.499,-10.101 11.532,-10.437z" stroke-linecap=" butt" stroke-dasharray=" none" stroke-dashoffset="0" stroke-linejoin=" miter" stroke-miterlimit="4" fill=" rgb(241,65,108)" fill-rule=" nonzero"/>
    </g>
   </g>
-  <text stroke-linejoin=" miter" stroke-linecap=" butt" stroke-dasharray=" none" transform="matrix(1.12739 0 0 1.12739 -17.6773 -2.67671)" stroke=" none" font-weight="bold" xml:space="preserve" text-anchor="start" font-family="'Syne'" font-size="24" id="svg_3" y="24.47286" x="59.51235" stroke-width="0" fill=" rgb(241,65,108)">APIToolz</text>
+  <g stroke="null" id="svg_8">
+   <text stroke=" none" fill="#666666" stroke-width="0" x="70.31924" y="23.12601" id="svg_3" font-size="24" font-family="'Syne'" text-anchor="start" xml:space="preserve" font-weight="bold" transform="matrix(1.34588 0 0 1.34588 -30.1776 0.186396)" stroke-dasharray=" none" stroke-linecap=" butt" stroke-linejoin=" miter">API</text>
+   <text stroke=" none" opacity="0.8" fill="#666666" stroke-width="0" x="112.76513" y="22.73964" id="svg_7" font-size="24" font-family="'Syne'" text-anchor="start" xml:space="preserve" font-weight="normal" transform="matrix(1.34588 0 0 1.34588 -30.1776 0.706407)" stroke-dasharray=" none" stroke-linecap=" butt" stroke-linejoin=" miter">Toolz</text>
+  </g>
  </g>
 
 </svg>

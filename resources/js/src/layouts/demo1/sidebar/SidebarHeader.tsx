@@ -14,7 +14,7 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
       <Link to="/admin" className="dark:hidden">
         <img
           src={toAbsoluteUrl(`${settings.branding.logo_url || '/media/app/default-logo.svg'}`)}
-          className="default-logo min-h-[22px] max-w-none"
+          className="default-logo min-h-[22px] h-[40px] max-w-none"
         />
         <img
           src={toAbsoluteUrl(`${settings.branding.logo_small_url || '/media/app/mini-logo.svg'}`)}
@@ -26,7 +26,7 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
           src={toAbsoluteUrl(
             `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
           )}
-          className="default-logo min-h-[22px] max-w-none"
+          className="default-logo min-h-[22px] h-[40px] max-w-none"
         />
         <img
           src={toAbsoluteUrl(
@@ -44,7 +44,7 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
         src={toAbsoluteUrl(
           `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
         )}
-        className="default-logo min-h-[22px] max-w-none"
+        className="default-logo min-h-[22px] h-[40px] max-w-none"
       />
       <img
         src={toAbsoluteUrl(
