@@ -23,7 +23,7 @@ class AppSetting extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'key', 'menu_config', 'branding', 'email_config', 'sms_config', 'other', 'created_at', 'updated_at'
+        'id', 'key', 'branding', 'menu_config', 'dashboard_config', 'email_config', 'sms_config', 'other', 'created_at', 'updated_at'
     ];
 
     /**
@@ -52,7 +52,7 @@ class AppSetting extends Model
     protected function casts(): array
     {
         return [
-            'id' => 'integer', 'key' => 'string', 'menu_config' => 'json', 'dashboard_config' => 'json', 'branding' => 'json', 'email_config' => 'json', 'sms_config' => 'json', 'other' => 'json', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
+            'id' => 'integer', 'key' => 'string', 'branding' => 'json', 'menu_config' => 'json', 'dashboard_config' => 'json', 'email_config' => 'json', 'sms_config' => 'json', 'other' => 'json', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime'
         ];
     }
 

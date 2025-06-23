@@ -135,7 +135,9 @@ class APIToolzServiceProvider extends ServiceProvider
             // Publish config
             $this->publishes([
                 __DIR__.'/../config/config.php' => config_path('apitoolz.php'),
-                __DIR__.'/../config/swagger.php' => config_path('l5-swagger.php')
+                __DIR__.'/../config/swagger.php' => config_path('l5-swagger.php'),
+                __DIR__.'/../src/Observers/UserObserver.php' => app_path('Observers/UserObserver.php'),
+                __DIR__.'/../src/Jobs/NotifyUserUpdateJob.php' => app_path('Jobs/NotifyUserUpdateJob.php')
             ], 'apitoolz-config');
             // Publish views
             $this->publishes([
@@ -147,11 +149,6 @@ class APIToolzServiceProvider extends ServiceProvider
                 __DIR__.'/../dist/assets' => public_path('assets'),
                 __DIR__.'/../dist/index.html' => resource_path('views/vendor/apitoolz/app.blade.php'),
             ], 'apitoolz-ui');
-            // Publish user observer
-            $this->publishes([
-                __DIR__.'/../src/Observers/UserObserver.php' => app_path('Observers/UserObserver.php'),
-                __DIR__.'/../src/Jobs/NotifyUserUpdateJob.php' => app_path('Jobs/NotifyUserUpdateJob.php')
-            ], 'user-observer');
             $this->addProviderToBootstrap();
         }
         // Register the command if we are using the application via the CLI

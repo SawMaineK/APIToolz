@@ -664,13 +664,6 @@ Once the above steps are complete, you can test your SMS integration by sending 
 This setup allows you to seamlessly integrate any SMS provider of your choice into APIToolz.
 
 ## How to Implement Model Observers for the User?
-
-If you want to enable user observer actions, you can publish the user observer files using the following command:
-
-```shell
-php artisan vendor:publish --tag=user-observer
-```
-
 ### Define Observer Methods
 Open the generated file and define the lifecycle hooks you want to handle:
 ```php
