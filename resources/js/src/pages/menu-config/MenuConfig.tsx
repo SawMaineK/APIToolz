@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormLayout } from '@/components/form/FormLayout';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { FormCoder } from '@/components/form/base/form-coder';
@@ -10,10 +10,14 @@ import { useSettings } from '@/providers';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const MenuConfig: React.FC = () => {
+interface MenuConfigProps {
+  menu: any[];
+}
+
+const MenuConfig = ({ menu }: MenuConfigProps) => {
   const { settings, updateSettings } = useSettings();
   const initialValues = {
-    menu_config: `${JSON.stringify(settings.menuConfig)}`
+    menu_config: `${JSON.stringify(menu)}`
   };
 
   const formLayout: BaseForm<string>[] = [
@@ -78,7 +82,12 @@ const MenuConfig: React.FC = () => {
           <ToolbarPageTitle text={`Menu Configuration`} />
           <ToolbarDescription>
             Edit the structure of your sidebar menu, including nesting and order.
-            <a href="https://keenthemes.com/metronic/tailwind/docs/plugins/keenicons#list" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-1">
+            <a
+              href="https://lucide.dev/icons/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline flex items-center gap-1"
+            >
               <i className="ki ki-bold-link"></i> See icons
             </a>
           </ToolbarDescription>

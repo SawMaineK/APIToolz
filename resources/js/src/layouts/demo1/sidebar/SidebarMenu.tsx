@@ -71,9 +71,9 @@ const SidebarMenu = () => {
   };
 
   const buildMenuItemRoot = (item: IMenuItemConfig, index: number) => {
+    const IconName = item.icon ? toPascalCase(item.icon) : null;
+    const Icon = IconName && (LucideIcons as any)[IconName];
     if (item.children) {
-      const IconName = item.icon ? toPascalCase(item.icon) : null;
-      const Icon = IconName && (LucideIcons as any)[IconName];
       return (
         <MenuItem
           key={index}
@@ -129,7 +129,8 @@ const SidebarMenu = () => {
                 iconWidth
               )}
             >
-              {item.icon && <KeenIcon icon={item.icon} className={iconSize} />}
+              {item.icon && Icon && <Icon className={iconSize} />}
+              {item.icon && !Icon && <KeenIcon icon={item.icon} className={iconSize} />}
             </MenuIcon>
             <MenuTitle className="text-sm font-medium text-gray-800 menu-item-active:text-primary menu-link-hover:!text-primary">
               {item.title}
@@ -141,13 +142,16 @@ const SidebarMenu = () => {
   };
 
   const buildMenuItemRootDisabled = (item: IMenuItemConfig, index: number) => {
+    const IconName = item.icon ? toPascalCase(item.icon) : null;
+    const Icon = IconName && (LucideIcons as any)[IconName];
     return (
       <MenuItem key={index}>
         <MenuLabel
           className={clsx('border border-transparent', accordionLinkGap[0], linkPy, linkPl, linkPr)}
         >
           <MenuIcon className={clsx('items-start text-gray-500 dark:text-gray-400', iconWidth)}>
-            {item.icon && <KeenIcon icon={item.icon} className={iconSize} />}
+            {item.icon && Icon && <Icon className={iconSize} />}
+            {item.icon && !Icon && <KeenIcon icon={item.icon} className={iconSize} />}
           </MenuIcon>
           <MenuTitle className="text-sm font-medium text-gray-800">{item.title}</MenuTitle>
 
