@@ -11,6 +11,7 @@ use Sawmainek\Apitoolz\Console\BrandingGenerator;
 use Sawmainek\Apitoolz\Console\ModelBuilderGenerator;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
+use Sawmainek\Apitoolz\Console\ModelSeederGenerator;
 use Sawmainek\Apitoolz\Console\ModelSummaryGenerator;
 use Sawmainek\Apitoolz\Http\Middleware\RequestLogger;
 use Sawmainek\Apitoolz\Http\Middleware\ResponseLogger;
@@ -63,6 +64,10 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:summary', function ($app) {
             return $app->make(ModelSummaryGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:seeder', function ($app) {
+            return $app->make(ModelSeederGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:export', function ($app) {
@@ -161,6 +166,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ModelRelationGenerator::class,
             ModelFilterGenerator::class,
             ModelSummaryGenerator::class,
+            ModelSeederGenerator::class,
             ModelExportGenerator::class,
             ModelImportGenerator::class,
             ActivateGenerator::class,
@@ -189,6 +195,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.relation',
             'command.apitoolz.filter',
             'command.apitoolz.summary',
+            'command.apitoolz.seeder',
             'command.apitoolz.export',
             'command.apitoolz.import',
             'command.apitoolz.activate',
