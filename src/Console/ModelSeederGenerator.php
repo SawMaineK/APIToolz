@@ -23,7 +23,7 @@ class ModelSeederGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:seeder {model} {--key=} {--data=} {--count=} {--use-ai} {--force} {--doc}';
+    protected $signature = 'apitoolz:seeder {model} {--key=} {--data=} {--count=} {--use-ai} {--ask=} {--force} {--doc}';
 
     /**
      * The console command description.
@@ -61,7 +61,8 @@ class ModelSeederGenerator extends Command
                 'data'        => $this->option('data') ?? '[]',
                 'count'        => $this->option('count') ?? 5,
                 'force'       => $this->option('force'),
-                'use_ai'      => $this->option('use-ai')
+                'use_ai'      => $this->option('use-ai'),
+                'ask'      => $this->option('ask')
             ];
 
             // Remove keys with null values

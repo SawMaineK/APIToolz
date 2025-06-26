@@ -8,25 +8,33 @@ use Sawmainek\Apitoolz\APIToolzGenerator;
 
 class SeederBuilder
 {
-    public static function run(Model $model, $request) {
+    public static function run(Model $model, $request)
+    {
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
-        $codes['key']   = $request['key'];
-        $codes['data']  = $request['data'];
+        $codes['key'] = $request['key'];
+        $codes['data'] = $request['data'];
 
-        if($request['use_ai']) {
-            $fields = \Schema::getColumnListing($model->table);
-            $fields = collect($fields)->filter(function ($field) {
-                return !in_array($field, ['created_at', 'updated_at', 'deleted_at']);
-            })->values();
+        if ($request['use_ai']) {
+            $ask = $request['ask'] ?? '';
+            $fields = \Schema::getColumns($model->table);
+            $fields = collect($fields)
+                ->filter(function ($field) {
+                    return !in_array($field['name'], ['created_at', 'updated_at', 'deleted_at']);
+                })
+                ->map(function ($field) {
+                    return $field['name'] . ':' . $field['type'];
+                })
+                ->toArray();
             $response = APIToolzGenerator::ask(
-            "Create {$request['count']} dummy data array for {$model->name} following fields.\n\n",
-            self::getDummyHint(),
-            $model->name,
-            $fields,
-            ['dummy_data', $model->slug],
-            true);
-            if($response->content) {
+                "Create {$request['count']} dummy data array for {$model->name} following fields.\n\n{$ask}\n\n",
+                self::getDummyHint(),
+                $model->name,
+                $fields,
+                ['dummy_data', $model->slug],
+                true
+            );
+            if ($response->content) {
                 if (preg_match('/\[\s*{.*}\s*\]/s', $response->content, $matches)) {
                     $codes['data'] = $matches[0];
                 }
@@ -64,7 +72,8 @@ class SeederBuilder
 
     }
 
-    static function getDummyHint() {
+    static function getDummyHint()
+    {
         return '[
             {"first_name":"Aung","last_name":"Zaw","email":"aungzaw@example.com","phone_number":"0911223344","address":"No 1, Kabaraye Pagoda Rd","city":"Yangon","state":"Yangon Region","country":"Myanmar","zip_code":"11101"},
             {"first_name":"Mya","last_name":"Thidar","email":"mya.thidar@example.com","phone_number":"0945566778","address":"22 Inya Road","city":"Yangon","state":"Yangon Region","country":"Myanmar","zip_code":"11111"},

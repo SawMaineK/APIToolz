@@ -366,20 +366,8 @@ class ModelBuilder
         @unlink(app_path("Models/{$model->name}.php"));
         @unlink(app_path("Exports/{$model->name}Export.php"));
         @unlink(app_path("Policies/{$model->name}Policy.php"));
-        @unlink(app_path("Mails/{$model->name}Mail.php"));
-        @unlink(app_path("Jobs/ProcessCreated{$model->name}.php"));
-        @unlink(app_path("Jobs/ProcessUpdated{$model->name}.php"));
-        @unlink(app_path("Jobs/ProcessDeleted{$model->name}.php"));
-        @unlink(app_path("Notifications/{$model->name}CreatedNotification.php"));
-        @unlink(app_path("Notifications/{$model->name}UpdatedNotification.php"));
-        @unlink(app_path("Notifications/{$model->name}DeletedNotification.php"));
-        @unlink(app_path("Events/{$model->name}CreatedEvent.php"));
-        @unlink(app_path("Events/{$model->name}UpdatedEvent.php"));
-        @unlink(app_path("Events/{$model->name}DeletedEvent.php"));
-        @unlink(base_path("resources/views/emails/{$model->slug}.blade.php"));
-        @unlink(base_path("resources/views/emails/{$model->slug}-created.blade.php"));
-        @unlink(base_path("resources/views/emails/{$model->slug}-updated.blade.php"));
-        @unlink(base_path("resources/views/emails/{$model->slug}-deleted.blade.php"));
+        @unlink(app_path("Observers/{$model->name}Observer.php"));
+        @unlink(app_path("Hooks/{$model->name}Hook.php"));
 
         RouterBuilder::build();
         SeederBuilder::build();
