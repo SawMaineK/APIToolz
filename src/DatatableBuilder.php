@@ -53,63 +53,101 @@ class DatatableBuilder
     public static function buildWithSql($table, $sql, $softDelete = false)
     {
         try {
-            // If using SQLite, replace ENUM with TEXT in the SQL
+            // ────────── SQLite-specific rewrites ──────────
             if (\DB::getDriverName() === 'sqlite') {
-                // Replace ENUM with CHECK constraint for SQLite
-                $sql = preg_replace_callback('/ENUM\s*\(([^)]+)\)/i', function ($matches) {
-                    $values = array_map(function($v) {
-                        return trim($v, " '\"");
-                    }, explode(',', $matches[1]));
-                    // Find the column name before ENUM
-                    // e.g. `"type" ENUM('a','b')` or `type ENUM('a','b')`
-                    // We'll look back for the last word before ENUM
-                    $pattern = '/([`"\w]+)\s+ENUM\s*\([^)]+\)/i';
-                    if (preg_match($pattern, $matches[0], $colMatch)) {
-                        $colName = trim($colMatch[1], '`"');
-                    } else {
-                        $colName = 'VALUE';
-                    }
-                    $check = "TEXT CHECK(\"{$colName}\" IN ('" . implode("', '", array_map('addslashes', $values)) . "'))";
-                    return $check;
-                }, $sql);
-            }
-            \DB::unprepared($sql);
-            $columns = \Schema::getColumns(\Str::lower($table));
-            $foreignKeys = \Schema::getForeignKeys(\Str::lower($table));
-            $fields = [];
-            foreach($columns as $col) {
-                if($col['type_name'] != "int auto_increment" && $col['name'] != 'id' && $col['name'] != 'created_at' && $col['name'] != 'updated_at' && $col['name'] != 'deleted_at') {
-                    $field['name'] = $col['name'];
-                    $field['type'] = self::toCastFieldType($col['type_name']);
-                    $field['null'] = $col['nullable'];
-                    $field['default'] = $col['default'];
-                    // If the type is enum, convert the enum string to an array of values
-                    if (isset($col['type']) && strpos($col['type'], "enum(") === 0) {
-                        preg_match("/^enum\((.*)\)$/", $col['type'], $matches);
-                        if (isset($matches[1])) {
-                            $enumValues = array_map(function($v) {
-                                return trim($v, " '\"");
-                            }, explode(',', $matches[1]));
-                            $field['enum'] = $enumValues;
+
+                // 1️⃣  back-ticks → double quotes
+                $sql = str_replace('`', '"', $sql);
+
+                // 2️⃣  ENUM(…) → TEXT CHECK(…)
+                $sql = preg_replace_callback(
+                    '/ENUM\s*\(([^)]+)\)/i',
+                    function ($matches) {
+                        // extract enum values, keep quotes clean
+                        $values = array_map(
+                            fn ($v) => trim($v, " '\""),
+                            explode(',', $matches[1])
+                        );
+                        // find the column name immediately before ENUM
+                        if (preg_match('/([\w"]+)\s+ENUM/i', $matches[0], $m)) {
+                            $col = trim($m[1], '"');
                         } else {
-                            $field['enum'] = null;
+                            $col = 'value';
+                        }
+                        return 'TEXT CHECK("' . $col . '" IN (\'' . implode("','", $values) . "'))";
+                    },
+                    $sql
+                );
+
+                // 3️⃣  INT AUTO_INCREMENT PRIMARY KEY → INTEGER PRIMARY KEY AUTOINCREMENT
+                $sql = preg_replace(
+                    '/\bINT\s+AUTO_INCREMENT\s+PRIMARY\s+KEY\b/i',
+                    'INTEGER PRIMARY KEY AUTOINCREMENT',
+                    $sql
+                );
+
+                // 4️⃣  standalone AUTO_INCREMENT (rare in CREATE TABLE …) → nothing
+                $sql = preg_replace('/\bAUTO_INCREMENT\b/i', '', $sql);
+
+                // 5️⃣  UNIQUE KEY name (a,b)  →  UNIQUE(a,b)
+                $sql = preg_replace(
+                    '/UNIQUE\s+KEY\s+\w+\s*\(([^)]+)\)/i',
+                    'UNIQUE($1)',
+                    $sql
+                );
+
+                // 6️⃣  ordinary KEY / INDEX lines – strip them (SQLite needs CREATE INDEX)
+                $sql = preg_replace('/,\s*KEY\s+\w+\s*\([^)]+\)/i', '', $sql);
+            }
+
+            // ────────── run the (now compatible) SQL ──────────
+            \DB::unprepared($sql);
+
+            /* ------ rest of your original logic ------ */
+            $columns     = \Schema::getColumns(\Str::lower($table));
+            $foreignKeys = \Schema::getForeignKeys(\Str::lower($table));
+
+            $fields = [];
+            foreach ($columns as $col) {
+                if (
+                    $col['type_name'] !== 'int auto_increment' &&
+                    ! in_array($col['name'], ['id', 'created_at', 'updated_at', 'deleted_at'])
+                ) {
+                    $field = [
+                        'name'    => $col['name'],
+                        'type'    => self::toCastFieldType($col['type_name']),
+                        'null'    => $col['nullable'],
+                        'default' => $col['default'],
+                    ];
+
+                    // capture enum values (if Schema reader still exposes them)
+                    if (isset($col['type']) && str_starts_with($col['type'], 'enum(')) {
+                        if (preg_match('/^enum\((.*)\)$/', $col['type'], $m)) {
+                            $field['enum'] = array_map(
+                                fn ($v) => trim($v, " '\""),
+                                explode(',', $m[1])
+                            );
                         }
                     } else {
-                        $field['enum'] = isset($col['enum']) ? $col['enum'] : null;
+                        $field['enum'] = $col['enum'] ?? null;
                     }
+
                     $fields[] = $field;
                 }
             }
 
-            \DB::unprepared("DROP table $table;");
+            // rebuild via APIToolz column builder
+            \DB::unprepared("DROP TABLE \"$table\";");
             self::build($table, $fields, $softDelete, $foreignKeys);
+
         } catch (\Exception $e) {
-            echo "{$e->getMessage()}\n";
-            echo "Abort...\n";
+            echo $e->getMessage() . PHP_EOL . 'Abort…' . PHP_EOL;
             dd();
         }
+
         return 1;
     }
+
 
     public static function addField($table, $field = [])
     {
@@ -208,11 +246,13 @@ class DatatableBuilder
 
     public static function remove($table)
     {
+        \DB::statement('PRAGMA foreign_keys = OFF;');
         \DB::unprepared("Drop Table $table;");
         $migrations = glob(base_path("database/migrations/*_{$table}_table.php"));
         foreach($migrations as $filePath) {
             @unlink($filePath);
         }
+        \DB::statement('PRAGMA foreign_keys = ON;');
     }
 
     static function getFieldMigrate($field, $option = [], $after = null, $modify = false)

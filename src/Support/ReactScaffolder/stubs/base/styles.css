@@ -1,0 +1,4 @@
+/* Tailwind directives will be injected automatically if --tailwind */
+body {
+  font-family: system-ui, sans-serif;
+}

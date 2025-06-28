@@ -87,7 +87,11 @@ class ModelBuilder
                 if ($form['field'] == 'id') {
                     $codes['validation'][] = "\t\t\t'{$form['field']}'=>'nullable|integer',\n";
                 } else {
-                    $codes['validation'][] = "\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                    if(is_string($form['validator']) && str_starts_with($form['validator'], '[') && str_ends_with($form['validator'], ']')) {
+                        $codes['validation'][] = "\t\t\t'{$form['field']}'=> {$form['validator']},\n";
+                    } else {
+                        $codes['validation'][] = "\t\t\t'{$form['field']}'=>'{$form['validator']}',\n";
+                    }
                 }
                 $request['field'] = $form['field'];
                 $request['type'] = $form['cast'];
@@ -254,7 +258,7 @@ class ModelBuilder
             $requestFile = app_path("Http/Requests/{$codes['class']}Request.php");
             $buildRequest = APIToolzGenerator::blend('request.tpl', $codes);
             if (!is_dir(app_path("Http/Requests")))
-                mkdir(app_path("Http/Requests"), 0775, true);
+                mkdir(app_path("Http/Requests"), permissions: 0775);
             file_put_contents($requestFile, $buildRequest);
         }
 
@@ -326,16 +330,21 @@ class ModelBuilder
                 echo $command . PHP_EOL;
                 // Execute the artisan command
                 $artisanCommand = str_replace('php artisan ', '', $command);
-                Artisan::call($artisanCommand);
+                try {
+                    Artisan::call($artisanCommand);
+                } catch (\Throwable $e) {
+                    echo "Command failed: {$artisanCommand}". PHP_EOL;
+                    echo "   ↳ {$e->getMessage()}". PHP_EOL. PHP_EOL;
+                }
             }
         }
     }
 
-    public static function buildMenuConfigure()
+    public static function buildMenuConfigure(Model $model)
     {
         $models = Model::pluck('name');
         $response = APIToolzGenerator::ask(
-            "Create complete menu configuration given json format, include dashbard, users and roles & permissions using lucide-react for icon. \n\n",
+            "Add menu config for {$model->name} using lucide-react for icon. \n\n",
             self::getMenuHint(),
             'menu',
             $models,
@@ -390,6 +399,7 @@ for cmd in \
     'php artisan apitoolz:request Product --field=name --validator=\"required|string|max:255\" --input-type=text' \
     'php artisan apitoolz:request Product --field=price --validator=\"required|numeric|min:0\" --input-type=number' \
     'php artisan apitoolz:request Product --field=description --input-type=textarea' \
+    'php artisan apitoolz:request Product --field=product_image --input-type=file --upload-type=image --upload-path=products' \
     'php artisan apitoolz:request Product --field=status --input-type=select --opt-type=datalist --lookup-query=\"0:In-Active|1:Active\"' \
     'php artisan apitoolz:response Product --field=name --label=\"Product Name\" --visible=true --export=true --position=1' \
     'php artisan apitoolz:response Product --field=price --label=\"Price\" --visible=true --export=true --position=2' \
@@ -403,111 +413,34 @@ for cmd in \
 do
     echo \"Running: \$cmd\"
     eval \$cmd
-done";
+done
+\n\n
+Using following option for summary:\n
+{--title= : The title of the summary report}\n
+{--model= : The model for dashboard summary}\n
+{--type= : The type of summary (kpi, chart, progress)}\n
+{--icon= : The icon for the summary report}\n
+{--method= : The method for KPI (count, sum, avg, min, max)}\n
+{--column= : The column to apply the method on}\n
+{--chart-type= : The type of chart (bar, line, pie, doughnut, area)}\n
+{--group-by= : The column to group by in charts}\n
+{--group-model= : The model to group by in charts}\n
+{--group-label= : The model display field to group by in charts}\n
+{--aggregate= : The aggregation method for charts (count, sum, avg, min, max)}\n
+{--limit= : The limit for chart results}\n
+{--value-method= : The method for progress value (where)}\n
+{--where= : The where condition(s) for filtering data}\n
+{--value-column= : The column for progress value}\n
+{--max-method= : The method for maximum value in progress (count, sum, avg, min, max)}\n
+{--unit= : The unit for progress}\n
+{--position= : The position of the summary}\n
+";
     }
 
     static function getMenuHint()
     {
-        return '[
-    {
-        "icon": "home-2",
-        "path": "/admin",
-        "title": "Dashboards"
-    },
-    {
-        "icon": "shield-search",
-        "title": "News Feeds",
-        "children": [
-            {
-                "path": "/admin/model/newsfeed",
-                "title": "News"
-            },
-            {
-                "path": "/admin/model/author",
-                "title": "Authors"
-            }
-        ]
-    },
-    {
-        "icon": "discount",
-        "path": "/admin/model/promotionbanner",
-        "title": "Promotion Banner"
-    },
-    {
-        "heading": "My Mandalay"
-    },
-    {
-        "icon": "map",
-        "path": "/admin/model/zone",
-        "title": "Zone"
-    },
-    {
-        "icon": "two-credit-cart",
-        "path": "/admin/model/payment",
-        "title": "Payments"
-    },
-    {
-        "icon": "users",
-        "title": "Customers",
-        "children": [
-            {
-                "path": "/admin/model/customer",
-                "title": "Customers"
-            },
-            {
-                "path": "/admin/model/country",
-                "title": "Countries"
-            },
-            {
-                "path": "/admin/model/city",
-                "title": "Cities"
-            },
-            {
-                "path": "/admin/model/township",
-                "title": "Township"
-            }
-        ]
-    },
-    {
-        "icon": "crown",
-        "title": "Loyalty & Rewards",
-        "children": [
-            {
-                "path": "/admin/model/loyaltypoint",
-                "title": "Loyalty Points"
-            },
-            {
-                "path": "/admin/model/redemption",
-                "title": "Redemptions"
-            },
-            {
-                "path": "/admin/model/bonusreward",
-                "title": "Bonus Rewards"
-            },
-            {
-                "path": "/admin/model/referral",
-                "title": "Referrals"
-            },
-            {
-                "path": "/admin/model/pointtransfer",
-                "title": "Point Transfers"
-            }
-        ]
-    },
-    {
-        "heading": "Manage User"
-    },
-    {
-        "icon": "users",
-        "path": "/admin/users",
-        "title": "Users"
-    },
-    {
-        "icon": "security-user",
-        "path": "/admin/roles",
-        "title": "Roles & Permssions"
-    }
-]';
+        $menuConfig = AppSetting::where('key', 'default_settings')->value('menu_config');
+        return json_encode($menuConfig);
     }
 
 

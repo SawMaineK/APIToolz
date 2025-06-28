@@ -92,6 +92,35 @@ class APIToolzGenerator
         }
     }
 
+    public static function askReact($project, $theme, $prompt)
+    {
+        self::verifyValitation();
+        $response = \Http::timeout(180)->post(config('apitoolz.host').'/apps/ask-react', [
+            'project' => $project,
+            'theme' => $theme,
+            'prompt' => $prompt,
+            'key' => config('apitoolz.activated_key')
+        ]);
+        if($response->failed()) {
+            switch ($response->status()) {
+                case 400:
+                case 419:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+                default:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+            }
+        }
+        if($response->successful()) {
+            return json_decode($response->body());
+        }
+    }
+
     static function publishTemplate($name, $desc, $path) {
         self::verifyValitation();
         // Log the start of the upload

@@ -72,14 +72,14 @@ class RequestBodyConfigGenerator extends Command
                 // For file upload
                 if($this->option('input-type') == 'file') {
                     $roles['path_to_upload'] = 'required';
-                    $roles['upload_max_size'] = 'required|numeric';
+                    $roles['upload_max_size'] = 'nullable|numeric';
                     $roles['upload_type'] = 'required|in:image,file';
                 }
 
                 // For select, radio, checkbox
                 if($this->option('input-type') == 'select' || $this->option('input-type') == 'radio') {
                     $roles['opt_type'] = 'required|in:datalist,external';
-                    if($this->option('opt-type') == 'external') {
+                    if($this->option('opt-type') == 'external' && $this->option('lookup-model') != 'User') {
                         $roles['lookup_model'] = 'required|exists:Sawmainek\Apitoolz\Models\Model,name';
                         $roles['lookup_value'] = [
                             'required',
@@ -119,7 +119,7 @@ class RequestBodyConfigGenerator extends Command
                 'criteria_value' => $this->option('criteria-value'),
                 'sortlist' => $this->option('position'),
                 'path_to_upload' => $this->option('upload-path'),
-                'upload_max_size' => $this->option('upload-max-size'),
+                'upload_max_size' => $this->option('upload-max-size') ?? '2048',
                 'upload_type' => $this->option('upload-type'),
                 'image_multiple' => $this->option('upload-multiple') == 'true' ? true : false,
                 'opt_type' => $this->option('opt-type'),

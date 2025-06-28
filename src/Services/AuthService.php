@@ -92,7 +92,7 @@ class AuthService
 
         // Handle avatar upload
         if (isset($data['avatar']) && $data['avatar']->isValid()) {
-            $avatarPath = $data['avatar']->store('avatars', 'public');
+            $avatarPath = $data['avatar']->store('avatars');
             $data['avatar'] = $avatarPath;
         }
 

@@ -25,6 +25,7 @@ use Sawmainek\Apitoolz\Console\ModelImportGenerator;
 use Sawmainek\Apitoolz\Console\ActivateGenerator;
 use Sawmainek\Apitoolz\Console\OpenAIGenerator;
 use Sawmainek\Apitoolz\Console\ModelCleanUpGenerator;
+use Sawmainek\Apitoolz\Console\ReactAppGenerator;
 
 
 class APIToolzServiceProvider extends ServiceProvider
@@ -34,6 +35,10 @@ class APIToolzServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton('command.apitoolz:react-project', function ($app) {
+            return $app->make(ReactAppGenerator::class);
+        });
+
         $this->app->singleton('command.apitoolz:build', function ($app) {
             return $app->make(ModelBuilderGenerator::class);
         });
@@ -158,6 +163,7 @@ class APIToolzServiceProvider extends ServiceProvider
         }
         // Register the command if we are using the application via the CLI
         $this->commands([
+            ReactAppGenerator::class,
             ModelBuilderGenerator::class,
             ModelGenerator::class,
             DatatableGenerator::class,
@@ -187,6 +193,7 @@ class APIToolzServiceProvider extends ServiceProvider
     public function provides()
     {
         return [
+            'command.apitoolz:react-project',
             'command.apitoolz.build',
             'command.apitoolz.model',
             'command.apitoolz.datatable',

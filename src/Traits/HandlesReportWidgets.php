@@ -11,50 +11,51 @@ trait HandlesReportWidgets
         $modelClass = "\\App\\Models\\{$widget['model']}";
         $model = new $modelClass;
         $query = $model->newQuery();
-
         if (!empty($widget['where'])) {
             foreach (explode(',', $widget['where']) as $condition) {
                 $condition = trim($condition);
+                // Support raw SQL like MONTH(created_at)=MONTH(CURDATE())
+                if (
+                    preg_match('/\b(MONTH|YEAR|DATE|CURDATE|NOW|DATEDIFF|COALESCE|ISNULL|IFNULL)\b/i', $condition) &&
+                    !preg_match('/^([a-zA-Z0-9_]+)\s*[:=]\s*(.+)$/', $condition) &&
+                    config('database.default') == 'mysql'
+                ) {
+                    $query->whereRaw($condition);
+                    continue;
+                }
 
                 // Match key:operator(value) or key=value
                 if (preg_match('/^([^:=]+)\s*[:=]\s*(.+)$/', $condition, $matches)) {
                     $field = trim($matches[1]);
                     $expression = trim($matches[2]);
 
-                    // Handle null and notnull
                     if (in_array(strtolower($expression), ['null', 'notnull'])) {
-                        if (strtolower($expression) === 'null') {
-                            $query->whereNull($field);
-                        } else {
-                            $query->whereNotNull($field);
-                        }
+                        strtolower($expression) === 'null'
+                            ? $query->whereNull($field)
+                            : $query->whereNotNull($field);
                         continue;
                     }
 
-                    // Handle IN (in(value1,value2))
                     if (preg_match('/^in\((.+)\)$/i', $expression, $inMatches)) {
                         $values = array_map('trim', explode(',', $inMatches[1]));
                         $query->whereIn($field, $values);
                         continue;
                     }
 
-                    // Handle LIKE (like(value))
                     if (preg_match('/^like\((.+)\)$/i', $expression, $likeMatches)) {
                         $query->where($field, 'like', '%' . $likeMatches[1] . '%');
                         continue;
                     }
 
-                    // Handle comparison operators in colon or equal styles
                     if (preg_match('/^(>=|<=|!=|=|<|>)(.+)$/', $expression, $opMatches)) {
                         $operator = $opMatches[1];
                         $value = trim($opMatches[2]);
-
-                        if (is_numeric($value)) $value += 0;
+                        if (is_numeric($value))
+                            $value += 0;
                         $query->where($field, $operator, $value);
                         continue;
                     }
 
-                    // Default fallback (equals)
                     $query->where($field, $expression);
                 }
             }
@@ -62,8 +63,10 @@ trait HandlesReportWidgets
 
 
         // Date filters
-        if ($startDate) $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
-        if ($endDate) $query->where("{$model->getTable()}.created_at", '<', Carbon::parse($endDate)->addDay());
+        if ($startDate)
+            $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
+        if ($endDate)
+            $query->where("{$model->getTable()}.created_at", '<', Carbon::parse($endDate)->addDay());
 
         switch ($widget['type']) {
             case 'kpi':
@@ -98,7 +101,7 @@ trait HandlesReportWidgets
                         ->orderByRaw("MIN({$model->getTable()}.created_at)");
 
                     if (!empty($widget['limit'])) {
-                        $query->limit((int)$widget['limit']);
+                        $query->limit((int) $widget['limit']);
                     }
 
                     $data = $query->pluck('value', 'label')->toArray();
@@ -120,7 +123,7 @@ trait HandlesReportWidgets
                     ->orderByRaw("MIN(created_at)");
 
                 if (!empty($widget['limit'])) {
-                    $chartQuery->limit((int)$widget['limit']);
+                    $chartQuery->limit((int) $widget['limit']);
                 }
 
                 // Format label if grouping by MONTH(created_at)
@@ -130,8 +133,10 @@ trait HandlesReportWidgets
                         $month = $item->label;
                         // Find the year by getting the MIN(year) for that month in the date range
                         $dateQuery = $model->newQuery();
-                        if ($startDate) $dateQuery->where('created_at', '>=', Carbon::parse($startDate));
-                        if ($endDate) $dateQuery->where('created_at', '<=', Carbon::parse($endDate));
+                        if ($startDate)
+                            $dateQuery->where('created_at', '>=', Carbon::parse($startDate));
+                        if ($endDate)
+                            $dateQuery->where('created_at', '<=', Carbon::parse($endDate));
                         $dateQuery->whereRaw("MONTH(created_at) = ?", [$month]);
                         $year = $dateQuery->min(\DB::raw('YEAR(created_at)')) ?? date('Y');
                         $label = Carbon::createFromDate($year, $month, 1)->format('F, Y');
@@ -158,8 +163,10 @@ trait HandlesReportWidgets
                 $max = $query->{$widget['max_method'] ?? 'count'}();
 
                 $valueQuery = $model->newQuery();
-                if ($startDate) $valueQuery->where('created_at', '>=', Carbon::parse($startDate));
-                if ($endDate) $valueQuery->where('created_at', '<=', Carbon::parse($endDate));
+                if ($startDate)
+                    $valueQuery->where('created_at', '>=', Carbon::parse($startDate));
+                if ($endDate)
+                    $valueQuery->where('created_at', '<=', Carbon::parse($endDate));
 
                 $valueColumn = $widget['value_column'] ?? 'id';
                 $valueMethod = $widget['value_method'] ?? 'whereNotNull';

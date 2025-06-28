@@ -143,7 +143,7 @@ class ModelGenerator extends Command
             }
             if($this->option('add-menu')) {
                 $this->info('Building for menu configuration...');
-                ModelBuilder::buildMenuConfigure();
+                ModelBuilder::buildMenuConfigure($model);
             }
             $this->info("This $name model has created successfully.");
         } else {
@@ -176,7 +176,7 @@ class ModelGenerator extends Command
                 }
                 if($this->option('add-menu')) {
                     $this->info('Building for menu configuration...');
-                    ModelBuilder::buildMenuConfigure();
+                    ModelBuilder::buildMenuConfigure($model);
                 }
                 return $this->info("This $name model update successfully.");
             } else if($this->option('rebuild')) {
