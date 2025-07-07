@@ -6,12 +6,15 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class ReactComponentBuilder
 {
-    public static function buildComponentsFromBRS(string $brsText, string $projectName, $themeColor = 'blue'): array
+    public static function buildComponentsFromBRS(string $brsText, string $projectName, $themeColor = 'blue', $ts = false, $force = false, $rollback = 0): array
     {
         $response = APIToolzGenerator::askReact(
             project: $projectName,
             theme: $themeColor,
-            prompt: $brsText
+            prompt: $brsText,
+            ts: $ts,
+            f: $force,
+            rollback: $rollback
         );
         $appFiles = self::extractFilesFromMarkdown($response);
         self::extractArtisanCmdAndRun($response);

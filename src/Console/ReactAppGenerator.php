@@ -19,7 +19,8 @@ class ReactAppGenerator extends Command
         { --typescript : Use TypeScript (.tsx) entry + tsconfig.json }
         { --eslint : Add ESLint + Prettier + Tailwind class-sorting }
         { --storybook : Add Storybook 7 scaffold }
-        { --ai= : Use AI to generate component layout from a BRS file (pass .txt or .md path) }
+        { --use-ai= : Use AI to generate component layout from a BRS file (pass .txt or .md path) }
+        { --rollback= : Remove current build to previous counts}
         { --force : Overwrite existing files }
     SIG;
 
@@ -47,7 +48,7 @@ class ReactAppGenerator extends Command
         );
         $reactScaffolder->scaffold();
 
-        if ($brs = $this->option('ai')) {
+        if ($brs = $this->option('use-ai')) {
             $this->info("AI generating your BRS...");
             if (!file_exists($brs)) {
                 $this->error("BRS file not found: {$brs}");
@@ -55,7 +56,14 @@ class ReactAppGenerator extends Command
             }
 
             $brsText = file_get_contents($brs);
-            $files = ReactComponentBuilder::buildComponentsFromBRS($brsText, $name, $this->option('theme'));
+            $files = ReactComponentBuilder::buildComponentsFromBRS(
+                $brsText,
+                $name,
+                $this->option('theme'),
+                $this->option('typescript'),
+                $this->option('force'),
+                $this->option('rollback')
+            );
             foreach ($files as $file => $code) {
                 $target = base_path("resources/js/{$file}");
                 $dir = dirname($target);

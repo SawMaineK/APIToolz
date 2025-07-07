@@ -14,21 +14,57 @@ trait HandlesReportWidgets
         if (!empty($widget['where'])) {
             foreach (explode(',', $widget['where']) as $condition) {
                 $condition = trim($condition);
-                // Support raw SQL like MONTH(created_at)=MONTH(CURDATE())
+
+                // ────────────────────────────────────────────────
+                // Handle raw SQL expressions that contain MySQL-only
+                // date helpers (MONTH, YEAR, CURDATE, NOW, …).
+                // For SQLite we rewrite them with strftime()/date().
+                // ────────────────────────────────────────────────
                 if (
                     preg_match('/\b(MONTH|YEAR|DATE|CURDATE|NOW|DATEDIFF|COALESCE|ISNULL|IFNULL)\b/i', $condition) &&
-                    !preg_match('/^([a-zA-Z0-9_]+)\s*[:=]\s*(.+)$/', $condition) &&
-                    config('database.default') == 'mysql'
+                    !preg_match('/^([a-zA-Z0-9_]+)\s*[:=]\s*(.+)$/', $condition)    // not a key=value pair
                 ) {
+                    $driver = config('database.default');
+
+                    if ($driver === 'sqlite') {
+                        // Map common MySQL date functions to SQLite
+                        $map = [
+                            // MONTH(created_at)          → strftime('%m', created_at)
+                            '/\bMONTH\s*\(\s*([^)]+)\)/i'     => "strftime('%m', \$1)",
+                            // YEAR(created_at)           → strftime('%Y', created_at)
+                            '/\bYEAR\s*\(\s*([^)]+)\)/i'      => "strftime('%Y', \$1)",
+                            // DATE(created_at)           → date(created_at)
+                            '/\bDATE\s*\(\s*([^)]+)\)/i'      => "date(\$1)",
+                            // CURDATE()                  → date('now')
+                            '/\bCURDATE\s*\(\s*\)/i'          => "date('now')",
+                            // NOW()                      → datetime('now')
+                            '/\bNOW\s*\(\s*\)/i'              => "datetime('now')",
+                            // ISNULL(x, y)               → ifnull(x, y)
+                            '/\bISNULL\s*\(/i'                => "ifnull(",
+                            // DATEDIFF(a, b)             → CAST(julianday(a) - julianday(b) AS INTEGER)
+                            '/\bDATEDIFF\s*\(\s*([^)]+?)\s*,\s*([^)]+?)\s*\)/i'
+                                => "CAST(julianday(\\1) - julianday(\\2) AS INTEGER)",
+                        ];
+                        $condition = preg_replace(
+                            array_keys($map),
+                            array_values($map),
+                            $condition
+                        );
+                    }
+
+                    // MySQL (or already-rewritten SQLite) raw clause
                     $query->whereRaw($condition);
                     continue;
                 }
 
-                // Match key:operator(value) or key=value
+                /* -------------------------------------------------
+                * handle key[:=]expression syntax (null, in(), like(), >= etc.)
+                * ------------------------------------------------ */
                 if (preg_match('/^([^:=]+)\s*[:=]\s*(.+)$/', $condition, $matches)) {
-                    $field = trim($matches[1]);
+                    $field      = trim($matches[1]);
                     $expression = trim($matches[2]);
 
+                    // NULL / NOTNULL
                     if (in_array(strtolower($expression), ['null', 'notnull'])) {
                         strtolower($expression) === 'null'
                             ? $query->whereNull($field)
@@ -36,32 +72,33 @@ trait HandlesReportWidgets
                         continue;
                     }
 
-                    if (preg_match('/^in\((.+)\)$/i', $expression, $inMatches)) {
-                        $values = array_map('trim', explode(',', $inMatches[1]));
+                    // IN(...)
+                    if (preg_match('/^in\((.+)\)$/i', $expression, $in)) {
+                        $values = array_map('trim', explode(',', $in[1]));
                         $query->whereIn($field, $values);
                         continue;
                     }
 
-                    if (preg_match('/^like\((.+)\)$/i', $expression, $likeMatches)) {
-                        $query->where($field, 'like', '%' . $likeMatches[1] . '%');
+                    // LIKE(...)
+                    if (preg_match('/^like\((.+)\)$/i', $expression, $like)) {
+                        $query->where($field, 'like', '%' . $like[1] . '%');
                         continue;
                     }
 
-                    if (preg_match('/^(>=|<=|!=|=|<|>)(.+)$/', $expression, $opMatches)) {
-                        $operator = $opMatches[1];
-                        $value = trim($opMatches[2]);
-                        if (is_numeric($value))
-                            $value += 0;
+                    // Comparison operators (>=, <=, !=, =, <, >)
+                    if (preg_match('/^(>=|<=|!=|=|<|>)(.+)$/', $expression, $op)) {
+                        $operator = $op[1];
+                        $value    = trim($op[2]);
+                        if (is_numeric($value)) $value += 0; // cast numeric strings
                         $query->where($field, $operator, $value);
                         continue;
                     }
 
+                    // Simple equality
                     $query->where($field, $expression);
                 }
             }
         }
-
-
         // Date filters
         if ($startDate)
             $query->where("{$model->getTable()}.created_at", '>=', Carbon::parse($startDate));
@@ -84,6 +121,7 @@ trait HandlesReportWidgets
             case 'chart': {
                 $column = $widget['column'] ?? 'id';
                 $aggregate = $widget['aggregate'] ?? 'count';
+                $driver = \DB::getDriverName();
 
                 // Use group_model and group_label if provided
                 if (!empty($widget['group_model']) && !empty($widget['group_label']) && !empty($widget['group_by'])) {
@@ -91,7 +129,6 @@ trait HandlesReportWidgets
                     $relatedModel = "\\App\\Models\\" . $widget['group_model'];
                     $labelColumn = $widget['group_label'];
 
-                    // Infer table name from model (you can make this more robust if needed)
                     $relatedInstance = new $relatedModel;
                     $relatedTable = $relatedInstance->getTable();
 
@@ -116,7 +153,15 @@ trait HandlesReportWidgets
                 }
 
                 // Fallback to raw group_by (e.g., DATE(created_at), category_id, etc.)
-                $groupBy = $widget['group_by'] ?? "DATE(created_at)";
+                $groupBy = $widget['group_by'] ?? ($driver === 'sqlite' ? "date(created_at)" : "DATE(created_at)");
+
+                if ($driver === 'sqlite') {
+                    $groupBy = match (true) {
+                        isset($widget['group_by']) && preg_match('/^MONTH\((.+)\)$/i', $widget['group_by']) => "strftime('%m', $1)",
+                        isset($widget['group_by']) && preg_match('/^YEAR\((.+)\)$/i', $widget['group_by']) => "strftime('%Y', $1)",
+                        default => $groupBy,
+                    };
+                }
 
                 $chartQuery = $query->selectRaw("$groupBy as label, $aggregate($column) as value")
                     ->groupBy('label')
@@ -126,24 +171,27 @@ trait HandlesReportWidgets
                     $chartQuery->limit((int) $widget['limit']);
                 }
 
-                // Format label if grouping by MONTH(created_at)
+                // Format label if grouping by month
                 if (isset($widget['group_by']) && preg_match('/^MONTH\((.+)\)$/i', $widget['group_by'])) {
-                    $data = $chartQuery->get(['label', 'value'])->mapWithKeys(function ($item) use ($model, $startDate, $endDate) {
-                        // Try to get the year for each month
+                    $data = $chartQuery->get(['label', 'value'])->mapWithKeys(function ($item) use ($model, $startDate, $endDate, $driver) {
                         $month = $item->label;
-                        // Find the year by getting the MIN(year) for that month in the date range
+
                         $dateQuery = $model->newQuery();
-                        if ($startDate)
-                            $dateQuery->where('created_at', '>=', Carbon::parse($startDate));
-                        if ($endDate)
-                            $dateQuery->where('created_at', '<=', Carbon::parse($endDate));
-                        $dateQuery->whereRaw("MONTH(created_at) = ?", [$month]);
-                        $year = $dateQuery->min(\DB::raw('YEAR(created_at)')) ?? date('Y');
+                        if ($startDate) $dateQuery->where('created_at', '>=', Carbon::parse($startDate));
+                        if ($endDate) $dateQuery->where('created_at', '<=', Carbon::parse($endDate));
+
+                        if ($driver === 'sqlite') {
+                            $dateQuery->whereRaw("strftime('%m', created_at) = ?", [$month]);
+                            $year = $dateQuery->min(\DB::raw("strftime('%Y', created_at)")) ?? date('Y');
+                        } else {
+                            $dateQuery->whereRaw("MONTH(created_at) = ?", [$month]);
+                            $year = $dateQuery->min(\DB::raw('YEAR(created_at)')) ?? date('Y');
+                        }
+
                         $label = Carbon::createFromDate($year, $month, 1)->format('F, Y');
                         return [$label => $item->value];
                     })->toArray();
 
-                    // Overwrite chartQuery/data for chart output
                     $chartQuery = null;
                 } else {
                     $data = $chartQuery->pluck('value', 'label')->toArray();

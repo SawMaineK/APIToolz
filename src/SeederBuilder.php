@@ -13,7 +13,7 @@ class SeederBuilder
         $codes['class'] = $model->name;
         $codes['model'] = $model->name;
         $codes['key'] = $request['key'];
-        $codes['data'] = $request['data'];
+        $codes['data'] = $request['data'] ?? '[]';
 
         if ($request['use_ai']) {
             $ask = $request['ask'] ?? '';
@@ -23,19 +23,16 @@ class SeederBuilder
                     return !in_array($field['name'], ['created_at', 'updated_at', 'deleted_at']);
                 })
                 ->map(function ($field) {
-                    return $field['name'] . ':' . $field['type'];
+                    return $field['name'] . ':' . $field['type'].'\n';
                 })
-                ->toArray();
+                ->values()->implode(',');
             $response = APIToolzGenerator::ask(
-                "Create {$request['count']} dummy data array for {$model->name} following fields.\n\n{$ask}\n\n",
-                self::getDummyHint(),
-                $model->name,
-                $fields,
-                ['dummy_data', $model->slug],
+                "Create {$request['count']} dummy data array for {$model->name} following fields:\n $fields \n\n{$ask}\n\n",
+                ['seeder'],
                 true
             );
-            if ($response->content) {
-                if (preg_match('/\[\s*{.*}\s*\]/s', $response->content, $matches)) {
+            if ($response) {
+                if (preg_match('/\[\s*{.*}\s*\]/s', $response, $matches)) {
                     $codes['data'] = $matches[0];
                 }
             }
@@ -70,16 +67,5 @@ class SeederBuilder
         $buildSeeder = APIToolzGenerator::blend('settings.seeder.tpl', $codes);
         file_put_contents($seederFile, $buildSeeder);
 
-    }
-
-    static function getDummyHint()
-    {
-        return '[
-            {"first_name":"Aung","last_name":"Zaw","email":"aungzaw@example.com","phone_number":"0911223344","address":"No 1, Kabaraye Pagoda Rd","city":"Yangon","state":"Yangon Region","country":"Myanmar","zip_code":"11101"},
-            {"first_name":"Mya","last_name":"Thidar","email":"mya.thidar@example.com","phone_number":"0945566778","address":"22 Inya Road","city":"Yangon","state":"Yangon Region","country":"Myanmar","zip_code":"11111"},
-            {"first_name":"Ko","last_name":"Ko","email":"koko@example.com","phone_number":"0922334455","address":"55 Pyay Road","city":"Mandalay","state":"Mandalay Region","country":"Myanmar","zip_code":"22011"},
-            {"first_name":"Thiri","last_name":"Aye","email":"thiri.aye@example.com","phone_number":"0977889911","address":"7 Street, Dagon","city":"Yangon","state":"Yangon Region","country":"Myanmar","zip_code":"11022"},
-            {"first_name":"Htun","last_name":"Naing","email":"htun.naing@example.com","phone_number":"0933445566","address":"Lake View Residence","city":"Naypyidaw","state":"Naypyidaw Union Territory","country":"Myanmar","zip_code":"15001"}
-        ]';
     }
 }

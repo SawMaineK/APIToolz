@@ -15,11 +15,9 @@ class AppSettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        $settings = AppSetting::where('key', 'default_settings')->first();
-        if(!$settings) {
-            DB::table('app_settings')->insert([
+        AppSetting::updateOrCreate(['key'=> 'default_settings'],[
                 'key' => 'default_settings',
-                'menu_config' => json_encode([
+                'menu_config' => [
                     [
                       'title'=> 'Dashboards',
                       'icon'=> 'home-2',
@@ -38,14 +36,14 @@ class AppSettingsSeeder extends Seeder
                       'icon'=> 'security-user',
                       'path'=> '/admin/roles'
                     ]
-                ]),
+                ],
                 'branding' => json_encode([
                     'app_name' => 'APIToolz',
                     'logo_url' => '/media/app/default-logo.svg',
                     'logo_small_url' => '/media/app/mini-logo.svg',
                     'theme_color' => '#4f46e5'
                 ]),
-                'email_config' => json_encode([
+                'email_config' => [
                     'mail_driver' => 'smtp',
                     'mail_host' => 'smtp.mailtrap.io',
                     'mail_port' => 587,
@@ -53,20 +51,19 @@ class AppSettingsSeeder extends Seeder
                     'mail_password' => 'your_password',
                     'mail_from_address' => 'noreply@yourapp.com',
                     'mail_from_name' => 'Your App'
-                ]),
-                'sms_config' => json_encode([
+                ],
+                'sms_config' => [
                     'provider' => 'twilio',
                     'account_sid' => 'ACXXXXXXXXXXXXXXXX',
                     'auth_token' => 'your_auth_token',
                     'from' => '+1234567890'
-                ]),
-                'other' => json_encode([
+                ],
+                'other' => [
                     'timezone' => 'UTC',
                     'currency' => 'USD'
-                ]),
+                ],
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
-        }
     }
 }

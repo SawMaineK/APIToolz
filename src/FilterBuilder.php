@@ -11,20 +11,17 @@ class FilterBuilder
         $config = ModelConfigUtils::decryptJson($model->config);
         if (isset($config['filters'])) {
             $filter = isset($config['filters'][$request['title']]) ? $config['filters'][$request['title']] : self::getDefaultFilter();
-            // If you want to remove existed filter
             if($remove) {
-                $existedIdx = self::getExistedFilter($config['filters'], $request['title']);
-                if($existedIdx != -1) {
-                    unset($config['filters'][$existedIdx]);
-                    $model->config = ModelConfigUtils::encryptJson($config);
-                    $model->update();
-                    ModelBuilder::build($model);
-                    return;
-                } else {
-                    echo "This {$request['title']} filter not found\n";
-                    echo "Abort...\n";
-                    dd();
-                }
+                $config['filters'] = collect($config['filters'])
+                    ->filter(function ($filter)use($request) {
+                        return $filter['title'] !== $request['title'];
+                    })
+                    ->values()
+                    ->all();
+                $model->config = ModelConfigUtils::encryptJson($config);
+                $model->update();
+                ModelBuilder::build($model);
+                return;
             }
         } else {
             $config['filters'] = [];
@@ -40,19 +37,24 @@ class FilterBuilder
         $filter['query'] = $request['filter_query'] ?? '';
         $filter['key'] = $request['filter_key'];
         $filter['position'] = $request['position'];
-        $existedIdx = self::getExistedFilter($config['filters'], $filter['title']);
-        if ($existedIdx != -1) {
-            if($force) {
-                $config['filters'][$existedIdx] = $filter;
-            } else {
-                echo "This {$request['title']} filter is already exist. If you want to overite, please use --force\n";
-                echo "Abort...\n";
-                dd();
-            }
 
+        $filters = collect(self::getFilters($model));
+        $duplicateIndex = $filters->search(
+            fn ($f) => $f['key'] === $filter['key']
+        );
+        if ($duplicateIndex !== false) {
+            if ($force) {
+                $filters->put($duplicateIndex, $filter);
+            } else {
+                echo "The \"{$filter['title']}\" filter already exists with key={$filter['key']}. ";
+                echo "Use --force to overwrite.\nAbort...\n";
+                exit(1);          // avoid dumping the entire process with dd()
+            }
         } else {
-            $config['filters'][] = $filter;
+            $filters->push($filter);
         }
+        $config['filters'] = $filters->values()->all();
+
         $model->config = ModelConfigUtils::encryptJson($config);
         $model->update();
         ModelBuilder::build($model);
@@ -80,9 +82,9 @@ class FilterBuilder
         return $filter;
     }
 
-    static function getExistedFilter($filters = [], $key) {
+    static function getExistedFilter($filters = [], $title, $key) {
         foreach($filters as $i => $f) {
-            if($f['title'] == $key) {
+            if($f['title'] == $title && $f['key'] == $key) {
                 return $i;
             }
         }

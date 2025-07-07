@@ -13,10 +13,10 @@ readonly class ReactScaffolder
     private string $entryExt;
 
     public function __construct(
-        private string     $projectName,
-        private string     $path,
+        private string $projectName,
+        private string $path,
         private Collection $flags,
-        private Command    $console,
+        private Command $console,
         private Filesystem $files = new Filesystem,
     ) {
         // decide once and reuse everywhere
@@ -48,17 +48,13 @@ readonly class ReactScaffolder
     private function createDirectory(): void
     {
         if ($this->files->exists($this->path)) {
-            if (! $this->flags['force']) {
-                $this->console->error(
-                    "Directory {$this->path} already exists (use --force to overwrite)."
-                );
-                exit(Command::FAILURE);
+            if ($this->flags['force']) {
+                $this->files->deleteDirectory($this->path);
             }
-            $this->files->deleteDirectory($this->path);
+        } else {
+            $this->files->makeDirectory($this->path, 0755, recursive: true);
+            $this->console->line("• Created directory <fg=gray>{$this->path}</>");
         }
-
-        $this->files->makeDirectory($this->path, 0755, recursive: true);
-        $this->console->line("• Created directory <fg=gray>{$this->path}</>");
     }
 
     /* ------------------------------------------------------------------ */
@@ -68,17 +64,17 @@ readonly class ReactScaffolder
     private function updateWebRoutes(): void
     {
         $webRoutes = base_path('routes/web.php');
-        if (! $this->files->exists($webRoutes)) {
+        if (!$this->files->exists($webRoutes)) {
             $this->console->error('routes/web.php not found – skipping SPA route.');
             return;
         }
 
         $routeLine = "Route::view('/{any}', 'app')->where('any', '^(?!api).*');";
-        $content   = $this->files->get($webRoutes);
+        $content = $this->files->get($webRoutes);
 
-        if (! Str::contains($content, $routeLine)) {
+        if (!Str::contains($content, $routeLine)) {
             // ensure trailing newline, then append
-            if (! str_ends_with($content, PHP_EOL)) {
+            if (!str_ends_with($content, PHP_EOL)) {
                 $content .= PHP_EOL;
             }
             $content .= $routeLine . PHP_EOL;
@@ -96,7 +92,20 @@ readonly class ReactScaffolder
     private function copyBaseStubs(): void
     {
         $stubDir = __DIR__ . '/stubs/base';
-        $this->files->copyDirectory($stubDir, $this->path);
+        $skipExt = $this->flags['typescript'] ? ['.jsx'] : ['.tsx'];
+
+        collect($this->files->allFiles($stubDir))
+            ->reject(fn ($file) => Str::endsWith($file, $skipExt))   // filter once
+            ->each(function ($file) use ($stubDir) {
+                $relative   = Str::after($file->getPathname(), $stubDir . DIRECTORY_SEPARATOR);
+                $targetPath = $this->path . DIRECTORY_SEPARATOR . $relative;
+
+                $this->files->ensureDirectoryExists(dirname($targetPath));
+                if (!$this->files->exists($targetPath) || $this->flags['force']) {
+                    $this->files->copy($file->getPathname(), $targetPath);
+                }
+
+            });
 
         // we always copy a JSX version first → replace placeholder in whichever exists
         foreach (['main.tsx', 'main.jsx'] as $file) {
@@ -117,50 +126,53 @@ readonly class ReactScaffolder
     public function mergePackageJson(): void
     {
         /* -----------------------------------------------------------
-        * 1) Base merge from stub package.json → root package.json
-        * --------------------------------------------------------- */
-        $stubPkgPath  = $this->path . '/package.json';
-        $projectPkg   = $this->files->exists($stubPkgPath)
+         * 1) Base merge from stub package.json → root package.json
+         * --------------------------------------------------------- */
+        $stubPkgPath = $this->path . '/package.json';
+        $projectPkg = $this->files->exists($stubPkgPath)
             ? json_decode($this->files->get($stubPkgPath), true)
             : [];
 
-        $rootPkgPath  = base_path('package.json');
-        $rootPkg      = $this->files->exists($rootPkgPath)
+        $rootPkgPath = base_path('package.json');
+        $rootPkg = $this->files->exists($rootPkgPath)
             ? json_decode($this->files->get($rootPkgPath), true)
             : ['private' => true];
 
         foreach (['scripts', 'dependencies', 'devDependencies'] as $section) {
             $rootPkg[$section] = array_merge(
                 $projectPkg[$section] ?? [],
-                $rootPkg[$section]   ?? []
+                $rootPkg[$section] ?? []
             );
             ksort($rootPkg[$section]);
         }
 
         /* -----------------------------------------------------------
-        * 2) Extra merge from dependencies.txt
-        * --------------------------------------------------------- */
+         * 2) Extra merge from dependencies.txt
+         * --------------------------------------------------------- */
         $depFile = $this->path . '/dependencies.txt';
         if ($this->files->exists($depFile)) {
 
-            $runtime = $rootPkg['dependencies']     ?? [];
+            $runtime = $rootPkg['dependencies'] ?? [];
             $devTime = $rootPkg['devDependencies'] ?? [];
 
             $devKeywords = ['tailwind', 'typescript', 'eslint', 'vite', 'postcss', '@types/'];
 
             foreach (preg_split('/\R/', $this->files->get($depFile)) as $raw) {
                 $line = trim($raw);
-                if ($line === '' || str_starts_with($line, '#')) continue;
+                if ($line === '' || str_starts_with($line, '#'))
+                    continue;
 
                 /**
                  * Accept either “pkg@1.0.0”  OR  “pkg  ^1.0.0”
                  *            “@scope/pkg@1.0” OR  “@scope/pkg  1.0.0”
                  */
-                if (! preg_match(
-                    '/^(@?[\w\-\/]+)\s*(?:@|\s+)\s*([\^\~]?\d[\dA-Za-z\.\-\+]*)$/',
-                    $line,
-                    $m
-                )) {
+                if (
+                    !preg_match(
+                        '/^(@?[\w\-\/]+)\s*(?:@|\s+)\s*([\^\~]?\d[\dA-Za-z\.\-\+]*)$/',
+                        $line,
+                        $m
+                    )
+                ) {
                     // malformed line → skip
                     continue;
                 }
@@ -179,13 +191,13 @@ readonly class ReactScaffolder
             ksort($runtime);
             ksort($devTime);
 
-            $rootPkg['dependencies']     = $runtime;
-            $rootPkg['devDependencies']  = $devTime;
+            $rootPkg['dependencies'] = $runtime;
+            $rootPkg['devDependencies'] = $devTime;
         }
 
         /* -----------------------------------------------------------
-        * 3) Write the combined package.json
-        * --------------------------------------------------------- */
+         * 3) Write the combined package.json
+         * --------------------------------------------------------- */
         $this->files->put(
             $rootPkgPath,
             json_encode($rootPkg, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL
@@ -205,7 +217,7 @@ readonly class ReactScaffolder
 
     private function maybeAddTailwind(): void
     {
-        if (! $this->flags['tailwind']) {
+        if (!$this->flags['tailwind']) {
             return;
         }
 
@@ -224,7 +236,7 @@ readonly class ReactScaffolder
 
     private function maybeAddTypeScript(): void
     {
-        if (! $this->flags['typescript']) {
+        if (!$this->flags['typescript']) {
             return;
         }
 
@@ -233,19 +245,12 @@ readonly class ReactScaffolder
             base_path('tsconfig.json')
         );
 
-        // rename ONLY if the JSX version still exists (fresh scaffold)
-        $jsx = $this->path . '/main.jsx';
-        $tsx = $this->path . '/main.tsx';
-        if ($this->files->exists($jsx) && ! $this->files->exists($tsx)) {
-            $this->files->move($jsx, $tsx);
-        }
-
         $this->console->line('• TypeScript support added');
     }
 
     private function maybeAddEslint(): void
     {
-        if (! $this->flags['eslint']) {
+        if (!$this->flags['eslint']) {
             return;
         }
 
@@ -263,7 +268,7 @@ readonly class ReactScaffolder
 
     private function maybeAddStorybook(): void
     {
-        if (! $this->flags['storybook']) {
+        if (!$this->flags['storybook']) {
             return;
         }
 
@@ -281,7 +286,7 @@ readonly class ReactScaffolder
     private function updateViteConfig(): void
     {
         $viteConfig = base_path('vite.config.js');
-        if (! $this->files->exists($viteConfig) || $this->flags['force']) {
+        if (!$this->files->exists($viteConfig) || $this->flags['force']) {
             $this->files->copy(
                 __DIR__ . '/stubs/vite/vite.config.js',
                 $viteConfig
@@ -291,7 +296,7 @@ readonly class ReactScaffolder
         $config = $this->files->get($viteConfig);
 
         /* ── 1. ensure React plugin ──────────────────────────────────── */
-        if (! str_contains($config, '@vitejs/plugin-react')) {
+        if (!str_contains($config, '@vitejs/plugin-react')) {
             $config = str_replace(
                 "import { defineConfig } from 'vite';",
                 "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';",
@@ -302,11 +307,11 @@ readonly class ReactScaffolder
 
         /* ── 2. ensure alias for @ProjectName ────────────────────────── */
         $aliasNeedle = "'@" . $this->projectName . "'";
-        if (! str_contains($config, $aliasNeedle)) {
+        if (!str_contains($config, $aliasNeedle)) {
             $replace = "resolve: {\n        alias: [\n            { find: '" .
                 $aliasNeedle .
                 "', replacement: '/resources/js/{$this->projectName}' },";
-            $config  = preg_replace('/resolve:\s*\{[^}]*alias:\s*\[/', $replace, $config);
+            $config = preg_replace('/resolve:\s*\{[^}]*alias:\s*\[/', $replace, $config);
         }
 
         /* ── 3. fix input extension (.jsx → .tsx) if required ────────── */
@@ -326,7 +331,7 @@ readonly class ReactScaffolder
     private function publishBladeStub(): void
     {
         $target = resource_path('views/app.blade.php');
-        if (! $this->files->exists($target) || $this->flags['force']) {
+        if (!$this->files->exists($target) || $this->flags['force']) {
             $this->files->ensureDirectoryExists(dirname($target));
             $this->files->copy(
                 __DIR__ . '/stubs/blade/app.blade.php.stub',

@@ -112,7 +112,7 @@ Below are the available options for the `apitoolz:model` Artisan command:
 | `--sql=`                | Provide an SQL table definition to generate the model.                    |
 | `--lock=`               | Lock specific components to prevent overwriting during regeneration. Options: `controller`, `model`, `request`, `resource`, `service`. |
 | `--force`               | Force the operation without confirmation.                                 |
-| `--use-ai-configuration` | Use AI to build the model configuration automatically.                  |
+| `--use-ai`              | Use AI to build the model configuration automatically.                  |
 | `--ask`                  | Provide optional input interactively during model generation.            |
 | `--rebuild`             | Rebuild the model and its associated API.                                 |
 | `--remove`              | Remove the model without deleting its database table.                     |

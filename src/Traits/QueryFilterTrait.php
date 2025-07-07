@@ -66,6 +66,9 @@ trait QueryFilterTrait
             $filters = explode('|', $request->query('filter'));
 
             foreach ($filters as $filter) {
+                if (!str_contains($filter, ':')) {
+                    continue;
+                }
                 list($field, $value) = explode(':', $filter, 2);
 
                 // Special handling for roles (e.g., user.role or role)

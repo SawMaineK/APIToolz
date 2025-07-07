@@ -3,11 +3,13 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\ModelBuilder;
 use Sawmainek\Apitoolz\DatatableBuilder;
 use Sawmainek\Apitoolz\APIToolzGenerator;
+use Sawmainek\Apitoolz\SeederBuilder;
 use Spatie\Permission\Models\Role;
 
 class ModelGenerator extends Command
@@ -37,11 +39,12 @@ class ModelGenerator extends Command
         {--sql= : SQL to generate the table}
         {--lock= : Lock specific components (comma-separated: request,controller,service,model,resource)}
         {--force : Force override or create actions}
-        {--use-ai-configuration : Use AI to build model configuration}
+        {--use-ai : Use AI to build model configuration}
         {--ask= : Optional input to be provided interactively}
         {--rebuild : Rebuild an existing model\'s resources}
         {--remove : Remove the model}
         {--add-menu : Add this model to the menu}
+        {--add-seeder : To build seeder class using AI}
         {--remove-table : Drop the related table}
         {--force-delete : Hard delete the model from the DB}
         {--doc : Show this documentation}';
@@ -90,14 +93,20 @@ class ModelGenerator extends Command
                     DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
                     $this->info("The $table table has created successfully.");
                 } else {
-                    $askAi = $this->ask("Would you like to create $table table with our AI? (yes/no)", 'yes');
+                    $askAi = $this->ask("Would you like to create $table table with AI? (yes/no)", 'yes');
                     if($askAi) {
-                        $results = APIToolzGenerator::askSolution("Give create SQL table for $table, table names as $table.");
-                        if($results->{$table}) {
-                            DatatableBuilder::buildWithSql($table, $results->{$table}->tables[0], $this->option('soft-delete'));
-                            $this->info("The $table table has created successfully.");
-                        } else{
-                            return $this->error("Sorry, We could not create for $table table.");
+                        $result = APIToolzGenerator::ask("Create $name model with table names as $table.", ['model_creation'], true);
+                        $command = preg_replace('/```(?:bash)?\s*|\s*```/', '', $result);
+                        preg_match_all('/php artisan[\s\S]*?";(?=\n{2}|$)/i', $command, $matches);
+                        echo "➜  {$command}\n\n";
+                        $artisanCommand = \Str::after($command, 'php artisan ');
+                        try {
+                            Artisan::call($artisanCommand);
+                            echo "The $name model created successfully.";
+                            $this->input->setOption('update', true);
+                        } catch (\Throwable $e) {
+                            echo "✖ Command failed: {$artisanCommand}\n";
+                            echo "   ↳ {$e->getMessage()}\n\n";
                         }
                     } else {
                         $fields = $this->askTableField();
@@ -137,13 +146,22 @@ class ModelGenerator extends Command
             $model->save();
 
             ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('use-hook'), $this->option('soft-delete'));
-            if($this->option('use-ai-configuration')) {
+            if($this->option('use-ai')) {
                 $this->info('Building for model configuration...');
                 ModelBuilder::buildConfiguration($model, $this->option('ask') ?? "");
             }
             if($this->option('add-menu')) {
                 $this->info('Building for menu configuration...');
                 ModelBuilder::buildMenuConfigure($model);
+            }
+            if($this->option('add-seeder')) {
+                $this->info('Building for seeder class...');
+                SeederBuilder::run($model, [
+                    'key' => 'id',
+                    'count' => 10,
+                    'use_ai' => true,
+                    'force' => true
+                ]);
             }
             $this->info("This $name model has created successfully.");
         } else {
@@ -170,13 +188,22 @@ class ModelGenerator extends Command
                 $model->desc = $this->option('desc') ?? $model->description;
                 $model->update();
                 ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('use-hook'), $this->option('soft-delete'));
-                if($this->option('use-ai-configuration')) {
+                if($this->option('use-ai')) {
                     $this->info('Building for model configuration...');
                     ModelBuilder::buildConfiguration($model, $this->option('ask') ?? "");
                 }
                 if($this->option('add-menu')) {
                     $this->info('Building for menu configuration...');
                     ModelBuilder::buildMenuConfigure($model);
+                }
+                if($this->option('add-seeder')) {
+                    $this->info('Building for seeder class...');
+                    SeederBuilder::run($model, [
+                        'key' => 'id',
+                        'count' => 10,
+                        'use_ai' => true,
+                        'force' => true
+                    ]);
                 }
                 return $this->info("This $name model update successfully.");
             } else if($this->option('rebuild')) {
@@ -243,7 +270,7 @@ class ModelGenerator extends Command
         $this->line("  --lock                 Lock specific components (comma-separated: request,controller,service,model,resource).");
         $this->line("  --force                Force override or create actions.");
         $this->line("  --update               Update an existing model.");
-        $this->line("  --use-ai-configuration  Use AI to build model configuration.");
+        $this->line("  --use-ai               Use AI to build model configuration.");
         $this->line("  --ask                  Optional input to be provided interactively.");
         $this->line("  --rebuild              Rebuild an existing model's resources.");
         $this->line("  --remove               Remove the model.");

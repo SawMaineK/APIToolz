@@ -32,44 +32,13 @@ class APIToolzGenerator
         }
     }
 
-    public static function askSolution($requirement, $dummy = false)
-    {
-        self::verifyValitation();
-        $response = \Http::post(config('apitoolz.host').'/apps/ai/ask', [
-            'ask' => $requirement,
-            'dummy' => $dummy,
-            'key' => config('apitoolz.activated_key')
-        ]);
-        if($response->failed()) {
-            switch ($response->status()) {
-                case 400:
-                case 419:
-                    echo "{$response->body()}\n";
-                    echo "Abort...\n";
-                    dd();
-                    break;
-                default:
-                    echo "{$response->body()}\n";
-                    echo "Abort...\n";
-                    dd();
-                    break;
-            }
-        }
-        if($response->successful()) {
-            return json_decode($response->body());
-        }
-    }
-
-    public static function ask($question, $hint = "", $slug = null, $fields = [], $tags = [], $lastone = false)
+    public static function ask($prompt, $tags = [], $onlyContent = false)
     {
         self::verifyValitation();
         $response = \Http::post(config('apitoolz.host').'/apps/ask', [
-            'ask' => $question,
-            'hint' => $hint,
-            'slug' => $slug,
-            'fields' => $fields,
+            'prompt' => $prompt,
             'tags' => $tags,
-            'lastone' => $lastone,
+            'only_content' => $onlyContent,
             'key' => config('apitoolz.activated_key')
         ]);
         if($response->failed()) {
@@ -92,13 +61,16 @@ class APIToolzGenerator
         }
     }
 
-    public static function askReact($project, $theme, $prompt)
+    public static function askReact($project, $prompt, $theme, $ts, $f, $rollback)
     {
         self::verifyValitation();
         $response = \Http::timeout(180)->post(config('apitoolz.host').'/apps/ask-react', [
             'project' => $project,
             'theme' => $theme,
             'prompt' => $prompt,
+            'ts' => $ts,
+            'use_histories' => $f ? 0 : 1,
+            'rollback' => $rollback,
             'key' => config('apitoolz.activated_key')
         ]);
         if($response->failed()) {

@@ -309,25 +309,20 @@ class ModelBuilder
     public static function buildConfiguration(Model $model, string $ask="") {
         $fields = \Schema::getColumns($model->table);
         $fields = collect($fields)->map(function ($field) {
-            return $field["name"].":".$field["type"];
-        })->toArray();
-        $response = APIToolzGenerator::ask(
-            "Create possible configuration commands for $model->name. $ask",
-            self::getConfigurationHint(),
-            $model->slug,
-            $fields,
-            ['general_configuration'],
-            true);
-        if($response->content) {
-            preg_match_all("/'php artisan .*?'/", $response->content, $matches);
+            return "- ".$field["name"].":".$field["type"];
+        })->values()->implode("\n");
+        $content = APIToolzGenerator::ask(
+            prompt: "Create possible configuration for model {$model->name}'s fields:\n\n $fields \n\n $ask",
+            tags: ['model_configuration'],
+            onlyContent: true);
+        if($content) {
+            preg_match_all('/php artisan [^\n]+/', $content, $matches);
             // Clean up the quotes
-            $commands = array_map(function ($cmd) {
-                return trim($cmd, "'");
-            }, $matches[0]);
+            $commands = array_map('trim', $matches[0]);
 
             // Output the result
             foreach ($commands as $command) {
-                echo $command . PHP_EOL;
+                echo $command . PHP_EOL . PHP_EOL;
                 // Execute the artisan command
                 $artisanCommand = str_replace('php artisan ', '', $command);
                 try {
@@ -342,23 +337,22 @@ class ModelBuilder
 
     public static function buildMenuConfigure(Model $model)
     {
-        $models = Model::pluck('name');
+        $models = Model::pluck('name')->values()->implode(",\n");
+        $menuConfig = AppSetting::where('key', 'default_settings')->value('menu_config');
+        $menuConfigJson = json_encode($menuConfig);
         $response = APIToolzGenerator::ask(
-            "Add menu config for {$model->name} using lucide-react for icon. \n\n",
-            self::getMenuHint(),
-            'menu',
-            $models,
-            ['general_configuration'],
-            true);
-
+            "Add new menu or update configuration for {$model->name} using lucide-react icon. Using this format:\n\n $menuConfigJson \n\n, and Current model list:\n$models",
+            ['menu_configuration'],
+            true
+        );
         // Extract JSON from the response content using regex
-        if (preg_match('/\[\s*{.*}\s*\]/s', $response->content, $matches)) {
+        if (preg_match('/\[\s*{.*}\s*\]/s', $response, $matches)) {
             $menuConfig = json_decode($matches[0], true);
         } else {
             $menuConfig = [];
         }
         $appSettings = AppSetting::where('key', 'default_settings')->first();
-        if($appSettings) {
+        if($appSettings && count($menuConfig)) {
             $appSettings->menu_config = $menuConfig;
             $appSettings->save();
         }
@@ -390,58 +384,5 @@ class ModelBuilder
         }
         return strnatcmp($a['sortlist'], $b['sortlist']);
     }
-
-    static function getConfigurationHint()
-    {
-        return "
-for cmd in \
-    'php artisan apitoolz:request Product --field=category_id --input-type=select --opt-type=external --lookup-model=Category --lookup-value=name --label=\"Choose Category\' \
-    'php artisan apitoolz:request Product --field=name --validator=\"required|string|max:255\" --input-type=text' \
-    'php artisan apitoolz:request Product --field=price --validator=\"required|numeric|min:0\" --input-type=number' \
-    'php artisan apitoolz:request Product --field=description --input-type=textarea' \
-    'php artisan apitoolz:request Product --field=product_image --input-type=file --upload-type=image --upload-path=products' \
-    'php artisan apitoolz:request Product --field=status --input-type=select --opt-type=datalist --lookup-query=\"0:In-Active|1:Active\"' \
-    'php artisan apitoolz:response Product --field=name --label=\"Product Name\" --visible=true --export=true --position=1' \
-    'php artisan apitoolz:response Product --field=price --label=\"Price\" --visible=true --export=true --position=2' \
-    'php artisan apitoolz:response Product --field=category_id --label=\"Category\" --visible=true --export=true --position=3' \
-    'php artisan apitoolz:summary Product --title=\"Total Products\" --type=kpi --method=count --position=1 --force' \
-    'php artisan apitoolz:summary Product --title=\"Total Inventory Value\" --type=kpi --method=sum --column=price --position=3 --force' \
-    'php artisan apitoolz:summary Purchaseorder --title=\"Product by Category\" --type=chart --chart-type=bar --group-by=category_id --group-model=Category --group-label=name --aggregate=count --position=3 --force'
-    'php artisan apitoolz:relation Product --title=category --relation-model=Category --relation-type=belongsTo --foreign-key=category_id --display-field=name --force' \
-    'php artisan apitoolz:filter Product --title=\"Cateory\" --filter-type=select --filter-model=Category --filter-key=category_id --filter-value=id --filter-label=name --position=1 --force' \
-    'php artisan apitoolz:filter Product --title=\"Date\" --filter-type=date --filter-key=created_at --position=9 --force'
-do
-    echo \"Running: \$cmd\"
-    eval \$cmd
-done
-\n\n
-Using following option for summary:\n
-{--title= : The title of the summary report}\n
-{--model= : The model for dashboard summary}\n
-{--type= : The type of summary (kpi, chart, progress)}\n
-{--icon= : The icon for the summary report}\n
-{--method= : The method for KPI (count, sum, avg, min, max)}\n
-{--column= : The column to apply the method on}\n
-{--chart-type= : The type of chart (bar, line, pie, doughnut, area)}\n
-{--group-by= : The column to group by in charts}\n
-{--group-model= : The model to group by in charts}\n
-{--group-label= : The model display field to group by in charts}\n
-{--aggregate= : The aggregation method for charts (count, sum, avg, min, max)}\n
-{--limit= : The limit for chart results}\n
-{--value-method= : The method for progress value (where)}\n
-{--where= : The where condition(s) for filtering data}\n
-{--value-column= : The column for progress value}\n
-{--max-method= : The method for maximum value in progress (count, sum, avg, min, max)}\n
-{--unit= : The unit for progress}\n
-{--position= : The position of the summary}\n
-";
-    }
-
-    static function getMenuHint()
-    {
-        $menuConfig = AppSetting::where('key', 'default_settings')->value('menu_config');
-        return json_encode($menuConfig);
-    }
-
 
 }
