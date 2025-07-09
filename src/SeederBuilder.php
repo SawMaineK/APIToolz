@@ -33,7 +33,7 @@ class SeederBuilder
             );
             if ($response) {
                 if (preg_match('/\[\s*{.*}\s*\]/s', $response, $matches)) {
-                    $codes['data'] = $matches[0];
+                    $codes['data'] = str_replace("'", '', $matches[0]);
                 }
             }
         }

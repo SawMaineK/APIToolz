@@ -22,6 +22,7 @@ class ReactAppGenerator extends Command
         { --use-ai= : Use AI to generate component layout from a BRS file (pass .txt or .md path) }
         { --rollback= : Remove current build to previous counts}
         { --force : Overwrite existing files }
+        { --doc : Print documentation }
     SIG;
 
     protected $description = 'Scaffold a React + Vite (optional Tailwind, TS, ESLint, Storybook) stack inside Laravel resources/js';
@@ -79,5 +80,23 @@ class ReactAppGenerator extends Command
         $this->info("✨  React project [$name] successfully scaffolded at [$path]");
         $this->line('Run:   npm install  &&  npm run dev');
         return self::SUCCESS;
+    }
+
+    protected function printDocumentation()
+    {
+        $this->info('Usage:');
+        $this->info('  apitoolz:react-frontend {name} {--path=} {--theme=} {--vite} {--tailwind} {--typescript} {--eslint} {--storybook} {--use-ai=} {--rollback=} {--force} {--doc}');
+        $this->info('Options:');
+        $this->info('  --path: Destination base directory (default: resources/js)');
+        $this->info('  --theme: Tailwind color for primary theme (default: blue)');
+        $this->info('  --vite: Include Vite config + plugin');
+        $this->info('  --tailwind: Include Tailwind CSS preset');
+        $this->info('  --typescript: Use TypeScript (.tsx) entry + tsconfig.json');
+        $this->info('  --eslint: Add ESLint + Prettier + Tailwind class-sorting');
+        $this->info('  --storybook: Add Storybook 7 scaffold');
+        $this->info('  --use-ai: Use AI to generate component layout from a BRS file (pass .txt or .md path)');
+        $this->info('  --rollback: Remove current build to previous counts');
+        $this->info('  --force: Overwrite existing files');
+        $this->info('  --doc: Print this documentation');
     }
 }
