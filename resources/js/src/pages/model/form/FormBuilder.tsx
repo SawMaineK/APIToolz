@@ -19,7 +19,7 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
 
   const [formLayout, setFormLayout] = useState<BaseForm<string>[]>(
     model.config.formLayout || [
-      ...generateFormLayout(model.config.forms || [], isModal || false),
+      ...generateFormLayout(model.config.forms || []),
       new FormSubmit({
         label: `Submit`,
         display: 'flex flex-col gap-1',
@@ -124,7 +124,7 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
       );
       toast.success('Successfully updated');
       setFormLayout([
-        ...generateFormLayout(model.config.forms || [], isModal || false),
+        ...generateFormLayout(model.config.forms || []),
         new FormSubmit({
           label: `Submit`,
           display: 'flex flex-col gap-1',
