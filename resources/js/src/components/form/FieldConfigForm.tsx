@@ -57,6 +57,7 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
         'Control Type',
         [
           'textbox',
+          'password',
           'textarea',
           'label',
           'checkbox',
@@ -86,6 +87,7 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
       {/* Only show Name field if controlType needs a name */}
       {[
         'textbox',
+        'password',
         'textarea',
         'checkbox',
         'coder',

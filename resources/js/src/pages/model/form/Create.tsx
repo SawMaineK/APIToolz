@@ -33,7 +33,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
   const formLayout: BaseForm<string>[] = model.config.formLayout
     ? toFormLayout(model.config.formLayout, model.config.forms)
     : [
-        ...generateFormLayout(model.config.forms || [], isModal || false),
+        ...generateFormLayout(model.config.forms || []),
         new FormSubmit({
           label: `Submit`,
           display: 'flex flex-col gap-1',

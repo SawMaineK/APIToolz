@@ -83,7 +83,9 @@ class ModelBuilder
             if ($form['view'] == true) {
                 $fillable[] = "'{$form['field']}'";
                 $search[] = "'{$form['field']}'";
-                $resource[] = "'{$form['field']}' => \$this->{$form['field']}";
+                if($form['type'] != 'password') {
+                    $resource[] = "'{$form['field']}' => \$this->{$form['field']}";
+                }
                 if ($form['field'] == 'id') {
                     $codes['validation'][] = "\t\t\t'{$form['field']}'=>'nullable|integer',\n";
                 } else {

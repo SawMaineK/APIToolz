@@ -137,7 +137,7 @@ class DatatableBuilder
             }
 
             // rebuild via APIToolz column builder
-            \DB::unprepared("DROP TABLE \"$table\";");
+            \Schema::dropIfExists($table);
             self::build($table, $fields, $softDelete, $foreignKeys);
 
         } catch (\Exception $e) {
@@ -246,13 +246,17 @@ class DatatableBuilder
 
     public static function remove($table)
     {
-        \DB::statement('PRAGMA foreign_keys = OFF;');
-        \DB::unprepared("Drop Table $table;");
+        if (\DB::getDriverName() === 'sqlite') {
+            \DB::statement('PRAGMA foreign_keys = OFF');
+        }
+        \Schema::dropIfExists($table);
         $migrations = glob(base_path("database/migrations/*_{$table}_table.php"));
         foreach($migrations as $filePath) {
             @unlink($filePath);
         }
-        \DB::statement('PRAGMA foreign_keys = ON;');
+        if (\DB::getDriverName() === 'sqlite') {
+            \DB::statement('PRAGMA foreign_keys = ON');
+        }
     }
 
     static function getFieldMigrate($field, $option = [], $after = null, $modify = false)

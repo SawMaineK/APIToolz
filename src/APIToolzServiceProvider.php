@@ -2,6 +2,7 @@
 
 namespace Sawmainek\Apitoolz;
 
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ use Sawmainek\Apitoolz\Console\ActivateGenerator;
 use Sawmainek\Apitoolz\Console\OpenAIGenerator;
 use Sawmainek\Apitoolz\Console\ModelCleanUpGenerator;
 use Sawmainek\Apitoolz\Console\ReactAppGenerator;
+use Sawmainek\Apitoolz\Models\AppSetting;
 
 
 class APIToolzServiceProvider extends ServiceProvider
@@ -135,6 +137,12 @@ class APIToolzServiceProvider extends ServiceProvider
                 ]);
             });
         }
+
+        $branding = optional(
+            AppSetting::where('key', 'default_settings')->first()
+        )->branding ?? [];
+
+        View::share('branding', $branding);
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');

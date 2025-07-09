@@ -82,6 +82,17 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
         )}
 
         <Separator />
+        <h3 className="text-md font-semibold">Password Hash</h3>
+        {floatingInput(
+          'passwordHash',
+          formField.passwordHash ?? '',
+          'Password Hash (e.g., abcABC1234)',
+          (e) => updateField('passwordHash', e.target.value)
+        )}
+        {floatingInput('hashLength', formField.hashLength ?? 8, 'Hash Length', (e) =>
+          updateField('hashLength', Number(e.target.value) || 8)
+        )}
+        <Separator />
 
         <h3 className="text-md font-semibold">Validation</h3>
         <div className="flex items-center gap-2">

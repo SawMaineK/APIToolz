@@ -46,6 +46,8 @@ export class BaseForm<T> {
   order: number;
   min: number | any;
   max: number | any;
+  passwordHash: string | undefined;
+  hashLength: number;
 
   // Form Styling/Grids Properties
   style: any;
@@ -112,94 +114,98 @@ export class BaseForm<T> {
   // Reactive Form Handler
   handler: any;
 
-  constructor(options: {
-    unqKey?: string;
-    controlType?: string;
-    type?: string;
-    display?: string;
+  constructor(
+    options: {
+      unqKey?: string;
+      controlType?: string;
+      type?: string;
+      display?: string;
 
-    name?: string;
-    value?: T;
-    label?: string;
-    mask?: string | [] | any;
-    maskPlaceholder?: string;
-    placeholder?: string;
-    required?: boolean;
-    autoComplete?: string;
-
-    config?: any;
-    component?: any;
-
-    validators?: any[];
-    dateFormat?: string;
-    minDate?: string;
-    maxDate?: string;
-    acceptFiles?: string;
-    filePreview?: boolean;
-    tooltip?: string;
-    hint?: string;
-    readonly?: boolean;
-    prefix?: string;
-    endfix?: string;
-    prefixHtml?: string;
-    endfixHtml?: string;
-    group?: string;
-    order?: number;
-    min?: number;
-    max?: number;
-
-    style?: any;
-    inputClass?: string;
-    altClass?: string;
-    columns?: string;
-    dateView?: string;
-
-    childs?: BaseForm<string>[];
-
-    criteriaValue?: { key: string; value: string | boolean | any[] };
-
-    multiple?: boolean;
-    options?: { id: string; name: string }[] | any[];
-    options$?: AsyncOptionsFn;
-    filter?: { parent: string; key: string } | any;
-    valueChanges$?: Subject<any>;
-    valueChangeEvent?: any;
-
-    formGroup?: BaseForm<any>[] | any;
-
-    formArray?: BaseForm<any>[];
-    defaultLength?: number;
-    useTable?: boolean;
-    disableAddRow?: boolean;
-    addMoreText?: string;
-    rowDeleteEvent?: any;
-
-    headerRows?: number;
-    headerWidths?: any[];
-    tableHeader?: {
+      name?: string;
+      value?: T;
       label?: string;
-      rowSpan?: number;
-      colSpan?: number;
-      style?: any;
-      cellFn?: () => void;
-      pipe?: string;
-    }[][];
-    tableFooter?: {
-      label?: string;
-      rowSpan?: number;
-      colSpan?: number;
-      style?: any;
-      cellFn?: () => void;
-      pipe?: string;
-    }[][];
+      mask?: string | [] | any;
+      maskPlaceholder?: string;
+      placeholder?: string;
+      required?: boolean;
+      autoComplete?: string;
 
-    formArrayCallback?: any;
-    onSubmitFormGroup?: any;
-    onResetFormGroup?: any;
-    submitted$?: Subject<boolean>;
+      config?: any;
+      component?: any;
 
-    handler?: any;
-  } = {}) {
+      validators?: any[];
+      dateFormat?: string;
+      minDate?: string;
+      maxDate?: string;
+      acceptFiles?: string;
+      filePreview?: boolean;
+      tooltip?: string;
+      hint?: string;
+      readonly?: boolean;
+      prefix?: string;
+      endfix?: string;
+      prefixHtml?: string;
+      endfixHtml?: string;
+      group?: string;
+      order?: number;
+      min?: number;
+      max?: number;
+      passwordHash?: string;
+      hashLength?: number;
+
+      style?: any;
+      inputClass?: string;
+      altClass?: string;
+      columns?: string;
+      dateView?: string;
+
+      childs?: BaseForm<string>[];
+
+      criteriaValue?: { key: string; value: string | boolean | any[] };
+
+      multiple?: boolean;
+      options?: { id: string; name: string }[] | any[];
+      options$?: AsyncOptionsFn;
+      filter?: { parent: string; key: string } | any;
+      valueChanges$?: Subject<any>;
+      valueChangeEvent?: any;
+
+      formGroup?: BaseForm<any>[] | any;
+
+      formArray?: BaseForm<any>[];
+      defaultLength?: number;
+      useTable?: boolean;
+      disableAddRow?: boolean;
+      addMoreText?: string;
+      rowDeleteEvent?: any;
+
+      headerRows?: number;
+      headerWidths?: any[];
+      tableHeader?: {
+        label?: string;
+        rowSpan?: number;
+        colSpan?: number;
+        style?: any;
+        cellFn?: () => void;
+        pipe?: string;
+      }[][];
+      tableFooter?: {
+        label?: string;
+        rowSpan?: number;
+        colSpan?: number;
+        style?: any;
+        cellFn?: () => void;
+        pipe?: string;
+      }[][];
+
+      formArrayCallback?: any;
+      onSubmitFormGroup?: any;
+      onResetFormGroup?: any;
+      submitted$?: Subject<boolean>;
+
+      handler?: any;
+    } = {}
+  ) {
     this.unqKey = options.unqKey || uuid();
     this.controlType = options.controlType || 'textbox';
     this.type = options.type || 'text';
@@ -231,9 +237,11 @@ export class BaseForm<T> {
     this.prefixHtml = options.prefixHtml;
     this.endfixHtml = options.endfixHtml;
     this.group = options.group;
-    this.order = options.order ?? 1;
+    this.order = options.order || 1;
     this.min = options.min;
     this.max = options.max;
+    this.passwordHash = options.passwordHash;
+    this.hashLength = options.hashLength || 8;
 
     this.style = options.style || {};
     this.inputClass = options.inputClass || '';

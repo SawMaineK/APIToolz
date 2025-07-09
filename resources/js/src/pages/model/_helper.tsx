@@ -1,10 +1,8 @@
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { FormField, GridField, Relationship } from './_models';
 import { DataGridRowSelect, DataGridRowSelectAll, DataGridColumnHeader } from '@/components';
-import { formatIsoDate } from '@/utils/Date';
 import { Input } from '@/components/ui/input';
 import { FormCheckBox } from '@/components/form/base/form-checkbox';
-import { FormSubmit } from '@/components/form/base/form-submit';
 import { FormInput } from '@/components/form/base/form-input';
 import { Validators } from 'react-reactive-form';
 import { BaseForm } from '@/components/form/base/base-form';
@@ -18,6 +16,7 @@ import { FormRadio } from '@/components/form/base/form-radio';
 import { FormDate } from '@/components/form/base/form-date';
 import { FormDateTime } from '@/components/form/base/form-datetime';
 import { FormFile } from '@/components/form/base/form-file';
+import { FormPassword } from '@/components/form/base/form-password';
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -120,7 +119,7 @@ export const generateColumns = (
               return info.row.original[relation.title]?.[key] || '-';
             })
             .join(' ');
-        //   return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
+          //   return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
         }
         if (typeof value === 'string') {
           return truncateText(value);
@@ -167,7 +166,7 @@ export function requestOptionData(
     .catch((e) => {});
 }
 
-export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm<string>[] => {
+export const generateFormLayout = (forms: FormField[]): BaseForm<string>[] => {
   forms = forms.sort((a, b) => a.sortlist - b.sortlist);
   forms = forms.filter(
     (field) =>
@@ -177,160 +176,164 @@ export const generateFormLayout = (forms: FormField[], modal: boolean): BaseForm
       field.field !== 'updated_at'
   );
   return forms.map((field) => {
-    switch (field.type) {
-      case 'hidden':
-        return new FormHidden({
-          name: field.field,
-          label: field.label,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'password':
-        return new FormInput({
-          name: field.field,
-          label: field.label,
-          type: 'password',
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'text_email':
-        return new FormInput({
-          name: field.field,
-          label: field.label,
-          type: 'email',
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'text_number':
-        return new FormInput({
-          name: field.field,
-          label: field.label,
-          type: 'number',
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      //case 'text_tags':
-      case 'textarea':
-        return new FormTextArea({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          defaultLength: 3,
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'textarea_editor':
-        return new FormInputEditor({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'checkbox':
-        return new FormCheckBox({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          handler: () => {},
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'radio': {
-        const lookupRadio = field.option.lookup_query.split('|').map((x: any) => {
-          const dataList = x.split(':');
-          return { id: dataList[0], name: dataList[1] };
-        });
-        return new FormRadioGroup({
-          name: field.field,
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {}),
-          childs: [
-            ...lookupRadio.map((x: any) => {
-              return new FormRadio({
-                label: x.name,
-                value: x.id,
-                columns: 'flex items-center space-x-2'
-              });
-            })
-          ]
-        });
-      }
-      case 'date':
-      case 'text_date':
-        return new FormDate({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          handler: () => {},
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'datetime':
-      case 'text_datetime':
-        return new FormDateTime({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          handler: () => {},
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'file':
-        return new FormFile({
-          name: field.field,
-          label: field.label,
-          type: 'file',
-          columns: 'w-full md:w-2/3',
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          multiple: field?.file?.image_multiple,
-          //   filePreview: field?.file?.upload_type == 'image' ? true : false,
-          handler: () => {},
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-      case 'select':
-        return createFormSelectField(field);
-
-      default:
-        return new FormInput({
-          name: field.field,
-          label: field.label,
-          columns: 'w-full md:w-2/3',
-          placeholder: field.option?.placeholder || `Enter ${field.label}`,
-          required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-          validators:
-            field?.validator && field?.validator?.indexOf('email') != -1 ? [Validators.email] : [],
-          ...(field.criteria
-            ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
-            : {})
-        });
-    }
+    return generateFormField(field);
   });
+};
+
+export const generateFormField = (field: FormField) => {
+  switch (field.type) {
+    case 'hidden':
+      return new FormHidden({
+        name: field.field,
+        label: field.label,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'password':
+      return new FormPassword({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        hint: 'Blank ',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'text_email':
+      return new FormInput({
+        name: field.field,
+        label: field.label,
+        type: 'email',
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'text_number':
+      return new FormInput({
+        name: field.field,
+        label: field.label,
+        type: 'number',
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    //case 'text_tags':
+    case 'textarea':
+      return new FormTextArea({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        defaultLength: 3,
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'textarea_editor':
+      return new FormInputEditor({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'checkbox':
+      return new FormCheckBox({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        handler: () => {},
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'radio': {
+      const lookupRadio = field.option.lookup_query.split('|').map((x: any) => {
+        const dataList = x.split(':');
+        return { id: dataList[0], name: dataList[1] };
+      });
+      return new FormRadioGroup({
+        name: field.field,
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {}),
+        childs: [
+          ...lookupRadio.map((x: any) => {
+            return new FormRadio({
+              label: x.name,
+              value: x.id,
+              columns: 'flex items-center space-x-2'
+            });
+          })
+        ]
+      });
+    }
+    case 'date':
+    case 'text_date':
+      return new FormDate({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        handler: () => {},
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'datetime':
+    case 'text_datetime':
+      return new FormDateTime({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        handler: () => {},
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'file':
+      return new FormFile({
+        name: field.field,
+        label: field.label,
+        type: 'file',
+        columns: 'w-full md:w-2/3',
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        multiple: field?.file?.image_multiple,
+        //   filePreview: field?.file?.upload_type == 'image' ? true : false,
+        handler: () => {},
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+    case 'select':
+      return createFormSelectField(field);
+
+    default:
+      return new FormInput({
+        name: field.field,
+        label: field.label,
+        columns: 'w-full md:w-2/3',
+        placeholder: field.option?.placeholder || `Enter ${field.label}`,
+        required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
+        validators:
+          field?.validator && field?.validator?.indexOf('email') != -1 ? [Validators.email] : [],
+        ...(field.criteria
+          ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
+          : {})
+      });
+  }
 };
 
 export const toFormLayout = (

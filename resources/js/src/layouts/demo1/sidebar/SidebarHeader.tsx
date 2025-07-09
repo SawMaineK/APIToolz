@@ -13,24 +13,24 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
     <Fragment>
       <Link to="/admin" className="dark:hidden">
         <img
-          src={toAbsoluteUrl(`${settings.branding.logo_url || '/media/app/default-logo.svg'}`)}
+          src={toAbsoluteUrl(`${settings.branding.logo_url || ''}`)}
           className="default-logo min-h-[22px] h-[40px] max-w-none"
         />
         <img
-          src={toAbsoluteUrl(`${settings.branding.logo_small_url || '/media/app/mini-logo.svg'}`)}
+          src={toAbsoluteUrl(`${settings.branding.logo_small_url || ''}`)}
           className="small-logo min-h-[22px] max-w-none"
         />
       </Link>
       <Link to="/admin" className="hidden dark:block">
         <img
           src={toAbsoluteUrl(
-            `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
+            `${settings.branding.logo_dark_url || ''}`
           )}
           className="default-logo min-h-[22px] h-[40px] max-w-none"
         />
         <img
           src={toAbsoluteUrl(
-            `${settings.branding.logo_dark_small_url || '/media/app/mini-logo.svg'}`
+            `${settings.branding.logo_dark_small_url || ''}`
           )}
           className="small-logo min-h-[22px] max-w-none"
         />
@@ -42,13 +42,13 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
     <Link to="/admin">
       <img
         src={toAbsoluteUrl(
-          `${settings.branding.logo_dark_url || '/media/app/default-logo-dark.svg'}`
+          `${settings.branding.logo_dark_url || ''}`
         )}
         className="default-logo min-h-[22px] h-[40px] max-w-none"
       />
       <img
         src={toAbsoluteUrl(
-          `${settings.branding.logo_dark_small_url || '/media/app/mini-logo.svg'}`
+          `${settings.branding.logo_dark_small_url || ''}`
         )}
         className="small-logo min-h-[22px] max-w-none"
       />

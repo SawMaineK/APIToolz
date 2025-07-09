@@ -22,6 +22,7 @@ import { Text } from './text/Text';
 import { HiddenControl } from './hidden/HiddenControl';
 import { CoderControl } from './coder/CoderControl';
 import { ComponentControl } from './component/ComponentControl';
+import { FormPasswordControl } from './password/FromPasswordControl';
 
 type IFormField = {
   formLayout: BaseForm<string>[];
@@ -92,6 +93,13 @@ export const FormField = (props: IFormField) => {
         <FieldControl
           name={props.formField.name}
           render={(fieldControlProps) => <TextBoxControl {...fieldControlProps} />}
+          meta={{ ...props.formField, formGroup: props.formGroup }}
+        />
+      )}
+      {props.formField.controlType === 'password' && hasCriteria() && (
+        <FieldControl
+          name={props.formField.name}
+          render={(fieldControlProps) => <FormPasswordControl {...fieldControlProps} />}
           meta={{ ...props.formField, formGroup: props.formGroup }}
         />
       )}

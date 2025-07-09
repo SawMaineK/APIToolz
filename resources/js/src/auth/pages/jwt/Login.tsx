@@ -10,6 +10,7 @@ import { FormSubmit } from '@/components/form/base/form-submit';
 import { FormGroup, Validators } from 'react-reactive-form';
 import { FormInput } from '@/components/form/base/form-input';
 import { Subject } from 'rxjs';
+import { FormPassword } from '@/components/form/base/form-password';
 
 const initialValues = {
   email: '',
@@ -34,11 +35,10 @@ const Login = () => {
       validators: [Validators.email],
       required: true
     }),
-    new FormInput({
+    new FormPassword({
       name: 'password',
       label: 'Password',
       display: 'flex flex-col gap-1',
-      type: 'password',
       placeholder: 'Enter password',
       required: true
     }),

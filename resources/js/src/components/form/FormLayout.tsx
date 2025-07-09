@@ -16,11 +16,11 @@ import { BaseFormArray } from './base/form-array';
 import { FormCheckBox } from './base/form-checkbox';
 import { BaseFormGroup } from './base/form-group';
 import { FormRadio } from './base/form-radio';
-import { FormFile } from './base/form-file';
 import { FormField } from './FormField';
 
 // import { requestFileUpload } from '../../services/AuthService';
 import { useEffect, useState } from 'react';
+import { FormPassword } from './base/form-password';
 
 export const toFormGroup = (
   form: BaseForm<string | boolean>[],
@@ -113,6 +113,8 @@ export const toFormGroup = (
             value = value || '';
           } else if (x instanceof FormRadio) {
             value = x.required ? value || x.value : value || '';
+          } else if (x instanceof FormPassword) {
+            value = '';
           } else {
             value = value || x.value || '';
           }
