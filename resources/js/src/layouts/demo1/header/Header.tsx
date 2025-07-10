@@ -5,9 +5,11 @@ import { MegaMenu } from '../mega-menu';
 import { HeaderLogo, HeaderTopbar } from './';
 import { Breadcrumbs, useDemo1Layout } from '../';
 import { useLocation } from 'react-router';
+import { Role, useAuthContext } from '@/auth';
 
 const Header = () => {
   const { headerSticky } = useDemo1Layout();
+  const { currentUser } = useAuthContext();
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -28,7 +30,11 @@ const Header = () => {
       <Container className="flex justify-between items-stretch lg:gap-4">
         <HeaderLogo />
         {/* <div></div> */}
-        <div className='mt-7'>{pathname.includes('/account') ? <Breadcrumbs /> : <MegaMenu />}</div>
+        <div className="mt-7">
+          {currentUser?.roles?.some((role: any) => (role?.name ?? role) === 'super') ? (
+            <MegaMenu />
+          ) : null}
+        </div>
         <HeaderTopbar />
       </Container>
     </header>

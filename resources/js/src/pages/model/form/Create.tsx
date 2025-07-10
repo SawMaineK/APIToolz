@@ -67,6 +67,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
         formGroup.reset();
         onCreated?.(result.data);
       } else {
+        formGroup.reset();
         navigate(`/admin/model/${model.slug}`, { replace: true });
       }
     } catch (error: any) {

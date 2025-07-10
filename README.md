@@ -302,7 +302,7 @@ Below are the available option parameters for configuring the request body:
 | `--opt-type=`           | Option type (`select` or `datalist`).                                      |
 | `--lookup-model=`       | The model to use for external lookup values.                               |
 | `--lookup-value=`       | The fields to display as the lookup value. You can specify multiple fields as a comma-separated list, e.g., `first_name,last_name`. |
-| `--lookup-key=`          | The key field for external lookup values (e.g., `id`).                    |
+| `--lookup-filter-key=`          | The key field for external lookup values (e.g., `category_id`).                    |
 | `--lookup-dependency-key=` | Dependency key for cascading dropdowns.                                 |
 | `--lookup-query=`       | Query for predefined options (e.g., `key:value|key2:value2`).              |
 | `--select-multiple=`    | Allow multiple selections (`true` or `false`).                             |

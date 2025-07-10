@@ -28,6 +28,19 @@ class APIToolzController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    protected $info;
+    protected $model;
+    protected $slug;
+
+    public function __construct()
+    {
+        // You may want to set $this->info and $this->model here,
+        // or in each method before they are used.
+        // Example:
+        // $this->info = Model::where('slug', request()->route('slug'))->first();
+        // $this->model = app($this->info->model_class ?? Model::class);
+    }
+
     public function response($result, $code = 200)
     {
         switch ($code) {
@@ -68,24 +81,6 @@ class APIToolzController extends Controller
         return $info;
     }
 
-    public function makePageInfo($id)
-    {
-        $info = Page::where('id', $id)->first();
-        $info->config = ModelConfigUtils::decryptJson($info->config);
-        return $info;
-    }
-
-    public function makeResponse($result)
-    {
-        $data['data'] = $result['data'];
-        $data['per_page'] = $result['per_page'];
-        $data['current_page'] = $result['current_page'];
-        $data['previous_page'] = $result['from'];
-        $data['next_page'] = $result['to'];
-        $data['total'] = $result['total'];
-        return $data;
-    }
-
     public function validateData(Request $request)
     {
         $data = $request->all();
@@ -120,11 +115,16 @@ class APIToolzController extends Controller
                         if(isset($data[$this->info['key']]) && isset($data[$f['field']])) {
                             $model = $this->model->find($data[$this->info['key']]);
                             if ($model && $model->{$f['field']}) {
-                                if($f['file']['save_full_path'] == "1") {
-                                    $deletePath = str_replace(url('/img'), '', $model->{$f['field']}->url);
-                                    Storage::delete($deletePath);
-                                } else {
-                                    Storage::delete($model->{$f['field']}->url);
+                                if (isset($model->{$f['field']}->url)) {
+                                    switch ($f['file']['save_full_path']) {
+                                        case "1":
+                                            $deletePath = str_replace(url('/img'), '', $model->{$f['field']}->url);
+                                            Storage::delete($deletePath);
+                                            break;
+                                        default:
+                                            Storage::delete($model->{$f['field']}->url);
+                                            break;
+                                    }
                                 }
                             }
                         }
@@ -142,20 +142,6 @@ class APIToolzController extends Controller
             }
         }
         return $data;
-    }
-
-    public function getAccessLimit()
-    {
-        $limits = [];
-        if($this->info['auth'] && isset($this->info['config']['access'])) {
-            foreach ($this->info['config']['access'] as $role => $task) {
-                if(request()->user() && request()->user()->hasRole($role) && @$task['limit']) {
-                    $limits[] = Str::of($task['limit'])->replace('{$user->id}', request()->user()->id ?? null);
-                }
-            }
-            return implode('|', $limits);
-        }
-        return null;
     }
 
     public function saveAsFile($file, $option)
@@ -252,47 +238,5 @@ class APIToolzController extends Controller
             }
         }
         return $this->response("The file has deleted successfully.", 204);
-    }
-
-    public function copyRecord($id)
-    {
-        $data = $this->model->find($id);
-        if($data) {
-            unset($data->{$this->info['key']});
-            $data = $this->model->create($data->toarray());
-        }
-        return $this->response($data);
-    }
-
-    public function lookUpDataList(Request $request)
-    {
-        if ($request->parent_id) {
-            $list = $this->model->where($request->parent_id, $request->parent_value)->pluck($request->param1, $request->param2);
-        } else {
-            $list = $this->model->pluck($request->param1, $request->param2);
-        }
-        return response()->json($list);
-    }
-
-    public function bulkImport(Request $request)
-    {
-        $bulk = $request->all();
-        foreach ($bulk as $data) {
-            if (isset($data[$this->info['key']])) {
-                $model = $this->model->find($data[$this->info['key']]);
-                $model->update($data);
-            } else {
-                $this->model->create($data);
-            }
-        }
-        return $this->response("The bulk data has created successfully.", 204);
-    }
-
-    function skipFields($field)
-    {
-        if ($field == 'id' || $field == 'created_at' || $field == 'updated_at' || $field == 'deleted_at') {
-            return false;
-        }
-        return true;
     }
 }

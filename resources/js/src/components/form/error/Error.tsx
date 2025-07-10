@@ -1,5 +1,5 @@
 export const Error = ({ touched, hasError, getError, submitted, dirty, ...props }: any) => {
-    return (
+  return (
     <div className="w-full">
       <div
         className={`${props.display == 'x' ? 'flex items-baseline flex-wrap lg:flex-nowrap gap-2.5' : props.display} ${props.altClass}`}
@@ -40,9 +40,7 @@ export const Error = ({ touched, hasError, getError, submitted, dirty, ...props 
             {(submitted || dirty || touched) && hasError('password_confirmation') && (
               <div>The password does not match.</div>
             )}
-            {(submitted || dirty || touched) && hasError('serverError') && (
-              <div>{getError('serverError')}</div>
-            )}
+            {hasError && hasError('serverError') && <div>{getError('serverError')}</div>}
           </div>
         </div>
       </div>

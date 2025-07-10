@@ -10,13 +10,7 @@ import {
 } from 'react';
 
 import * as authHelper from '../_helpers';
-import {
-  type AuthModel,
-  type UserModel,
-  type ApiResponse,
-  type User,
-  TwoFactorAuthError
-} from '@/auth';
+import { type AuthModel, type ApiResponse, type User, TwoFactorAuthError } from '@/auth';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 export const LOGIN_URL = `${API_URL}/login`;
@@ -31,8 +25,8 @@ interface AuthContextProps {
   setLoading: Dispatch<SetStateAction<boolean>>;
   auth: AuthModel | undefined;
   saveAuth: (auth: AuthModel | undefined) => void;
-  currentUser: UserModel | undefined;
-  setCurrentUser: Dispatch<SetStateAction<UserModel | undefined>>;
+  currentUser: User | undefined;
+  setCurrentUser: Dispatch<SetStateAction<User | undefined>>;
   login: (email: string, password: string) => Promise<void>;
   verify2fa: (email: string, otp: string) => Promise<void>;
   loginWithGoogle?: () => Promise<void>;
@@ -61,7 +55,7 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 const AuthProvider = ({ children }: PropsWithChildren) => {
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<AuthModel | undefined>(authHelper.getAuth());
-  const [currentUser, setCurrentUser] = useState<UserModel | User | undefined>();
+  const [currentUser, setCurrentUser] = useState<User | undefined>();
 
   const verify = async () => {
     if (auth) {
@@ -69,7 +63,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         const {
           data: { data: user }
         } = await getUser();
-        setCurrentUser(user);
+        setCurrentUser(user as User);
       } catch {
         saveAuth(undefined);
         setCurrentUser(undefined);

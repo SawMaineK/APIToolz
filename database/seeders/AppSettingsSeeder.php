@@ -21,20 +21,24 @@ class AppSettingsSeeder extends Seeder
                     [
                       'title'=> 'Dashboards',
                       'icon'=> 'home-2',
-                      'path'=> '/admin'
+                      'path'=> '/admin',
+                      'roles'=> ['super', 'admin']
                     ],
                     [
-                      'heading'=> 'Manage User'
+                      'heading'=> 'Manage User',,
+                      'roles'=> ['super', 'admin']
                     ],
                     [
                       'title'=> 'Users',
                       'icon'=> 'users',
-                      'path'=> '/admin/users'
+                      'path'=> '/admin/users',
+                      'roles'=> ['super', 'admin']
                     ],
                     [
                       'title'=> 'Roles & Permssions',
                       'icon'=> 'security-user',
-                      'path'=> '/admin/roles'
+                      'path'=> '/admin/roles',
+                      'roles'=> ['super']
                     ]
                 ],
                 'branding' => json_encode([

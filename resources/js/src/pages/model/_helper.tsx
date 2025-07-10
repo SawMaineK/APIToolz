@@ -195,7 +195,6 @@ export const generateFormField = (field: FormField) => {
         name: field.field,
         label: field.label,
         columns: 'w-full md:w-2/3',
-        hint: 'Blank ',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }

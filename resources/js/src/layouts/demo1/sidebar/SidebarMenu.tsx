@@ -17,6 +17,7 @@ import {
   MenuTitle
 } from '@/components/menu';
 import { useMenus } from '@/providers';
+import { useAuthContext } from '@/auth';
 
 function toPascalCase(str: string): string {
   return str
@@ -57,17 +58,18 @@ const SidebarMenu = () => {
     'before:start-[32px]',
     'before:start-[32px]'
   ];
-
   const buildMenu = (items: TMenuConfig) => {
-    return items.map((item, index) => {
-      if (item.heading) {
-        return buildMenuHeading(item, index);
-      } else if (item.disabled) {
-        return buildMenuItemRootDisabled(item, index);
-      } else {
-        return buildMenuItemRoot(item, index);
-      }
-    });
+    return items
+      .filter((item) => hasRole(item.roles))
+      .map((item, index) => {
+        if (item.heading) {
+          return buildMenuHeading(item, index);
+        } else if (item.disabled) {
+          return buildMenuItemRootDisabled(item, index);
+        } else {
+          return buildMenuItemRoot(item, index);
+        }
+      });
   };
 
   const buildMenuItemRoot = (item: IMenuItemConfig, index: number) => {
@@ -162,13 +164,15 @@ const SidebarMenu = () => {
   };
 
   const buildMenuItemChildren = (items: TMenuConfig, index: number, level: number = 0) => {
-    return items.map((item, index) => {
-      if (item.disabled) {
-        return buildMenuItemChildDisabled(item, index, level);
-      } else {
-        return buildMenuItemChild(item, index, level);
-      }
-    });
+    return items
+      .filter((item) => hasRole(item.roles))
+      .map((item, index) => {
+        if (item.disabled) {
+          return buildMenuItemChildDisabled(item, index, level);
+        } else {
+          return buildMenuItemChild(item, index, level);
+        }
+      });
   };
 
   const buildMenuItemChild = (item: IMenuItemConfig, index: number, level: number = 0) => {
@@ -298,6 +302,14 @@ const SidebarMenu = () => {
 
   const { getMenuConfig } = useMenus();
   const menuConfig = getMenuConfig('primary');
+  const { currentUser } = useAuthContext();
+
+  const hasRole = (allowedRoles?: string[]) => {
+    if (!allowedRoles || allowedRoles.length === 0) return true;
+    return currentUser?.roles?.some((role: any) => {
+      return allowedRoles.includes(role.name);
+    });
+  };
 
   return (
     <Menu highlight={true} multipleExpand={false} className={clsx('flex flex-col grow', itemsGap)}>

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormInput } from '../base/form-input';
 
 export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
   const [files, setFiles] = useState<any>(null);
   const [previewFiles, setPreviewFiles] = useState<any[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fileUrls: any[] = [];
@@ -29,12 +30,29 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (formGroup && typeof formGroup.reset === 'function') {
+      const originalReset = formGroup.reset;
+      formGroup.reset = (...args: any[]) => {
+        originalReset.apply(formGroup, args);
+        if (inputRef.current) inputRef.current.value = '';
+        setPreviewFiles([]);
+        if (formGroup.controls?.[props.name]) {
+          formGroup.controls[props.name].setValue('');
+        }
+      };
+      return () => {
+        formGroup.reset = originalReset;
+      };
+    }
+  }, [formGroup]);
+
   const onChange = (e: any) => {
     const selectedFiles = Array.from(e.target.files);
     const fileUrls: any[] = [];
 
     selectedFiles.forEach((file: any) => {
-      if (file.size / 1024 > 2048) {
+      if (file.size / 1024 > 4048) {
         alert('The file size must be less than 2 MB.');
         return;
       }
@@ -69,7 +87,7 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
   };
 
   const clickFile = () => {
-    document.getElementById('fileUpload')?.click();
+    inputRef.current?.click();
   };
 
   return (
@@ -87,7 +105,13 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
           ) : (
             <span className="text-gray-400">No Image</span>
           )}
-          <input type="file" className="hidden" onChange={onChange} accept={props.acceptFiles} />
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            onChange={onChange}
+            accept={props.acceptFiles}
+          />
           <button
             type="button"
             className="absolute top-1 right-1 bg-white text-red-600 rounded-full p-1 shadow"
@@ -107,7 +131,7 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
             Upload Files
           </button>
           <input
-            id="fileUpload"
+            ref={inputRef}
             type="file"
             multiple
             className="hidden"
@@ -137,6 +161,7 @@ export const FileUpload = ({ handler, formGroup, ...props }: FormInput) => {
       {!props.filePreview && (
         <div>
           <input
+            ref={inputRef}
             type="file"
             className="file-input"
             onChange={onChange}

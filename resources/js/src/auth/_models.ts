@@ -18,31 +18,18 @@ export interface User {
   dob: string | null;
   avatar: string;
   personal_access_token: string;
+  roles: Role[];
+}
+
+export interface Role {
+  name: string;
+  guard_name: string;
 }
 
 export interface AuthModel {
   access_token: string;
   refreshToken?: string;
   api_token: string;
-}
-
-export interface UserModel {
-  id: number;
-  name: string;
-  username?: string;
-  password?: string | undefined;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  fullname?: string;
-  occupation?: string;
-  companyName?: string;
-  phone?: string;
-  avatar?: string;
-  roles?: number[];
-  pic?: string;
-  language?: TLanguageCode;
-  auth?: AuthModel;
 }
 
 export class TwoFactorAuthError extends Error {

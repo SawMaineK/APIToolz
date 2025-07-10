@@ -111,10 +111,10 @@ class AuthService
 
     public function getUser(Request $request)
     {
-        $user = $request->user();
+        $user = User::find($request->user()->id);
+        $user->load('roles');
         Log::info("Fetching user details.", ['user_id' => $user->id]);
-
-        return $user ? User::find($user->id) : null;
+        return $user;
     }
 
     public function changePassword($user, $data)

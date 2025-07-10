@@ -87,17 +87,19 @@ export const DropDown = ({ handler, formGroup, formLayout, ...props }: FormSelec
   };
 
   useEffect(() => {
-    if (props.submitted$) {
-      props.submitted$.subscribe((submited: boolean) => {
-        if (submited) {
-          setValue(dataList);
-          // Refresh Form Data
-          formGroup.markAsSubmitted();
-          formGroup.markAsUnsubmitted();
-        }
-      });
+    if (formGroup && typeof formGroup.reset === 'function') {
+      const originalReset = formGroup.reset;
+      formGroup.reset = (...args: any[]) => {
+        originalReset.apply(formGroup, args);
+        setValue(getValue(dataList));
+        formGroup.markAsSubmitted();
+        formGroup.markAsUnsubmitted();
+      };
+      return () => {
+        formGroup.reset = originalReset;
+      };
     }
-  }, []);
+  }, [formGroup, dataList]);
 
   const wait = 1000;
   const loadOptions: any = (inputValue: string = '', callback: any = () => {}) => {
