@@ -22,10 +22,11 @@ class SendOTPNotification extends Notification
             'notifiable' => $notifiable,
             'user_agent' => request()->header('User-Agent')
         ]);
-        if (request()->header('User-Agent') && str_contains(strtolower(request()->header('User-Agent')), 'mobile')) {
-            if (!empty($notifiable->phone)) {
-                return ['sms'];
-            }
+        $userAgent = strtolower(request()->header('User-Agent', ''));
+        $isMobile = preg_match('/android|iphone|ipad|ipod|blackberry|windows phone|opera mini|mobile|dart\/[0-9\.]+ \(dart:io\)|reactnative|ionic/i', $userAgent);
+
+        if ($isMobile && !empty($notifiable->phone)) {
+            return ['sms'];
         } elseif (!empty($notifiable->email)) {
             return ['mail'];
         }

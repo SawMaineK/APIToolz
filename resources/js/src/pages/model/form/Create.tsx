@@ -48,6 +48,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
 
       if (modelData) {
         formData.append('_method', 'PUT');
+        formData.append('id', modelData.id);
       }
 
       const url =

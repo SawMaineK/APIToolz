@@ -138,9 +138,14 @@ class APIToolzServiceProvider extends ServiceProvider
             });
         }
 
-        $branding = optional(
+        try {
+            DB::connection()->getPdo();
+            $branding = optional(
             AppSetting::where('key', 'default_settings')->first()
-        )->branding ?? [];
+            )->branding ?? [];
+        } catch (\Exception $e) {
+            $branding = [];
+        }
 
         View::share('branding', $branding);
 

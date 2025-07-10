@@ -154,7 +154,7 @@ export function requestOptionData(
 ): Promise<any> {
   return axios
     .get(
-      `${import.meta.env.VITE_APP_API_URL}/${slug}?${query}&fields=${key},${display}&per_page=1000`
+      `${import.meta.env.VITE_APP_API_URL}/${slug}?${query}&fields=${key},${display}&per_page=99999`
     )
     .then((res) => {
       return res.data.data.map((data: any) => {

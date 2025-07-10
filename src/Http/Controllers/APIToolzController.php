@@ -92,7 +92,7 @@ class APIToolzController extends Controller
         $form = $this->info->config['forms'];
         foreach ($form as $f) {
             if ($f['type'] == 'password') {
-                if (!empty($data[$f['field']]) && !preg_match('/^\$2y\$/', $data[$f['field']])) {
+                if (!empty($data[$f['field']])) {
                     $data[$f['field']] = bcrypt($data[$f['field']]);
                 }
             }
