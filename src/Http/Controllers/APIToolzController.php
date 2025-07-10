@@ -94,6 +94,8 @@ class APIToolzController extends Controller
             if ($f['type'] == 'password') {
                 if (!empty($data[$f['field']])) {
                     $data[$f['field']] = bcrypt($data[$f['field']]);
+                } else {
+                    unset($data[$f['field']]);
                 }
             }
             if ($f['type'] == 'file' && $request->hasFile($f['field'])) {
