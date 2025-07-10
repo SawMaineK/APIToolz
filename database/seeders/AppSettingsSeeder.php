@@ -25,7 +25,7 @@ class AppSettingsSeeder extends Seeder
                       'roles'=> ['super', 'admin']
                     ],
                     [
-                      'heading'=> 'Manage User',,
+                      'heading'=> 'Manage User',
                       'roles'=> ['super', 'admin']
                     ],
                     [
