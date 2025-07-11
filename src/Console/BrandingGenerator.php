@@ -2,6 +2,7 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\SeederBuilder;
 
@@ -43,10 +44,63 @@ class BrandingGenerator extends Command
         ];
         $appSetting->save();
 
+
         SeederBuilder::build();
 
         $this->info('Branding configuration saved successfully.');
     }
+
+    protected function addBradingToAppBlade() {
+        $htmlPath = __DIR__ . '/../dist/index.html';
+        $bladePath = resource_path('views/vendor/apitoolz/app.blade.php');
+
+        if (File::exists($htmlPath)) {
+            $html = File::get($htmlPath);
+            $html = $this->injectBranding($html);
+
+            File::ensureDirectoryExists(dirname($bladePath));
+            File::put($bladePath, $html);
+        }
+    }
+
+    protected function injectBranding(string $html): string
+    {
+        // 1. Split <html ...> to inject style
+        if (str_contains($html, '<html')) {
+            [$beforeHtml, $rest] = explode('<html', $html, 2);
+
+            // Split until first '>'
+            $htmlParts = explode('>', $rest, 2);
+            $htmlTag = $htmlParts[0];
+            $afterHtmlTag = $htmlParts[1] ?? '';
+
+            $styleBlock = <<<BLADE
+    style="
+        --tw-primary: {{ \$branding['theme_color'] ?? '#4f46e5' }};
+        --tw-primary-active: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;
+        --tw-primary-hover: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;
+        --tw-primary-focus: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;
+        --tw-primary-visible: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;
+        --tw-primary-disabled: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;
+        --tw-primary-border: {{ (\$branding['theme_color'] ?? '#4f46e5') }}e6;"
+    BLADE;
+
+            $newHtmlTag = '<html' . $htmlTag .' '. $styleBlock . '>';
+            $html = $beforeHtml . $newHtmlTag . $afterHtmlTag;
+        }
+
+        // 2. Replace favicon <link rel="icon" ...>
+        if (str_contains($html, '<link rel="icon')) {
+            $html = preg_replace(
+                '/<link\s+rel="icon"[^>]*?>/i',
+                '<link rel="icon" href="{{ $branding[\'favicon\'] ?? \'/media/app/favicon.ico\' }}" />',
+                $html
+            );
+        }
+
+        return $html;
+    }
+
 
     protected function printDocumentation() {
         $this->info('Usage:');

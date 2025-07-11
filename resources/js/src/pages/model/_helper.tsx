@@ -361,9 +361,6 @@ export const toFormLayout = (
         {
           const field = forms.find((f: FormField) => f.field === formField.name);
           if (field) {
-            if (formField.config.opt_type) {
-              field.option = formField.config;
-            }
             return {
               ...createFormSelectField(field),
               ...formField
