@@ -181,6 +181,10 @@ const AddFormInputModal = ({ open, initValue, onOpenChange, onAdded }: IModalPro
                   setForm({ ...form, label: e.target.value })
                 )}
 
+                {floatingInput('columns', form.columns || '', 'Columns (e.g., w-full)', (e) =>
+                  setForm({ ...form, columns: e.target.value })
+                )}
+
                 {selectedType === 'FormArray' && (
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -248,6 +252,7 @@ const AddFormInputModal = ({ open, initValue, onOpenChange, onAdded }: IModalPro
                 )}
               </div>
             )}
+
 
             <div className="flex justify-end pt-2">
               <button

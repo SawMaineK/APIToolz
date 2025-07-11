@@ -394,7 +394,7 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                 );
               case 'form_array':
                 return (
-                  <div key={index} className={`w-full ${formField.altClass}`}>
+                  <div key={index} className={`w-full ${formField.columns} ${formField.altClass}`}>
                     {hasCriteria(formField, props.formGroup) && (
                       <div className="form-array">
                         <div className="px-4 mb-4">

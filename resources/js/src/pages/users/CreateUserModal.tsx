@@ -16,6 +16,7 @@ import { Subject } from 'rxjs';
 import { toast } from 'sonner';
 import { FormFile } from '@/components/form/base/form-file';
 import { FormSwitch } from '@/components/form/base/form-switch';
+import { FormPassword } from '@/components/form/base/form-password';
 
 interface IModalProps {
   open: boolean;
@@ -55,14 +56,20 @@ const CreateUserModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
       required: true,
       validators: [Validators.email]
     }),
-    new FormInput({
+    new FormPassword({
       name: 'password',
       label: 'Password',
       placeholder: 'Enter password',
       type: 'password',
       required: true,
       display: 'flex flex-col gap-1',
-      validators: [Validators.minLength(8)]
+      passwordHash: true,
+      validators: [
+        Validators.minLength(8),
+        Validators.pattern(
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\\[\]{};':"\\|,.<>\\/?]).+$/
+        )
+      ]
     }),
     new FormInput({
       name: 'phone',
@@ -161,7 +168,7 @@ const CreateUserModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
           <DialogTitle>{`Create User`}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className="grid px-5 pt-5">
+        <div className="grid px-5 py-4">
           <FormLayout formLayout={formLayout} onSubmitForm={formSubmit}></FormLayout>
         </div>
       </DialogContent>

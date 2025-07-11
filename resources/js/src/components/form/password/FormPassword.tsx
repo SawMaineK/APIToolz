@@ -46,7 +46,10 @@ export const FormPassword = ({ handler, formGroup, ...props }: FormInput) => {
                   type="button"
                   onClick={() => {
                     if (props.passwordHash) {
-                      const chars = props.passwordHash;
+                      const chars =
+                        typeof props.passwordHash === 'string'
+                          ? props.passwordHash
+                          : 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
                       let result = '';
                       for (let i = 0; i < props.hashLength; i++) {
                         result += chars.charAt(Math.floor(Math.random() * chars.length));

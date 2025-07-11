@@ -46,7 +46,7 @@ export class BaseForm<T> {
   order: number;
   min: number | any;
   max: number | any;
-  passwordHash: string | undefined;
+  passwordHash: string | boolean | undefined;
   hashLength: number;
 
   // Form Styling/Grids Properties
@@ -150,7 +150,7 @@ export class BaseForm<T> {
       order?: number;
       min?: number;
       max?: number;
-      passwordHash?: string;
+      passwordHash?: string | boolean;
       hashLength?: number;
 
       style?: any;

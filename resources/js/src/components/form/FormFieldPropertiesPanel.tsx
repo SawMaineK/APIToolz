@@ -64,6 +64,7 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
             'reset',
             'dropdown',
             'separator',
+            'linebreak',
             'sub_title',
             'submit',
             'switch',

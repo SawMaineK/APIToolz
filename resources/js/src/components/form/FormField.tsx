@@ -23,6 +23,7 @@ import { HiddenControl } from './hidden/HiddenControl';
 import { CoderControl } from './coder/CoderControl';
 import { ComponentControl } from './component/ComponentControl';
 import { FormPasswordControl } from './password/FromPasswordControl';
+import { LineBreak } from './separator/LineBreak';
 
 type IFormField = {
   formLayout: BaseForm<string>[];
@@ -86,6 +87,9 @@ export const FormField = (props: IFormField) => {
       {props.formField.controlType === 'label' && hasCriteria() && <Label {...props.formField} />}
       {props.formField.controlType === 'text' && hasCriteria() && <Text {...props.formField} />}
       {props.formField.controlType === 'note' && hasCriteria() && <Note {...props.formField} />}
+      {props.formField.controlType === 'linebreak' && hasCriteria() && (
+        <LineBreak {...props.formField} />
+      )}
       {props.formField.controlType === 'separator' && hasCriteria() && (
         <Separator {...props.formField} />
       )}

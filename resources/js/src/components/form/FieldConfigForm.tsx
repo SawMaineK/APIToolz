@@ -76,6 +76,7 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
           'reset',
           'dropdown',
           'separator',
+          'linebreak',
           'sub_title',
           'submit',
           'switch',
@@ -175,6 +176,10 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
             </div>
           )}
         </>
+      )}
+
+      {floatingInput('columns', form.columns || '', 'Columns (e.g., w-full)', (e) =>
+        update('columns', e.target.value)
       )}
 
       {[

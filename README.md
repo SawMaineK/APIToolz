@@ -76,13 +76,53 @@ If you don't have a `Purchase Key`, you can purchase one from [Codecanyon](https
 
 ## Usages
 
-### How can I create a solution with AI?
+### How can I generate a React frontend scaffold?
 
-You can quickly create a solution using AI and then publish it:
+You can generate a fully configured React frontend using the `apitoolz:react-frontend` Artisan command. This command scaffolds a React app with options for Vite, Tailwind CSS, TypeScript, ESLint, Storybook, and AI-powered component generation.
+
+#### Example Usage
+
+To create a React frontend named `Frontend` in the default directory with a blue Tailwind theme and Vite config:
 
 ```shell
-php artisan apitoolz:ai --requirement="For POS system, include sale order, and cashier"
+php artisan apitoolz:react-frontend Frontend --path=resources/js --theme=blue --vite --tailwind --typescript --eslint --storybook --force
 ```
+
+#### Example from BRS file
+
+To scaffold a TypeScript React app with Vite, Tailwind, ESLint, Storybook, and AI-generated layout from a BRS file:
+
+```shell
+php artisan apitoolz:react-frontend Frontend \
+    --path=resources/js \
+    --theme=teal \
+    --vite \
+    --tailwind \
+    --typescript \
+    --eslint \
+    --storybook \
+    --use-ai=resources/brs/layout.md \
+    --force
+```
+
+#### Available Options
+
+| Option           | Description                                                                                   |
+|------------------|-----------------------------------------------------------------------------------------------|
+| `{name}`         | Logical name of the React bundle (e.g. `Frontend`).                                           |
+| `--path=`        | Destination base directory (default: `resources/js`).                                         |
+| `--theme=`       | Tailwind primary color (`blue`, `teal`, `violet`, etc.).                                      |
+| `--vite`         | Include Vite config and plugin.                                                               |
+| `--tailwind`     | Include Tailwind CSS preset.                                                                  |
+| `--typescript`   | Use TypeScript (.tsx entry + tsconfig.json).                                                  |
+| `--eslint`       | Add ESLint, Prettier, and Tailwind class-sorting.                                             |
+| `--storybook`    | Add Storybook 7 scaffold.                                                                     |
+| `--use-ai=`      | Use AI to generate component layout from a BRS file (`.txt` or `.md` path).                   |
+| `--rollback=`    | Remove current build and revert to previous count.                                            |
+| `--force`        | Overwrite existing files.                                                                     |
+| `--doc`          | Print documentation for the scaffold.                                                         |
+
+This command streamlines React frontend setup, ensuring best practices and rapid development with modern tooling.
 
 ### How can I generate a model?
 
