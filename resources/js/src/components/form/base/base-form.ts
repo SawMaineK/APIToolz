@@ -5,7 +5,7 @@ type AsyncOptionsFn = (
   search: string,
   filter: { key: string; value: string },
   formGroup?: any
-) => Observable<{ id: string; name: string }[]> | Promise<{ id: string; name: string }[]>;
+) => Observable<{ id: string; name: string }[]> | Promise<{ label: string; value: string }[]>;
 
 export class BaseForm<T> {
   // Form Controls Properties

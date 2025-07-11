@@ -77,7 +77,8 @@ const UpdateUserModal = ({ open, data, onOpenChange, onCreated }: IModalProps) =
       label: 'Phone',
       placeholder: 'Enter phone number',
       value: data?.phone,
-      display: 'flex flex-col gap-1'
+      display: 'flex flex-col gap-1',
+      validators: [Validators.pattern(/^\+?\d{7,15}$/)]
     }),
     new FormSelect({
       name: 'gender',
@@ -85,10 +86,13 @@ const UpdateUserModal = ({ open, data, onOpenChange, onCreated }: IModalProps) =
       placeholder: 'Select gender',
       display: 'flex flex-col gap-1',
       value: data?.gender,
-      options: [
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' }
-      ]
+      options$: async () => {
+        return [
+          { label: 'Male', value: 'male' },
+          { label: 'Female', value: 'female' },
+          { label: 'Other', value: 'other' }
+        ];
+      }
     }),
     new FormFile({
       name: 'avatar',
