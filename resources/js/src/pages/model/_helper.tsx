@@ -169,9 +169,9 @@ export const createLinkOrValue = (field: GridField, value: any, row: any) => {
       {value}
     </a>
   ) : (
-    <Link to={url} className="text-blue-500 underline">
+    <a href={url} rel="noopener" className="text-blue-500 underline">
       {value}
-    </Link>
+    </a>
   );
 };
 
