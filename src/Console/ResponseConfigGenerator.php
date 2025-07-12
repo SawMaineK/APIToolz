@@ -19,6 +19,7 @@ class ResponseConfigGenerator extends Command
         {--position= : Sorting position}
         {--width= : Optional columns width for the field in the response}
         {--only-roles= : Comma-separated list of roles to apply this config}
+        {--link= : Optional link for the field, e.g., "https://example.com/{id}"}
         {--reset : Reset existing field config}
         {--doc : Show detailed documentation}';
 
@@ -64,7 +65,8 @@ class ResponseConfigGenerator extends Command
             'download' => $this->option('export') === 'true',
             'sortlist' => $this->option('position'),
             'width' => $this->option('width'),
-            'only_roles' => $this->option('only-roles') ? explode(',', $this->option('only-roles')) : []
+            'only_roles' => $this->option('only-roles') ? explode(',', $this->option('only-roles')) : [],
+            'link' => $this->option('link') ?? '',
         ];
 
         $validator = \Validator::make($data, $roles);
@@ -100,6 +102,7 @@ class ResponseConfigGenerator extends Command
         $this->line("  --position=NUM     Optional position index for ordering");
         $this->line("  --width=WIDTH      Optional width for the field in the response");
         $this->line("  --only-roles=ROLES Comma-separated list of roles to apply this config");
+        $this->line("  --link=URL         Optional link for the field, e.g., 'https://example.com/{id}'");
         $this->line("  --reset            Reset the field's existing response config");
         $this->line("  --doc              Show this doc message");
 

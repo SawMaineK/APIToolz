@@ -24,6 +24,8 @@ class ResponseConfigBuilder
                     $config['grid'][$i]['width'] = $request['width'] ?? $grid['width'];
                     $config['grid'][$i]['sortlist'] = $request['sortlist'] ?? $grid['sortlist'];
                     $config['grid'][$i]['only_roles'] = $request['only_roles'] ?? $grid['only_roles'];
+                    $config['grid'][$i]['link'] = $request['link'] ?? $grid['link'];
+
                 }
 
             }

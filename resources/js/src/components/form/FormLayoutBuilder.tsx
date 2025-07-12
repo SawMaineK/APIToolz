@@ -37,6 +37,7 @@ import { FormFieldPropertiesPanel } from './FormFieldPropertiesPanel';
 import { MoveVertical, Plus, X } from 'lucide-react';
 import { AddFormInputModal } from './AddFormInputModal';
 import { KeenIcon } from '../keenicons';
+import clsx from 'clsx';
 
 export type IFormLayoutBuilder = {
   title: string;
@@ -357,7 +358,7 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
               default:
                 formField.submitted$ = props.submitted$;
                 return (
-                  <div key={index} className={`${formField.columns}`}>
+                  <div key={index} className={clsx(formField.columns)}>
                     <FormField
                       formLayout={props.formLayout}
                       formField={formField}
@@ -400,7 +401,7 @@ function SortableFormField({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative ${formField.columns}`}>
+    <div ref={setNodeRef} style={style} className={clsx(formField.columns) + ' relative'}>
       {/* Drag Handle */}
       <div
         {...attributes}

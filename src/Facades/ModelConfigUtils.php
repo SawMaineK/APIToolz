@@ -142,9 +142,11 @@ class ModelConfigUtils
             'hidden' => false,
             "sortlist" => $sort,
             "width" => 'auto',
-            "conn" => array('valid' => false, 'db' => '', 'key' => '', 'display' => '', 'model' => ''),
             "format_as" => '',
             "format_value" => '',
+            "only_roles" => [],
+            "link" => '',
+
         );
         return $grid;
     }

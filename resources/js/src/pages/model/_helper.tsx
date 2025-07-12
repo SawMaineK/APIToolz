@@ -17,6 +17,8 @@ import { FormDate } from '@/components/form/base/form-date';
 import { FormDateTime } from '@/components/form/base/form-datetime';
 import { FormFile } from '@/components/form/base/form-file';
 import { FormPassword } from '@/components/form/base/form-password';
+import { Link } from 'react-router-dom';
+import { create } from 'lodash';
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -76,7 +78,7 @@ export const generateColumns = (
       },
       enableSorting: relation ? false : field.sortable,
       cell: (info) => {
-        const value = info.row.original[field.field];
+        let value = info.row.original[field.field];
         if (index === 'id') {
           return <DataGridRowSelect row={info.row} />;
         }
@@ -102,7 +104,7 @@ export const generateColumns = (
           );
         }
         if (field.format_as === 'currency') {
-          return `$${parseFloat(value).toFixed(2)}`;
+          value = `$${parseFloat(value).toFixed(2)}`;
         }
         if (
           field.format_as === 'date' ||
@@ -110,27 +112,32 @@ export const generateColumns = (
           field.field.includes('_at') ||
           field.field.includes('_date')
         ) {
-          return value ? new Date(value).toLocaleString() : '-';
+          value = value ? new Date(value).toLocaleString() : '-';
         }
         if (relation) {
           const displayKeys = relation.display.split(',');
-          return displayKeys
+          value = displayKeys
             .map((key) => {
-              return info.row.original[relation.title]?.[key] || '-';
+              const keys = key.split('.');
+              let value = info.row.original[relation.title];
+              for (const k of keys) {
+                value = value?.[k];
+                if (value === undefined || value === null) break;
+              }
+              return value ?? '-';
             })
             .join(' ');
-          //   return info.row.original[relation.title]?.[relation.display || 'name'] || '-';
         }
         if (typeof value === 'string') {
-          return truncateText(value);
+          value = truncateText(value);
         }
         if (typeof value === 'object') {
-          return ``;
+          value = ``;
         }
         if (typeof value === 'boolean') {
-          return value ? 'YES' : 'NO';
+          value = value ? 'YES' : 'NO';
         }
-        return value || '-';
+        return createLinkOrValue(field, value, info.row.original);
       },
       meta: {
         headerClassName:
@@ -144,6 +151,28 @@ export const generateColumns = (
       }
     };
   });
+};
+
+export const createLinkOrValue = (field: GridField, value: any, row: any) => {
+  if (!field.link) return value || '-';
+
+  // Step 1: Resolve URL
+  let url = field.link.replace(/{([^}]+)}/g, (_, key) => row?.[key] ?? `{${key}}`);
+
+  if (!url) return value || '-';
+
+  // Step 2: Check if external
+  const isExternal = /^https?:\/\//.test(url);
+
+  return isExternal ? (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+      {value}
+    </a>
+  ) : (
+    <Link to={url} className="text-blue-500 underline">
+      {value}
+    </Link>
+  );
 };
 
 export function requestOptionData(

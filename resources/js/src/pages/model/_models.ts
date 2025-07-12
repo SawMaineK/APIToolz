@@ -1,4 +1,4 @@
-import { BaseForm } from "@/components/form/base/base-form";
+import { BaseForm } from '@/components/form/base/base-form';
 
 export interface FormField {
   class: string;
@@ -78,6 +78,8 @@ export interface GridField {
   };
   format_as: string;
   format_value: string;
+  only_roles: string[];
+  link: string;
 }
 
 export interface Relationship {

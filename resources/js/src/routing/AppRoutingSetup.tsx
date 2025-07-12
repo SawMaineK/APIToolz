@@ -5,8 +5,6 @@ import { DefaultPage } from '@/pages/dashboards';
 import { AuthPage } from '@/auth';
 import { RequireAuth } from '@/auth/RequireAuth';
 import { Demo1Layout } from '@/layouts/demo1';
-import { Demo2Layout } from '@/layouts/demo2';
-import { Demo3Layout } from '@/layouts/demo3';
 import { ErrorsRouting } from '@/errors';
 import { DataTablePage } from '@/pages/model/datatable/DataTablePage';
 import { CreatePage } from '@/pages/model/form/CreatePage';
@@ -23,10 +21,6 @@ const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
   switch (layout) {
-    case 'demo2':
-      return <Demo2Layout />;
-    case 'demo3':
-      return <Demo3Layout />;
     default:
       return <Demo1Layout />;
   }

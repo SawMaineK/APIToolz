@@ -19,7 +19,7 @@ class RequestBodyConfigGenerator extends Command
      *
      * @var string
      */
-    protected $signature = 'apitoolz:request {model} {--field=} {--label=} {--input-type=} {--validator=} {--cast=} {--searchable=true} {--fillable=true} {--width=} {--criteria-key=} {--criteria-value=} {--position=} {--upload-path=} {--upload-max-size=} {--upload-type=image} {--upload-multiple=false} {--opt-type=} {--lookup-model=} {--lookup-value=} {--lookup-dependency-key=} {--lookup-filter-key=} {--lookup-query=} {--select-multiple=false} {--reset} {--ask-ai} {--doc}';
+    protected $signature = 'apitoolz:request {model} {--field=} {--label=} {--input-type=} {--validator=} {--cast=} {--searchable=true} {--fillable=true} {--width=} {--criteria-key=} {--criteria-value=} {--position=} {--upload-path=} {--upload-max-size=} {--upload-type=image} {--upload-multiple=false} {--opt-type=} {--lookup-model=} {--lookup-key=} {--lookup-value=} {--lookup-dependency-key=} {--lookup-filter-key=} {--lookup-query=} {--select-multiple=false} {--reset} {--ask-ai} {--doc}';
 
     /**
      * The console command description.
@@ -93,8 +93,11 @@ class RequestBodyConfigGenerator extends Command
                                     return $fail("Model class $modelClass does not exist.");
                                 }
                                 $table = (new $modelClass)->getTable();
-                                if (!\Schema::hasColumn($table, $value)) {
-                                    return $fail("The column '$value' does not exist in the '$table' table.");
+                                $values = explode(',', $value);
+                                foreach ($values as $value) {
+                                    if (!\Schema::hasColumn($table, $value)) {
+                                        return $fail("The column '$value' does not exist in the '$table' table.");
+                                    }
                                 }
                             }
                         ];
@@ -124,6 +127,7 @@ class RequestBodyConfigGenerator extends Command
                 'image_multiple' => $this->option('upload-multiple') == 'true' ? true : false,
                 'opt_type' => $this->option('opt-type'),
                 'lookup_model' => $this->option('lookup-model'),
+                'lookup_key' => $this->option('lookup-key'),
                 'lookup_value' => $this->option('lookup-value'),
                 'lookup_dependency_key' => $this->option('lookup-dependency-key'),
                 'lookup_filter_key' => $this->option('lookup-filter-key'),
