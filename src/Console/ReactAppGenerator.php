@@ -78,7 +78,7 @@ class ReactAppGenerator extends Command
         }
 
         $this->info("✨  React project [$name] successfully scaffolded at [$path]");
-        $this->line('Run:   npm install  &&  npm run dev');
+        $this->line('Run:   npm install --force  &&  npm run dev');
         return self::SUCCESS;
     }
 

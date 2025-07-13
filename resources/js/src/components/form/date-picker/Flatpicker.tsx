@@ -1,11 +1,11 @@
 import Flatpickr from 'react-flatpickr';
 import { FormGroup } from 'react-reactive-form';
 import moment from 'moment';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import 'flatpickr/dist/flatpickr.min.css';
 
 interface IFlatpickerProps {
-  handler: any;
+  handler?: any;
   formField?: any;
   formGroup?: FormGroup;
   dateFormat?: string;
@@ -29,34 +29,46 @@ export const Flatpicker = ({
   maxDate
 }: IFlatpickerProps) => {
   const flatpickrRef = useRef<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+
+  const format = dateFormat || (enableTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
 
   const getValue = () => {
-    if (formGroup?.controls) {
-      return moment(formGroup?.controls[formField.name].value || formField?.value).toDate();
-    }
-    return moment(formField?.value).toDate();
+    const rawValue =
+      formGroup?.get(formField?.name)?.value ?? formField?.value ?? null;
+
+    if (!rawValue || rawValue === '') return undefined;
+
+    const m = moment(rawValue);
+    return m.isValid() ? m.toDate() : undefined;
   };
 
   useEffect(() => {
-    if (formGroup && formField?.name) {
-      const control = formGroup.controls[formField.name];
-      const formatted = moment(formField.value).format(
-        dateFormat || (enableTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD')
-      );
-      control.setValue(formatted);
-      control.markAsTouched();
+    const value = getValue();
+    if (value) {
+      setSelectedDate(value);
     }
-  }, []);
+
+    // Ensure form control is updated with formatted value
+    if (formGroup && formField?.name) {
+      const control = formGroup.get(formField.name);
+      if (control && value) {
+        control.setValue(moment(value).format(format));
+        control.markAsTouched();
+      }
+    }
+  }, [formField?.value]);
 
   const handleChange = (selectedDates: Date[]) => {
-    const date = selectedDates[0];
+    const date = selectedDates?.[0];
+    if (!date) return;
+
     try {
-      if (formGroup) {
-        const formatted = moment(date).format(
-          dateFormat || (enableTime ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD')
-        );
-        formGroup.controls[formField?.name].setValue(formatted);
-        formGroup.controls[formField?.name].markAsTouched();
+      const formatted = moment(date).format(format);
+      setSelectedDate(date);
+      if (formGroup && formField?.name) {
+        formGroup.get(formField.name)?.setValue(formatted);
+        formGroup.get(formField.name)?.markAsTouched();
       }
       flatpickrRef.current?.flatpickr?.close();
     } catch (err) {
@@ -69,33 +81,29 @@ export const Flatpicker = ({
       return value === 'today'
         ? new Date().toISOString().split('T')[0]
         : value
-          ? new Date(value).toISOString().split('T')[0]
-          : undefined;
-    } catch (error) {
+        ? new Date(value).toISOString().split('T')[0]
+        : undefined;
+    } catch {
       return undefined;
     }
   };
 
   const handleClose = () => {
-    try {
-      if (formGroup?.controls) {
-        formGroup.controls[formField?.name].markAsTouched();
-      }
-    } catch (err) {
-      console.error(err);
+    if (formGroup?.controls && formField?.name) {
+      formGroup.get(formField.name)?.markAsTouched();
     }
   };
 
   return (
     <Flatpickr
       ref={flatpickrRef}
+      value={selectedDate}
       data-enable-time={enableTime}
       placeholder={placeholder}
       readOnly={false}
-      value={getValue()}
       options={{
         altInput: true,
-        altInputClass: `${inputClass}`,
+        altInputClass: inputClass ?? '',
         enableTime,
         minDate: getDateLimit(minDate || ''),
         maxDate: getDateLimit(maxDate || ''),

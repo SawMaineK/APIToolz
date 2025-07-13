@@ -64,7 +64,9 @@ class ModelRelationGenerator extends Command
                 'relation_type' => 'required|in:belongsTo,hasOne,hasMany,belongsToMany',
             ];
             if (!$this->option('remove')) {
-                $roles['relation_model'] = 'required|exists:Sawmainek\Apitoolz\Models\Model,name';
+                if (strtolower($this->option('relation-model')) !== 'user') {
+                    $roles['relation_model'] = 'required|exists:Sawmainek\Apitoolz\Models\Model,name';
+                }
             }
 
             $data = [

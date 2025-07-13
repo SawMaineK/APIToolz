@@ -147,8 +147,8 @@ readonly class ReactScaffolder
         }
 
         /* -----------------------------------------------------------
-         * 2) Extra merge from dependencies.txt
-         * --------------------------------------------------------- */
+        * 2) Extra merge from dependencies.txt
+        * --------------------------------------------------------- */
         $depFile = $this->path . '/dependencies.txt';
         if ($this->files->exists($depFile)) {
 
@@ -159,16 +159,18 @@ readonly class ReactScaffolder
 
             foreach (preg_split('/\R/', $this->files->get($depFile)) as $raw) {
                 $line = trim($raw);
-                if ($line === '' || str_starts_with($line, '#'))
+                if ($line === '' || str_starts_with($line, '#')) {
                     continue;
+                }
 
                 /**
-                 * Accept either “pkg@1.0.0”  OR  “pkg  ^1.0.0”
-                 *            “@scope/pkg@1.0” OR  “@scope/pkg  1.0.0”
+                 * Accept either:
+                 *   - “pkg@1.0.0”  OR  “pkg  ^1.0.0”
+                 *   - “@scope/pkg@latest” OR “@scope/pkg  1.0.0”
                  */
                 if (
                     !preg_match(
-                        '/^(@?[\w\-\/]+)\s*(?:@|\s+)\s*([\^\~]?\d[\dA-Za-z\.\-\+]*)$/',
+                        '/^(@?[\w\-\/]+)\s*(?:@|\s+)\s*([\^\~]?[A-Za-z0-9\.\-\+]+)$/',
                         $line,
                         $m
                     )
@@ -178,6 +180,11 @@ readonly class ReactScaffolder
                 }
 
                 [$full, $pkg, $ver] = $m;
+
+                // Normalize @latest → *
+                if (strtolower($ver) === 'latest') {
+                    $ver = '*';
+                }
 
                 $isDev = collect($devKeywords)->first(fn($kw) => str_contains($pkg, $kw)) !== null;
 
@@ -196,8 +203,8 @@ readonly class ReactScaffolder
         }
 
         /* -----------------------------------------------------------
-         * 3) Write the combined package.json
-         * --------------------------------------------------------- */
+        * 3) Write the combined package.json
+        * --------------------------------------------------------- */
         $this->files->put(
             $rootPkgPath,
             json_encode($rootPkg, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL
@@ -208,6 +215,7 @@ readonly class ReactScaffolder
         if ($this->files->exists($stubPkgPath)) {
             $this->files->delete($stubPkgPath);
         }
+
     }
 
 

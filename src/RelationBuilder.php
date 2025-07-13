@@ -30,14 +30,18 @@ class RelationBuilder
             $config['relationships'] = [];
             $relation = self::getRelation();
         }
-        $relationModel = Model::where('name', $request['relation_model'])->first();
+        $relationModel = null;
+        if (strtolower($request['relation_model']) !== 'user') {
+            $relationModel = Model::where('name', $request['relation_model'])->first();
+        }
+
         $relation['title'] = $request['title'];
-        $relation['relation'] = $request['relation_type'] ? $request['relation_type'] : $relation['relation'];
+        $relation['relation'] = $request['relation_type'] ?? $relation['relation'];
         $relation['master_key'] = $request['related_key'] ?? 'id';
         $relation['model'] = $request['relation_model'];
-        $relation['model_slug'] = $relationModel->slug;
+        $relation['model_slug'] = $relationModel->slug ?? 'users';
         $relation['display'] = $request['display_field'] ?? 'name';
-        $relation['table'] = $request['table'] ? $request['table'] : $relationModel->table;
+        $relation['table'] = $request['table'] ?? ($relationModel->table ?? 'users');
         $relation['key'] = $request['foreign_key'];
         $relation['sub'] = $request['sub'];
         $existedIdx = self::getExistedRelation($config['relationships'], $relation['title']);

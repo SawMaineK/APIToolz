@@ -205,17 +205,18 @@ class ModelSummaryGenerator extends Command
     {
         $this->info('Usage:');
         $this->info('  apitoolz:summary {model} {--title=} {--model=} {--type=} {--icon=} {--method=} {--column=} {--chart-type=} {--group-by=} {--aggregate=} {--limit=} {--value-method=} {--value-column=} {--max-method=} {--unit=} {--remove} {--force} {--doc}');
-        $this->info('Options:');
+
+        $this->info("\nOptions:");
         $this->info('  --title          The title of the summary report.');
-        $this->info('  --model          The model of the dashboard summary report'         );
+        $this->info('  --model          The model of the dashboard summary report.');
         $this->info('  --type           The type of the summary (kpi, chart, progress).');
         $this->info('  --icon           The icon for the summary report.');
         $this->info('  --method         The method for KPI (count, sum, avg, min, max).');
         $this->info('  --column         The column to apply the method on.');
         $this->info('  --chart-type     The type of chart (bar, line, pie, doughnut, area).');
         $this->info('  --group-by       The column to group by in charts.');
-        $this->info('  --group-model    The model to group by in charts');
-        $this->info('  --group-label    The model display field to group by in charts');
+        $this->info('  --group-model    The model to group by in charts.');
+        $this->info('  --group-label    The model display field to group by in charts.');
         $this->info('  --aggregate      The aggregation method for charts (count, sum, avg, min, max).');
         $this->info('  --limit          The limit for chart results.');
         $this->info('  --value-method   The method for progress value (where).');
@@ -227,6 +228,26 @@ class ModelSummaryGenerator extends Command
         $this->info('  --list           List all existing summary reports.');
         $this->info('  --force          Force overwrite existing summary report.');
         $this->info('  --doc            Show this documentation.');
+
+        $this->info("\nExamples:");
+        $this->info('  # Create a KPI for total invoices');
+        $this->info('  php artisan apitoolz:summary Invoice --title="Total Invoices" --type=kpi --method=count --icon=receipt');
+
+        $this->info("\n  # Create a bar chart of sales by product");
+        $this->info('  php artisan apitoolz:summary InvoiceItem --title="Sales by Product" --type=chart --chart-type=bar --group-by=product_id --group-model=Product --group-label=name --aggregate=sum --column=total');
+
+        $this->info("\n  # Create a progress bar for paid invoices this month");
+        $this->info('  php artisan apitoolz:summary Invoice --title="Monthly Paid Invoices" --type=progress --value-method=where --value-column=status:paid --max-method=count --unit=invoices');
+
+        $this->info("\n  # Remove a summary for Invoice");
+        $this->info('  php artisan apitoolz:summary Invoice --remove');
+
+        $this->info("\n  # List all summaries");
+        $this->info('  php artisan apitoolz:summary Invoice --list');
+
+        $this->info("\n  # Show documentation");
+        $this->info('  php artisan apitoolz:summary Invoice --doc');
     }
+
 
 }
