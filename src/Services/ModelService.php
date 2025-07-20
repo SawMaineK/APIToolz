@@ -125,7 +125,12 @@ class ModelService
     }
 
     public function ask($slug, Request $request) {
-        if($slug == 'dashboard' || $slug == 'general_configuration') {
+        if($slug == 'plan') {
+            return APIToolzGenerator::madePlan(
+                $request->question,
+                $request->id ?? null
+            );
+        } else  if($slug == 'dashboard' || $slug == 'general_configuration') {
             preg_match_all('/#([A-Za-z0-9_]+)/', $request->get('question', ''), $matches);
             $fields = [];
             foreach($matches[1] as $model) {
@@ -149,15 +154,11 @@ class ModelService
             }
         }
         $question = $request->get('question');
-        $hint = $request->get('hint', null);
-        $tags = $request->type ? [$request->type, $slug] : [$slug];
+        $tags = [$slug];
         return APIToolzGenerator::ask(
             $question,
-            $hint,
-            $slug,
-            $fields,
             $tags,
-            $request->lastone
+            $request->lastone ?? false
         );
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
 use Sawmainek\Apitoolz\Console\BrandingGenerator;
+use Sawmainek\Apitoolz\Console\CreateModelsGenerator;
 use Sawmainek\Apitoolz\Console\ModelBuilderGenerator;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
@@ -39,6 +40,10 @@ class APIToolzServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.apitoolz:react-project', function ($app) {
             return $app->make(ReactAppGenerator::class);
+        });
+
+        $this->app->singleton('command.apitoolz:create-models', function ($app) {
+            return $app->make(CreateModelsGenerator::class);
         });
 
         $this->app->singleton('command.apitoolz:build', function ($app) {
@@ -177,6 +182,7 @@ class APIToolzServiceProvider extends ServiceProvider
         // Register the command if we are using the application via the CLI
         $this->commands([
             ReactAppGenerator::class,
+            CreateModelsGenerator::class,
             ModelBuilderGenerator::class,
             ModelGenerator::class,
             DatatableGenerator::class,
@@ -207,6 +213,7 @@ class APIToolzServiceProvider extends ServiceProvider
     {
         return [
             'command.apitoolz:react-project',
+            'command.apitoolz.create-models',
             'command.apitoolz.build',
             'command.apitoolz.model',
             'command.apitoolz.datatable',

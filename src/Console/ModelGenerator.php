@@ -185,7 +185,7 @@ class ModelGenerator extends Command
                     });
                 }
                 $model->title = $this->option('title') ?? $model->title;
-                $model->desc = $this->option('desc') ?? $model->description;
+                $model->desc = $this->option('desc') ?? $model->desc;
                 $model->update();
                 ModelBuilder::build($model, $this->option('use-policy'), $this->option('use-observer'), $this->option('use-hook'), $this->option('soft-delete'));
                 if($this->option('use-ai')) {

@@ -1,6 +1,26 @@
 import { Fragment } from 'react';
-
+import * as LucideIcons from 'lucide-react';
 import { toAbsoluteUrl } from '@/utils/Assets';
+
+export function toPascalCase(str: string): string {
+  return str
+    .replace(/[-_](.)/g, (_, group1) => group1.toUpperCase()) // convert kebab to camel
+    .replace(/^(.)/, (_, group1) => group1.toUpperCase()); // capitalize first
+}
+
+export function makeIcon(icon: string) {
+  const IconName = icon ? toPascalCase(icon) : null;
+
+  // Get icon from Lucide library
+  const Icon = IconName && (LucideIcons as any)[IconName];
+
+  // ✅ If not found, fallback to Lightbulb
+  if (!Icon) {
+    return <LucideIcons.Lightbulb className="w-10 h-10 mt-4 ms-5 text-primary" />;
+  }
+
+  return <Icon className="w-10 h-10 mt-4 ms-5 text-primary" />;
+}
 
 interface IChannelStatsItem {
   logo: string;
@@ -13,14 +33,13 @@ interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
 const ChannelStats = () => {
   const items: IChannelStatsItems = [
-    { logo: 'linkedin-2.svg', info: '9.3k', desc: 'Amazing mates', path: '' },
-    { logo: 'youtube-2.svg', info: '24k', desc: 'Lessons Views', path: '' },
-    { logo: 'instagram-03.svg', info: '608', desc: 'New subscribers', path: '' },
+    { logo: 'app-window', info: '...', desc: 'Published Apps', path: '' },
+    { logo: 'workflow', info: '...', desc: 'Automated Flows', path: '' },
+    { logo: 'database', info: '...', desc: 'Dataverse Tables', path: '' },
     {
-      logo: 'tiktok.svg',
-      logoDark: 'tiktok-dark.svg',
-      info: '2.5k',
-      desc: 'Stream audience',
+      logo: 'users',
+      info: '...',
+      desc: 'Active Users',
       path: ''
     }
   ];
@@ -45,11 +64,7 @@ const ChannelStats = () => {
             />
           </>
         ) : (
-          <img
-            src={toAbsoluteUrl(`/media/brand-logos/${item.logo}`)}
-            className="w-7 mt-4 ms-5"
-            alt=""
-          />
+          makeIcon(item.logo)
         )}
 
         <div className="flex flex-col gap-1 pb-4 px-5">

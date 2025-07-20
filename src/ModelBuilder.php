@@ -304,8 +304,8 @@ class ModelBuilder
         RouterBuilder::build();
         SeederBuilder::build();
         Artisan::call('l5-swagger:generate');
-        Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
-        Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
+        //Artisan::call('scout:flush', ["model" => "App\\Models\\{$codes['model']}"]);
+        //Artisan::call('scout:import', ["model" => "App\\Models\\{$codes['model']}"]);
     }
 
     public static function buildConfiguration(Model $model, string $ask="") {

@@ -33,7 +33,13 @@ export const SummaryWidgetCard: React.FC<SummaryWidgetProps> = ({ widget }) => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1 pb-4 px-0 py-5">
                 <span className="text-2sm font-bold text-gray-700">{widget.title}</span>
-                <p className="text-3xl font-semibold text-gray-900 mt-4">{widget.value}</p>
+                <p className="text-3xl font-semibold text-gray-900 mt-4">
+                  {typeof widget.value === 'number'
+                    ? Number.isInteger(widget.value)
+                      ? widget.value
+                      : widget.value.toFixed(2)
+                    : widget.value}
+                </p>
               </div>
               {Icon && <Icon className="w-8 h-8 text-primary" />}
             </div>

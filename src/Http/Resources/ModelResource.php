@@ -26,6 +26,7 @@ class ModelResource extends JsonResource
             'auth' => $this->auth,
             'table' => $this->table,
             'two_factor' => $this->two_factor,
+            'roles' => $this->roles,
             'lock' => $this->lock,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

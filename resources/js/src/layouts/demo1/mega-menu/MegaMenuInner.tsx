@@ -49,6 +49,11 @@ const MegaMenuInner: React.FC = () => {
             <MenuTitle className={titleClass}>Models</MenuTitle>
           </MenuLink>
         </MenuItem>
+        <MenuItem key="models">
+          <MenuLink path="admin/model/relationship" className={linkClass}>
+            <MenuTitle className={titleClass}>Relationship</MenuTitle>
+          </MenuLink>
+        </MenuItem>
         <MenuItem key="menu-config">
           <MenuLink path="admin/menu-config" className={linkClass}>
             <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>

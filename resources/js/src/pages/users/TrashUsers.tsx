@@ -26,18 +26,10 @@ import {
 } from '@/partials/toolbar';
 import { Link } from 'react-router-dom';
 import AsyncSelect from 'react-select/async';
-import { CreateUserModal } from './CreateUserModal';
-import { UpdateUserModal } from './UpdateUserModal';
+import { Trash, Trash2, Undo2 } from 'lucide-react';
 
-const Users = () => {
-  const [user, setUser] = useState(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+const TrashUsers = () => {
   const [refreshKey, setRefreshKey] = useState(0);
-  const handleClose = () => {
-    setCreateModalOpen(false);
-    setUpdateModalOpen(false);
-  };
 
   const columns = useMemo(() => {
     const cols = [
@@ -173,68 +165,16 @@ const Users = () => {
         }
       },
       {
-        id: 'roles',
+        id: 'restore',
         header: () => '',
         enableSorting: false,
         cell: ({ row }: any) => (
-          <Menu className="items-stretch">
-            <MenuItem
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: 'bottom-end',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [0, 10] // [skid, distance]
-                    }
-                  }
-                ]
-              }}
-            >
-              <MenuToggle className="btn btn-sm btn-icon btn-light btn-clear">
-                <KeenIcon icon="dots-vertical" />
-              </MenuToggle>
-              <MenuSub className="menu-default" rootClassName="w-full max-w-[175px]">
-                <MenuItem
-                  onClick={() => {
-                    setUser(row.original);
-                    setUpdateModalOpen(true);
-                  }}
-                >
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="notepad-edit" />
-                    </MenuIcon>
-                    <MenuTitle>Edit</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-                <MenuSeparator />
-                <MenuItem
-                  path="#"
-                  onClick={() => {
-                    setUser(row.original);
-                  }}
-                >
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="security-user" />
-                    </MenuIcon>
-                    <MenuTitle>Roles</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-                <MenuItem path="#">
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="key-square" />
-                    </MenuIcon>
-                    <MenuTitle>Permissions</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-              </MenuSub>
-            </MenuItem>
-          </Menu>
+          <button
+            className="btn btn-sm btn-icon btn-clear btn-light"
+            onClick={() => handleRestoreClick(row.original.id)}
+          >
+            <Undo2 size={18} className="text-base" />
+          </button>
         ),
         meta: {
           headerClassName: 'w-[60px] lg:sticky lg:right-[60px] z-1',
@@ -250,7 +190,7 @@ const Users = () => {
             className="btn btn-sm btn-icon btn-clear btn-light"
             onClick={() => handleDeleteClick(row.original.id)}
           >
-            <KeenIcon icon="trash" />
+            <Trash2 size={18} className="text-danger" />
           </button>
         ),
         meta: {
@@ -282,6 +222,7 @@ const Users = () => {
       if (params.querySearch.length > 0) {
         queryParams.set('search', params.querySearch);
       }
+      queryParams.set('only_trashed', `true`);
       const response = await axios.get(
         `${import.meta.env.VITE_APP_API_URL}/users?${queryParams.toString()}`
       );
@@ -296,13 +237,29 @@ const Users = () => {
   };
 
   const handleDeleteClick = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
+    if (
+      window.confirm(
+        'Are you sure you want to permanently delete this record? This action cannot be undo.'
+      )
+    ) {
       try {
-        await axios.delete(`${import.meta.env.VITE_APP_API_URL}/users/${id}`);
-        toast.success('Record deleted successfully');
+        await axios.delete(`${import.meta.env.VITE_APP_API_URL}/users/${id}/force-destory`);
+        toast.success('Record permanently deleted successfully');
         setRefreshKey((prev) => prev + 1);
       } catch (error) {
         toast.error('Error deleting record');
+      }
+    }
+  };
+
+  const handleRestoreClick = async (id: string) => {
+    if (window.confirm('Are you sure you want to restore this record?')) {
+      try {
+        await axios.put(`${import.meta.env.VITE_APP_API_URL}/users/${id}/restore`);
+        toast.success('Record restored successfully');
+        setRefreshKey((prev) => prev + 1);
+      } catch (error) {
+        toast.error('Error restored record');
       }
     }
   };
@@ -333,13 +290,13 @@ const Users = () => {
   const Filters = () => {
     const { table, setQuerySearch } = useDataGrid();
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      table.setPageIndex(0);
-      setSearchQuery(value);
-      setQuerySearch(value);
-    };
+    // const [searchQuery, setSearchQuery] = useState('');
+    // const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //   const value = event.target.value;
+    //   table.setPageIndex(0);
+    //   setSearchQuery(value);
+    //   setQuerySearch(value);
+    // };
     const styles = {
       control: (base: any, state: any) => ({
         ...base,
@@ -389,7 +346,7 @@ const Users = () => {
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <div className="flex gap-2">
             <div className="flex gap-6">
-              <div className="relative">
+              {/* <div className="relative">
                 <KeenIcon
                   icon="magnifier"
                   className="leading-none text-md text-gray-500 absolute top-1/2 start-0 -translate-y-1/2 ms-3"
@@ -401,7 +358,7 @@ const Users = () => {
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />
-              </div>
+              </div> */}
               <div className="w-48">
                 <AsyncSelect
                   isClearable
@@ -441,42 +398,15 @@ const Users = () => {
     );
   };
 
-  const onCreated = () => {
-    handleClose();
-    setRefreshKey((prev) => prev + 1);
-  };
-
   return (
     <>
       <Toolbar>
         <ToolbarHeading>
-          <ToolbarPageTitle text="Users" />
-          <ToolbarDescription>Manage all users</ToolbarDescription>
+          <ToolbarPageTitle text="Deleted Users" />
+          <ToolbarDescription>Manage all deleted users</ToolbarDescription>
         </ToolbarHeading>
-        <ToolbarActions>
-          <Link to={'/admin/users/trash'} className="btn btn-sm btn-light">
-            <KeenIcon icon="trash" className="!text-base" />
-            Trashed
-          </Link>
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={() => {
-              setUser(null);
-              setCreateModalOpen(true);
-            }}
-          >
-            <KeenIcon icon="plus" />
-            Add User
-          </button>
-        </ToolbarActions>
       </Toolbar>
-      <UpdateUserModal
-        open={updateModalOpen}
-        data={user}
-        onCreated={onCreated}
-        onOpenChange={handleClose}
-      />
-      <CreateUserModal open={createModalOpen} onCreated={onCreated} onOpenChange={handleClose} />
+      <div className="mb-6"></div>
       <DataGrid
         key={refreshKey}
         columns={columns}
@@ -492,4 +422,4 @@ const Users = () => {
   );
 };
 
-export { Users };
+export { TrashUsers };

@@ -43,25 +43,19 @@ trait QueryFilterTrait
      */
     public function scopeFilter(Builder $query, Request $request): Builder
     {
-        // Cache handling (Optional)
-        // $cacheKey = $this->getCacheKey($request);
-        // if (Cache::has($cacheKey)) {
-        //     return Cache::get($cacheKey);
-        // }
-
-        // Handle soft delete support
-        if ($request->has('with_trashed')) {
-            $query->withTrashed();
-        } elseif ($request->has('only_trashed')) {
+        // ✅ Handle soft deletes first
+        if ($request->has('only_trashed')) {
             $query->onlyTrashed();
+        } elseif ($request->has('with_trashed')) {
+            $query->withTrashed();
         }
 
-        // Apply search if the search parameter is set
-        if ($request->has('search') && $request->query('search')) {
+        // ✅ Apply keyword search even for only_trashed
+        if ($request->filled('search')) {
             $this->applySearchFilter($query, $request->query('search'));
         }
 
-        // Check if the 'filter' parameter exists in the request
+        // ✅ Normal field filters
         if ($request->has('filter')) {
             $filters = explode('|', $request->query('filter'));
 
@@ -69,55 +63,49 @@ trait QueryFilterTrait
                 if (!str_contains($filter, ':')) {
                     continue;
                 }
-                list($field, $value) = explode(':', $filter, 2);
+                [$field, $value] = explode(':', $filter, 2);
 
-                // Special handling for roles (e.g., user.role or role)
                 if ($field === 'role') {
-                    $query->whereHas('roles', function ($q) use ($value) {
-                        $q->where('name', $value);
-                    });
+                    $query->whereHas('roles', fn($q) => $q->where('name', $value));
                     continue;
                 }
 
-                // Apply filters for relations (e.g. user.name)
                 if (str_contains($field, '.')) {
                     [$relation, $column] = explode('.', $field, 2);
 
-                    // Special case: user.role
                     if ($relation === 'user' && $column === 'role') {
-                        $query->whereHas('user.roles', function ($q) use ($value) {
-                            $q->where('name', $value);
-                        });
+                        $query->whereHas('user.roles', fn($q) => $q->where('name', $value));
                         continue;
                     }
 
-                    $query->whereHas($relation, function ($q) use ($column, $value) {
-                        $this->applyFilters($q, $column, $value);
-                    });
+                    $query->whereHas($relation, fn($q) => $this->applyFilters($q, $column, $value));
                 } else {
                     $this->applyFilters($query, $field, $value);
                 }
             }
         }
 
-        // Handle geolocation filtering (latitude, longitude, radius)
+        // ✅ Geolocation filtering
         if ($request->has('latitude') && $request->has('longitude')) {
-            $query->geolocation($request->query('latitude'), $request->query('longitude'), $request->query('radius', 10));
+            $query->geolocation(
+                $request->query('latitude'),
+                $request->query('longitude'),
+                $request->query('radius', 10)
+            );
         }
 
-        // Handle aggregations
+        // ✅ Aggregates still work with only trashed
         if ($request->has('aggregate')) {
             return $query->aggregate($request);
         }
 
-        // Apply sorting
+        // ✅ Sorting still applies
         if ($request->has('sort_by')) {
-            $query->orderBy($request->query('sort_by'), $request->query('sort_dir', 'asc'));
+            $query->orderBy(
+                $request->query('sort_by'),
+                $request->query('sort_dir', 'asc')
+            );
         }
-
-        // Cache the query results (Optional)
-        // $cacheDuration = 60; // 60 minutes by default
-        // Cache::put($cacheKey, $query, $cacheDuration);
 
         return $query;
     }

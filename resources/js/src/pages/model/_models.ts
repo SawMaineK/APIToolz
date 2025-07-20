@@ -111,6 +111,8 @@ export interface Filter {
 
 export interface ModelConfig {
   policy: boolean;
+  observer: boolean;
+  hook: string;
   softdelete: boolean;
   forms: FormField[];
   grid: GridField[];
@@ -131,6 +133,7 @@ export interface Model {
   config: ModelConfig;
   table: string;
   auth: boolean;
+  roles: string;
   created_at: string;
 }
 

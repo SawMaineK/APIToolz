@@ -9,13 +9,11 @@ import {
   ToolbarHeading,
   ToolbarPageTitle
 } from '@/partials/toolbar';
-import { Menu, MenuItem, MenuToggle } from '@/components';
-import { ChartNoAxesCombined, Cpu } from 'lucide-react';
-import { DropdownChatAI } from '@/partials/dropdowns/chat-ai';
+import { ChartNoAxesCombined, Cpu, Trash } from 'lucide-react';
 import { ModelContentProps } from '../_models';
 import { generateColumns } from '../_helper';
 import { CreateModal } from '../form/CreateModal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/i18n';
 import { useRef } from 'react';
 import { DataTableFilter } from './DataTableFilter';
@@ -173,34 +171,6 @@ const DataTable = ({ model }: ModelContentProps) => {
           </ToolbarDescription>
         </ToolbarHeading>
         <ToolbarActions>
-          <Menu>
-            <MenuItem
-              ref={itemAIChatRef}
-              onShow={handleShow}
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: isRTL() ? 'bottom-start' : 'bottom-end',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: isRTL() ? [-170, 10] : [50, -100]
-                    }
-                  }
-                ]
-              }}
-            >
-              <MenuToggle className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap">
-                <Cpu size={16} />
-                <span className="truncate max-sm:hidden">AI Assist</span>
-                <span className="sm:hidden">AI</span>
-              </MenuToggle>
-
-              {DropdownChatAI({ menuTtemRef: itemAIChatRef, slug: model.slug, type: 'response' })}
-            </MenuItem>
-          </Menu>
-
           {model.config.reports && model.config.reports.length > 0 && (
             <button
               className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap"
@@ -213,7 +183,15 @@ const DataTable = ({ model }: ModelContentProps) => {
               <span className="sm:hidden">Sum</span>
             </button>
           )}
-
+          {model.config.softdelete && (
+            <Link
+              to={`/admin/model/${model.slug}/trash`}
+              className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap"
+            >
+              <Trash size={16} className="" />
+              <span className="truncate max-sm:hidden">Trashed</span>
+            </Link>
+          )}
           <button
             onClick={() => {
               navigate(`/admin/model/${model.slug}/create`);

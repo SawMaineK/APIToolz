@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { CreateModel } from './CreateModel';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
+import { format } from 'date-fns';
 
 interface IColumnFilterProps<TData, TValue> {
   column: {
@@ -117,7 +118,7 @@ const Models = () => {
           </div>
         ),
         meta: {
-          headerClassName: 'min-w-[200px]',
+          headerClassName: 'min-w-[150px]',
           cellClassName: 'text-gray-700 font-normal'
         }
       },
@@ -143,6 +144,86 @@ const Models = () => {
         },
         meta: {
           className: 'min-w-[100px]'
+        }
+      },
+      {
+        accessorFn: 'policy',
+        id: 'policy',
+        header: 'Use Policy',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const usedPolicy = row.original.config.policy;
+          return (
+            <div className="flex items-center mb-2">
+              <label className="switch switch-sm">
+                <input
+                  type="checkbox"
+                  checked={usedPolicy}
+                  onChange={() => handleToggle(row.index)} // Use row.index for the correct user
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          );
+        },
+        meta: {
+          className: 'min-w-[100px]'
+        }
+      },
+      {
+        accessorFn: 'observer',
+        id: 'observer',
+        header: 'Use Observer',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const usedPolicy = row.original.config.observer;
+          return (
+            <div className="flex items-center mb-2">
+              <label className="switch switch-sm">
+                <input
+                  type="checkbox"
+                  checked={usedPolicy}
+                  onChange={() => handleToggle(row.index)} // Use row.index for the correct user
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          );
+        },
+        meta: {
+          className: 'min-w-[100px]'
+        }
+      },
+      {
+        accessorKey: 'hooks',
+        header: 'Use Hooks',
+        enableSorting: true,
+        cell: (info) => (
+          <div className="flex flex-col">
+            <span className="text-gray-900 font-medium">
+              {info.row.original.roles ? `[${info.row.original.config.hook}]` : ``}
+            </span>
+          </div>
+        ),
+        meta: {
+          headerClassName: 'min-w-[150px]',
+          cellClassName: 'text-gray-700 font-normal'
+        }
+      },
+      {
+        accessorKey: 'roles',
+        header: 'Roles',
+        enableSorting: true,
+        cell: (info) => (
+          <div className="flex flex-col">
+            <span className="text-gray-900 font-medium">
+              {info.row.original.roles ? `[${info.row.original.roles}]` : ``}
+            </span>
+          </div>
+        ),
+        meta: {
+          headerClassName: 'min-w-[150px]',
+          cellClassName: 'text-gray-700 font-normal'
         }
       },
       {
@@ -227,16 +308,24 @@ const Models = () => {
         queryParams.set('sort_dir', params.sorting[0].desc ? 'desc' : 'asc');
       }
       if (params.columnFilters.length > 0) {
-        var values: string[] = [];
-        params.columnFilters.forEach((filter: any) => {
-          values.push(`${filter.id}:${filter.value}`);
+        const values = params.columnFilters.map((f: any) => {
+          if (f.value && typeof f.value === 'object' && f.value.from && f.value.to) {
+            const start_date = f.value?.from ? format(f.value.from, 'yyyy-MM-dd') : '';
+            const end_date = f.value?.to
+              ? format(new Date(f.value.to.getTime() + 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+              : '';
+            return `${f.id}:between:${start_date},${end_date}`;
+          }
+          return `${f.id}:${f.value}`;
         });
         queryParams.set(`filter`, values.join('|'));
       }
       if (params.querySearch.length > 0) {
         queryParams.set('search', params.querySearch);
       }
-      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/model`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_APP_API_URL}/model?${queryParams.toString()}`
+      );
       return {
         data: response.data.data,
         totalCount: response.data.meta.total

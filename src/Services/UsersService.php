@@ -51,8 +51,10 @@ class UsersService
 
     public function forceDelete($id)
     {
+        \Schema::disableForeignKeyConstraints();
         Log::info('Permanently deleting users', ['id' => $id]);
         $users = User::withTrashed()->findOrFail($id);
         $users->forceDelete();
+        \Schema::enableForeignKeyConstraints();
     }
 }
