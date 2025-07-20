@@ -13,7 +13,6 @@ import { UsersPage } from '@/pages/users/UsersPage';
 import { RolesPage } from '@/pages/roles/RolesPage';
 import { MenuConfigPage } from '@/pages/menu-config/MenuConfigPage';
 import { FormBuilderPage } from '@/pages/model/form/FormBuilderPage';
-import { ModelHightlightPage } from '@/pages/model/ModelHightlightPage';
 import { SummaryWidgetPage } from '@/pages/model/summary/SummaryWidgetPage';
 import { MadePlanPage } from '@/pages/plan/MadePlanPage';
 import { RelationshipPage } from '@/pages/model/relationship/RelationshipPage';
@@ -49,6 +48,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/admin/menu-config" element={<MenuConfigPage />} />
         </Route>
       </Route>
+      <Route path="/admin/unauthorized" element={<ErrorsRouting />} />
       <Route path="/admin/error/*" element={<ErrorsRouting />} />
       <Route path="/admin/auth/*" element={<AuthPage />} />
       <Route path="/admin/*" element={<Navigate to="/admin/auth" />} />
