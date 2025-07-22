@@ -112,9 +112,20 @@ class AuthService
     public function getUser(Request $request)
     {
         $user = User::find($request->user()->id);
-        $user->load('roles');
         Log::info("Fetching user details.", ['user_id' => $user->id]);
-        return $user;
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'avatar' => $user->avatar,
+            'is_active' => $user->is_active,
+            'last_activity' => $user->last_activity,
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ];
     }
 
     public function changePassword($user, $data)

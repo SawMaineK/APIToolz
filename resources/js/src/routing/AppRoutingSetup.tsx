@@ -18,6 +18,7 @@ import { MadePlanPage } from '@/pages/plan/MadePlanPage';
 import { RelationshipPage } from '@/pages/model/relationship/RelationshipPage';
 import { TrashUsersPage } from '@/pages/users/UsersTrashPage';
 import { TrashDataTablePage } from '@/pages/model/datatable/TrashDataTablePage';
+import { PermissionsPage } from '@/pages/roles/PermissionsPage';
 const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
@@ -45,6 +46,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/admin/users/trash" element={<TrashUsersPage />} />
           <Route path="/admin/roles" element={<RolesPage />} />
+          <Route path="/admin/permission/:role" element={<PermissionsPage />} />
           <Route path="/admin/menu-config" element={<MenuConfigPage />} />
         </Route>
       </Route>

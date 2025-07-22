@@ -7,19 +7,19 @@ use Sawmainek\Apitoolz\Services\RoleService;
 use Sawmainek\Apitoolz\Http\Resources\RoleResource;
 use Illuminate\Http\Request;
 use Sawmainek\Apitoolz\Http\Controllers\APIToolzController;
+use Spatie\Permission\Models\Permission;
 
 class RoleController extends APIToolzController
 {
     protected $roleService;
     public $slug = 'role';
 
-
     public function __construct(RoleService $roleService)
     {
         $this->roleService = $roleService;
     }
 
-   /**
+    /**
      * @OA\Get(
      *     path="/api/role",
      *     summary="Get a list of role with dynamic filtering, sorting, pagination, and advanced search",
@@ -27,10 +27,10 @@ class RoleController extends APIToolzController
      *     security={{"apiAuth":{}}},
      *     @OA\Parameter(name="filter", in="query", description="Dynamic filtering with multiple fields (e.g., `status:active|age:gt:30`)", @OA\Schema(type="string")),
      *     @OA\Parameter(name="search", in="query", description="Full-text search (e.g., `keywords`)", @OA\Schema(type="string")),
-     *     @OA\Parameter(name="sort_by", in="query", description="Sort the results by a specific field (e.g., `price` or `name`)", @OA\Schema(type="string", example="created_at")),
-     *     @OA\Parameter(name="sort_dir", in="query", description="Direction of sorting (asc or desc)", @OA\Schema(type="string", enum={"asc", "desc"}, default="asc")),
-     *     @OA\Parameter(name="page", in="query", description="Page number for pagination (default: 1)", @OA\Schema(type="integer", default=1)),
-     *     @OA\Parameter(name="per_page", in="query", description="Number of items per page (default: 10)", @OA\Schema(type="integer", default=10)),
+     *     @OA\Parameter(name="sort_by", in="query", description="Sort the results by a specific field", @OA\Schema(type="string", example="created_at")),
+     *     @OA\Parameter(name="sort_dir", in="query", description="Direction of sorting", @OA\Schema(type="string", enum={"asc", "desc"}, default="asc")),
+     *     @OA\Parameter(name="page", in="query", description="Page number for pagination", @OA\Schema(type="integer", default=1)),
+     *     @OA\Parameter(name="per_page", in="query", description="Number of items per page", @OA\Schema(type="integer", default=10)),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -74,7 +74,6 @@ class RoleController extends APIToolzController
         ]);
     }
 
-
     /**
      * @OA\Post(
      *     path="/api/role",
@@ -115,9 +114,6 @@ class RoleController extends APIToolzController
     public function show(string $id)
     {
         $role = Role::findOrFail($id);
-        if (!$role) {
-            return $this->response("Role not found", 404);
-        }
         return $this->response(new RoleResource($role));
     }
 
@@ -142,9 +138,6 @@ class RoleController extends APIToolzController
     public function update(RoleRequest $request, string $id)
     {
         $role = Role::findOrFail($id);
-        if (!$role) {
-            return $this->response("Role not found", 404);
-        }
         $updatedRole = $this->roleService->update($role, $request->validated());
         return $this->response(new RoleResource($updatedRole));
     }
@@ -165,9 +158,6 @@ class RoleController extends APIToolzController
     public function destroy(string $id)
     {
         $role = Role::findOrFail($id);
-        if (!$role) {
-            return $this->response("Role not found", 404);
-        }
         $this->roleService->delete($role);
         return $this->response("The record has been deleted successfully.", 204);
     }
@@ -181,15 +171,7 @@ class RoleController extends APIToolzController
      *     @OA\Parameter(in="path", name="id", required=true, description="Role ID"),
      *     @OA\Response(
      *         response=200,
-     *         description="Role restored successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="The record has been restored successfully."
-     *             )
-     *         )
+     *         description="Role restored successfully"
      *     )
      * )
      */
@@ -216,5 +198,61 @@ class RoleController extends APIToolzController
     {
         $this->roleService->forceDelete($id);
         return $this->response("The record has been permanently deleted.", 204);
+    }
+
+    /**
+     * ✅ NEW: List all available permissions
+     *
+     * @OA\Get(
+     *     path="/api/role/permissions",
+     *     summary="Get all available permissions",
+     *     tags={"Role"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of permissions"
+     *     )
+     * )
+     */
+    public function listPermissions()
+    {
+        $permissions = Permission::all(['id', 'name']);
+        return $this->response($permissions);
+    }
+
+    /**
+     * ✅ NEW: Assign or revoke permissions for a role
+     *
+     * @OA\Post(
+     *     path="/api/role/{id}/permissions",
+     *     summary="Assign or revoke permissions for a specific role",
+     *     tags={"Role"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\Parameter(in="path", name="id", required=true, description="Role ID"),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="permissions", type="array", @OA\Items(type="string"), example={"role.view","role.update"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Permissions updated successfully"
+     *     )
+     * )
+     */
+    public function assignPermissions(Request $request, string $roleId)
+    {
+        $role = Role::findOrFail($roleId);
+        $permissions = $request->input('permissions', []);
+
+        // Sync permissions (removes old & assigns new)
+        $role->syncPermissions($permissions);
+
+        return $this->response([
+            'message' => 'Permissions updated successfully.',
+            'role' => $role->load('permissions')
+        ]);
     }
 }

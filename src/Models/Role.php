@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Scout\Searchable;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
 
     use QueryFilterTrait;
@@ -80,7 +82,5 @@ class Role extends Model
 			'updated_at' => $this->updated_at
         ];
     }
-
-
 
 }

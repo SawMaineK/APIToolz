@@ -21,12 +21,13 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
   });
 
   useEffect(() => {
-    // Reset search and filters on model change
+    // ✅ Reset search and filters on model change
     setSearchQuery('');
     setQuerySearch('');
     table.setColumnFilters([]);
     table.setPageIndex(0);
-    // Sort filters by position on model change
+
+    // ✅ Sort filters by position for stable order (better keys)
     if (model.config?.filters) {
       model.config.filters = [...model.config.filters].sort(
         (a, b) => (a.position ?? 0) - (b.position ?? 0)
@@ -59,10 +60,16 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
     }
   };
 
+  const linkClass =
+    'menu-link text-sm text-gray-700 font-medium menu-link-hover:text-primary menu-item-active:text-gray-900 menu-item-show:text-primary menu-item-here:text-gray-900';
+  const titleClass = 'text-nowrap';
+
   return (
     <div className="card-header border-b-0 px-5 flex-wrap">
       <h3 className="card-title font-medium text-md">Filter by:</h3>
+
       <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+        {/* ✅ Search Input */}
         <div className="flex flex-wrap gap-2">
           <div className="flex gap-6">
             <div className="relative">
@@ -79,11 +86,16 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
               />
             </div>
           </div>
-          {model.config?.filters?.map((filter: Filter) => {
+
+          {/* ✅ Dynamic Filters */}
+          {model.config?.filters?.map((filter: Filter, idx: number) => {
+            const uniqueKey = `${filter.key ?? 'filter'}-${idx}`;
+
+            // ✅ SELECT Filter
             if (filter.type === 'select') {
               return (
                 <FilterSelect
-                  key={filter.key}
+                  key={uniqueKey}
                   filter={filter}
                   onValueChange={(value: string) => {
                     table.setPageIndex(0);
@@ -92,9 +104,11 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                 />
               );
             }
+
+            // ✅ CHECKBOX Filter
             if (filter.type === 'checkbox') {
               return (
-                <div key={filter.key} className="flex items-center">
+                <div key={uniqueKey} className="flex items-center">
                   <Switch
                     id={filter.key}
                     defaultChecked={false}
@@ -109,19 +123,23 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                 </div>
               );
             }
+
+            // ✅ RADIO Filter
             if (filter.type === 'radio') {
               return (
                 <FilterRadio
-                  key={filter.key}
+                  key={uniqueKey}
                   filter={filter}
                   table={table}
                   filterCols={filterCols}
                 />
               );
             }
+
+            // ✅ DATE Filter
             if (filter.type === 'date') {
               return (
-                <Popover>
+                <Popover key={uniqueKey}>
                   <PopoverTrigger asChild>
                     <button
                       id="date"
@@ -163,7 +181,8 @@ const DataTableFilter = ({ model }: ModelContentProps) => {
                 </Popover>
               );
             }
-            return null;
+
+            return null; // ✅ Skip unknown filter types
           })}
         </div>
       </div>

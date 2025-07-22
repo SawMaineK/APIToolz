@@ -15,10 +15,17 @@ import { Cpu } from 'lucide-react';
 import { DropdownChatAI } from '@/partials/dropdowns/chat-ai';
 import { useLanguage } from '@/i18n';
 import { useRef } from 'react';
+import { useAuthContext } from '@/auth';
 
 const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
   const { isRTL } = useLanguage();
   const navigate = useNavigate();
+  const { currentUser } = useAuthContext();
+
+  // ✅ Permission checks
+  const canCreate = currentUser?.permissions?.some((perm) => perm === 'create');
+  const canEdit = currentUser?.permissions?.some((perm) => perm === 'edit');
+  const hasRole = currentUser?.roles?.some((role) => role === 'super');
 
   const itemAIChatRef = useRef<any>(null);
 
@@ -56,7 +63,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
       const result = await axios.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: '' // Add token here if needed
+          Authorization: '' // Add token if needed
         }
       });
 
@@ -72,14 +79,14 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
       }
     } catch (error: any) {
       console.error('Form submission failed:', error);
-      // Set error state in the form
+
       if (axios.isAxiosError(error) && error.response) {
         const { status, data } = error.response;
         formGroup.setErrors({ submit: data.message });
         if (data.errors && status === 400) {
           Object.entries(data.errors).forEach(([field, message]) => {
             if (formGroup.get(field)) {
-              if (message instanceof Array) {
+              if (Array.isArray(message)) {
                 message.forEach((msg: any) => {
                   formGroup.get(field)?.setErrors({ serverError: msg });
                 });
@@ -97,15 +104,35 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
     }
   };
 
+  // ✅ Determine required permission
+  const isEditMode = !!modelData;
+  const hasPermission = isEditMode ? canEdit : canCreate;
+
+  // ✅ If user doesn’t have permission, block access
+  if (!hasPermission) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        <h2 className="text-lg font-semibold">
+          {isEditMode
+            ? 'You do not have permission to edit this record.'
+            : 'You do not have permission to create a new record.'}
+        </h2>
+        <button onClick={() => navigate(-1)} className="btn btn-sm btn-light mt-4">
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       {isModal ? (
-        <div className="">
+        <div>
           <FormLayout
             initValues={initialValues}
             formLayout={formLayout}
             onSubmitForm={formSubmit}
-          ></FormLayout>
+          />
         </div>
       ) : (
         <div className="card w-full">
@@ -113,51 +140,56 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
             <Toolbar>
               <ToolbarHeading>
                 <ToolbarPageTitle
-                  text={modelData ? `Edit ${model?.title || ''}` : `New  ${model?.title || ''}`}
+                  text={modelData ? `Edit ${model?.title || ''}` : `New ${model?.title || ''}`}
                 />
               </ToolbarHeading>
-              <ToolbarActions>
-                <Link to={`/admin/model/${model.slug}/builder`} className="btn btn-sm btn-light">
-                  <KeenIcon icon="setting-2" className="!text-base" />
-                  Builder
-                </Link>
-                <Menu>
-                  <MenuItem
-                    ref={itemAIChatRef}
-                    onShow={handleShow}
-                    toggle="dropdown"
-                    trigger="click"
-                    dropdownProps={{
-                      placement: isRTL() ? 'bottom-start' : 'bottom-end',
-                      modifiers: [
-                        {
-                          name: 'offset',
-                          options: {
-                            offset: isRTL() ? [-170, 10] : [50, -100]
-                          }
-                        }
-                      ]
-                    }}
-                  >
-                    <MenuToggle className="btn btn-sm btn-primary">
-                      <Cpu size={16} />
-                      AI Assist
-                    </MenuToggle>
 
-                    {DropdownChatAI({
-                      menuTtemRef: itemAIChatRef,
-                      slug: model.slug,
-                      type: 'request'
-                    })}
-                  </MenuItem>
-                </Menu>
-              </ToolbarActions>
+              {hasRole && (
+                <ToolbarActions>
+                  <Link to={`/admin/model/${model.slug}/builder`} className="btn btn-sm btn-light">
+                    <KeenIcon icon="setting-2" className="!text-base" />
+                    Builder
+                  </Link>
+
+                  <Menu>
+                    <MenuItem
+                      ref={itemAIChatRef}
+                      onShow={handleShow}
+                      toggle="dropdown"
+                      trigger="click"
+                      dropdownProps={{
+                        placement: isRTL() ? 'bottom-start' : 'bottom-end',
+                        modifiers: [
+                          {
+                            name: 'offset',
+                            options: {
+                              offset: isRTL() ? [-170, 10] : [50, -100]
+                            }
+                          }
+                        ]
+                      }}
+                    >
+                      <MenuToggle className="btn btn-sm btn-primary">
+                        <Cpu size={16} />
+                        AI Assist
+                      </MenuToggle>
+
+                      {DropdownChatAI({
+                        menuTtemRef: itemAIChatRef,
+                        slug: model.slug,
+                        type: 'request'
+                      })}
+                    </MenuItem>
+                  </Menu>
+                </ToolbarActions>
+              )}
             </Toolbar>
+
             <FormLayout
               initValues={initialValues}
               formLayout={formLayout}
               onSubmitForm={formSubmit}
-            ></FormLayout>
+            />
           </div>
         </div>
       )}

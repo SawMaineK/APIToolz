@@ -13,7 +13,6 @@ class RoleService
         if($request->has('aggregate')) {
             return $query;
         }
-
         $perPage = $request->query('per_page', 10);
         return $query->paginate($perPage);
     }

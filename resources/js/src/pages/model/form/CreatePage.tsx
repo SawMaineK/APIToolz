@@ -18,7 +18,6 @@ const CreatePage = () => {
   const fetchModel = async () => {
     const model = await axios.get<Model>(`${import.meta.env.VITE_APP_API_URL}/model/${id}`);
     setModel(model.data);
-
   };
 
   useEffect(() => {

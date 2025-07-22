@@ -8,9 +8,12 @@ import { generateColumns } from '../_helper';
 import { format } from 'date-fns';
 import { Trash2, Undo2 } from 'lucide-react';
 import { TrashDataTableFilter } from './TrashDataTableFilter';
+import { useAuthContext } from '@/auth';
 
 const TrashDataTable = ({ model }: ModelContentProps) => {
   const [refreshKey, setRefreshKey] = useState(0);
+  const { currentUser } = useAuthContext();
+  const canDelete = currentUser?.permissions?.some((perm) => perm === 'delete');
 
   useEffect(() => {
     setRefreshKey((prev) => prev + 1);
@@ -18,45 +21,47 @@ const TrashDataTable = ({ model }: ModelContentProps) => {
 
   const columns = useMemo(() => {
     const cols = generateColumns(model.config.grid, model.config.forms, model.config.relationships);
-
-    cols.push(
-      {
-        id: 'restore',
-        header: () => '',
-        enableSorting: false,
-        cell: ({ row }) => (
-          <button
-            className="btn btn-sm btn-icon btn-clear btn-light"
-            onClick={() => handleRestoreClick(row.original.id)}
-          >
-            <Undo2 size={18} className="text-base" />
-          </button>
-        ),
-        meta: {
-          headerClassName:
-            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
-          cellClassName:
-            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
+    if (canDelete) {
+      cols.push(
+        {
+          id: 'restore',
+          header: () => '',
+          enableSorting: false,
+          cell: ({ row }) => (
+            <button
+              className="btn btn-sm btn-icon btn-clear btn-light"
+              onClick={() => handleRestoreClick(row.original.id)}
+            >
+              <Undo2 size={18} className="text-base" />
+            </button>
+          ),
+          meta: {
+            headerClassName:
+              'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
+            cellClassName:
+              'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
+          }
+        },
+        {
+          id: 'delete',
+          header: () => '',
+          enableSorting: false,
+          cell: ({ row }) => (
+            <button
+              className="btn btn-sm btn-icon btn-clear btn-light"
+              onClick={() => handleDeleteClick(row.original.id)}
+            >
+              <Trash2 size={18} className="text-danger" />
+            </button>
+          ),
+          meta: {
+            headerClassName:
+              'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1',
+            cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1'
+          }
         }
-      },
-      {
-        id: 'delete',
-        header: () => '',
-        enableSorting: false,
-        cell: ({ row }) => (
-          <button
-            className="btn btn-sm btn-icon btn-clear btn-light"
-            onClick={() => handleDeleteClick(row.original.id)}
-          >
-             <Trash2 size={18} className="text-danger" />
-          </button>
-        ),
-        meta: {
-          headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1',
-          cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1'
-        }
-      }
-    );
+      );
+    }
 
     return cols;
   }, [model]);

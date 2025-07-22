@@ -17,30 +17,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/i18n';
 import { useRef } from 'react';
 import { DataTableFilter } from './DataTableFilter';
-import { report } from 'process';
 import { SummaryWidgetCard } from '../summary/SummaryWidgetCard';
 import { format } from 'date-fns';
+import { useAuthContext } from '@/auth';
+import { cn } from '@/lib/utils';
 
 const DataTable = ({ model }: ModelContentProps) => {
   const [modelData, setModelData] = useState(null);
   const [widgets, setWidgets] = useState<any[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { currentUser } = useAuthContext();
+  const canEdit = currentUser?.permissions?.some((perm) => perm === 'edit');
+  const canDelete = currentUser?.permissions?.some((perm) => perm === 'delete');
+  const canCreate = currentUser?.permissions?.some((perm) => perm === 'create');
+  const canView = currentUser?.permissions?.some((perm) => perm === 'view');
   const navigate = useNavigate();
-  const { isRTL } = useLanguage();
-
-  const itemAIChatRef = useRef<any>(null);
-
-  const handleShow = () => {
-    window.dispatchEvent(new Event('resize'));
-  };
 
   useEffect(() => {
     setRefreshKey((prev) => prev + 1);
     setModelData(null);
     setCreateModalOpen(false);
     setWidgets([]);
-    if (model.config.reports?.filter((report) => report.type == 'kpi').length > 0) {
+    if (canView && model.config.reports?.filter((report) => report.type == 'kpi').length > 0) {
       fetchSummaryWidgets(model.slug);
     }
   }, [model]);
@@ -48,8 +47,8 @@ const DataTable = ({ model }: ModelContentProps) => {
   const columns = useMemo(() => {
     const cols = generateColumns(model.config.grid, model.config.forms, model.config.relationships);
 
-    cols.push(
-      {
+    if (canEdit) {
+      cols.push({
         id: 'edit',
         header: () => '',
         enableSorting: false,
@@ -68,13 +67,20 @@ const DataTable = ({ model }: ModelContentProps) => {
           </button>
         ),
         meta: {
-          headerClassName:
-            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1',
-          cellClassName:
-            'w-[60px] lg:sticky lg:right-[60px] bg-white dark:bg-[--tw-page-bg-dark] z-1'
+          headerClassName: cn(
+            'w-[60px] lg:sticky bg-white dark:bg-[--tw-page-bg-dark] z-1',
+            canDelete ? 'lg:right-[60px]' : 'lg:right-0' // ✅ Shift to right-0 if delete is missing
+          ),
+          cellClassName: cn(
+            'w-[60px] lg:sticky bg-white dark:bg-[--tw-page-bg-dark] z-1',
+            canDelete ? 'lg:right-[60px]' : 'lg:right-0'
+          )
         }
-      },
-      {
+      });
+    }
+
+    if (canDelete) {
+      cols.push({
         id: 'delete',
         header: () => '',
         enableSorting: false,
@@ -90,11 +96,11 @@ const DataTable = ({ model }: ModelContentProps) => {
           headerClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1',
           cellClassName: 'w-[60px] lg:sticky lg:right-0 bg-white dark:bg-[--tw-page-bg-dark] z-1'
         }
-      }
-    );
+      });
+    }
 
     return cols;
-  }, [model]);
+  }, [model, currentUser]);
 
   const fetchModels = async (params: any) => {
     try {
@@ -183,56 +189,69 @@ const DataTable = ({ model }: ModelContentProps) => {
               <span className="sm:hidden">Sum</span>
             </button>
           )}
-          {model.config.softdelete && (
+
+          {canDelete && model.config.softdelete && (
             <Link
               to={`/admin/model/${model.slug}/trash`}
               className="btn btn-sm btn-light flex items-center gap-1 whitespace-nowrap"
             >
-              <Trash size={16} className="" />
+              <Trash size={16} />
               <span className="truncate max-sm:hidden">Trashed</span>
             </Link>
           )}
-          <button
-            onClick={() => {
-              navigate(`/admin/model/${model.slug}/create`);
-            }}
-            className="btn btn-sm btn-primary flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]"
-            title={`Add ${model?.title || ''}`}
-          >
-            <KeenIcon icon="plus" />
-            <span className="truncate max-sm:hidden">{`Add ${model?.title || ''}`}</span>
-            <span className="sm:hidden">Add</span>
-          </button>
+
+          {canCreate && (
+            <button
+              onClick={() => {
+                navigate(`/admin/model/${model.slug}/create`);
+              }}
+              className="btn btn-sm btn-primary flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]"
+              title={`Add ${model?.title || ''}`}
+            >
+              <KeenIcon icon="plus" />
+              <span className="truncate max-sm:hidden">{`Add ${model?.title || ''}`}</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+          )}
         </ToolbarActions>
       </Toolbar>
 
-      {widgets.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
-          {widgets.slice(0, 4).map((widget: any, i: number) => (
-            <SummaryWidgetCard key={i} widget={widget} />
-          ))}
+      {/* ✅ Check for view permission */}
+      {!canView ? (
+        <div className="p-6 text-center text-gray-500">
+          <p>You do not have permission to view this data.</p>
         </div>
+      ) : (
+        <>
+          {widgets.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
+              {widgets.slice(0, 4).map((widget: any, i: number) => (
+                <SummaryWidgetCard key={i} widget={widget} />
+              ))}
+            </div>
+          )}
+
+          <DataGrid
+            key={refreshKey}
+            columns={columns}
+            serverSide={true}
+            onFetchData={fetchModels}
+            rowSelection={true}
+            getRowId={(row: { id: string }) => row.id}
+            pagination={{ size: 10 }}
+            toolbar={<DataTableFilter model={model} />}
+            layout={{ card: true }}
+          />
+
+          <CreateModal
+            open={createModalOpen}
+            model={model}
+            modelData={modelData}
+            onCreated={onCreated}
+            onOpenChange={() => setCreateModalOpen(false)}
+          />
+        </>
       )}
-
-      <DataGrid
-        key={refreshKey}
-        columns={columns}
-        serverSide={true}
-        onFetchData={fetchModels}
-        rowSelection={true}
-        getRowId={(row: { id: string }) => row.id}
-        pagination={{ size: 10 }}
-        toolbar={<DataTableFilter model={model} />}
-        layout={{ card: true }}
-      />
-
-      <CreateModal
-        open={createModalOpen}
-        model={model}
-        modelData={modelData}
-        onCreated={onCreated}
-        onOpenChange={() => setCreateModalOpen(false)}
-      />
     </>
   );
 };

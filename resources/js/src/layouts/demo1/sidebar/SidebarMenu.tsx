@@ -307,7 +307,7 @@ const SidebarMenu = () => {
   const hasRole = (allowedRoles?: string[]) => {
     if (!allowedRoles || allowedRoles.length === 0) return true;
     return currentUser?.roles?.some((role: any) => {
-      return allowedRoles.includes(role.name);
+      return allowedRoles.includes(role);
     });
   };
 

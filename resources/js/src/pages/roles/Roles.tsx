@@ -2,19 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   DataGrid,
-  DataGridColumnVisibility,
   useDataGrid,
   KeenIcon,
   DataGridRowSelectAll,
-  DataGridRowSelect,
-  MenuIcon,
-  MenuLink,
-  MenuSeparator,
-  MenuTitle,
-  MenuToggle,
-  MenuSub,
-  MenuItem,
-  Menu
+  DataGridRowSelect
 } from '@/components';
 import axios from 'axios';
 import {
@@ -24,7 +15,7 @@ import {
   ToolbarHeading,
   ToolbarPageTitle
 } from '@/partials/toolbar';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CreateRoleModal } from './CreateRoleModal';
 import { UpdateRoleModal } from './UpdateRoleModal';
 
@@ -33,6 +24,7 @@ const Roles = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const navigate = useNavigate();
   const handleClose = () => {
     setCreateModalOpen(false);
     setUpdateModalOpen(false);
@@ -78,63 +70,22 @@ const Roles = () => {
         }
       },
       {
-        id: 'roles',
+        id: 'permission',
         header: () => '',
         enableSorting: false,
         cell: ({ row }: any) => (
-          <Menu className="items-stretch">
-            <MenuItem
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: 'bottom-end',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [0, 10] // [skid, distance]
-                    }
-                  }
-                ]
-              }}
-            >
-              <MenuToggle className="btn btn-sm btn-icon btn-light btn-clear">
-                <KeenIcon icon="dots-vertical" />
-              </MenuToggle>
-              <MenuSub className="menu-default" rootClassName="w-full max-w-[175px]">
-                <MenuItem
-                  onClick={() => {
-                    setRole(row.original);
-                    setUpdateModalOpen(true);
-                  }}
-                >
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="notepad-edit" />
-                    </MenuIcon>
-                    <MenuTitle>Edit</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-                <MenuSeparator />
-                <MenuItem path="#" onClick={() => {}}>
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="security-user" />
-                    </MenuIcon>
-                    <MenuTitle>Roles</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-                <MenuItem path="#">
-                  <MenuLink>
-                    <MenuIcon>
-                      <KeenIcon icon="key-square" />
-                    </MenuIcon>
-                    <MenuTitle>Permissions</MenuTitle>
-                  </MenuLink>
-                </MenuItem>
-              </MenuSub>
-            </MenuItem>
-          </Menu>
+          <button
+            className="btn btn-sm btn-icon btn-clear btn-light"
+            onClick={() => {
+              navigate(`/admin/permission/${row.original.id}`, {
+                state: {
+                  role: row.original
+                }
+              });
+            }}
+          >
+            <KeenIcon icon="key" />
+          </button>
         ),
         meta: {
           headerClassName: 'w-[60px] lg:sticky lg:right-[60px] z-1',
@@ -219,9 +170,7 @@ const Roles = () => {
     };
     return (
       <div className="card-header border-b-0 px-5 flex-wrap">
-        <h3 className="card-title font-medium text-sm">
-          Showing {table.getRowCount()} of {table.getPrePaginationRowModel().rows.length} Roles
-        </h3>
+        <h3 className="card-title font-medium text-sm">Filter by:</h3>
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <div className="flex gap-2">
             <div className="flex gap-6">

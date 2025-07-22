@@ -11,7 +11,7 @@ import {
 import { IMenuContextProps, IMenuItemProps, IMenuProps } from './';
 import { MenuItem } from './';
 
-// Initial default props for the Menu Context
+// ✅ Initial default props for the Menu Context
 const initalProps: IMenuContextProps = {
   disabled: false,
   highlight: false,
@@ -26,11 +26,11 @@ const initalProps: IMenuContextProps = {
   }
 };
 
-// Create the Menu Context
+// ✅ Create the Menu Context
 const MenuContext = createContext(initalProps);
 
-// Custom hook to use Menu Context
-const useMenu = () => useContext(MenuContext);
+// ✅ Custom hook to use Menu Context
+export const useMenu = () => useContext(MenuContext);
 
 const MenuComponent = ({
   className,
@@ -42,7 +42,7 @@ const MenuComponent = ({
 }: IMenuProps) => {
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: string | null }>({});
 
-  // Toggle accordion open/close
+  // ✅ Toggle accordion open/close
   const setOpenAccordion = (parentId: string, id: string) => {
     setOpenAccordions((prevState) => ({
       ...prevState,
@@ -50,29 +50,36 @@ const MenuComponent = ({
     }));
   };
 
-  // Check if accordion is open
+  // ✅ Check if accordion is open
   const isOpenAccordion = (parentId: string, id: string) => {
     return openAccordions[parentId] === id;
   };
 
-  // Map and modify children with unique keys and props
+  // ✅ Safely generate unique keys for children
   const modifiedChildren = Children.map(children, (child, index) => {
-    if (isValidElement(child)) {
-      const key = child.key ?? `menu-item-${index}`;
+    if (!isValidElement(child)) return child;
 
-      if (child.type === MenuItem) {
-        const modifiedProps: IMenuItemProps = {
-          parentId: 'root',
-          id: `root-${index}`
-        };
+    // ✅ If this is a MenuItem, assign a unique id & key
+    if (child.type === MenuItem) {
+      const parentId = 'root';
+      const newId = `${parentId}-${index}`;
+      const safeKey = `menu-${parentId}-${index}`; // Always unique
 
-        return cloneElement(child, { ...modifiedProps, key });
-      } else {
-        return cloneElement(child, { key });
-      }
+      const modifiedProps: IMenuItemProps = {
+        parentId,
+        id: newId
+      };
+
+      return cloneElement(child, {
+        ...modifiedProps,
+        key: safeKey
+      });
     }
 
-    return child;
+    // ✅ For any other component, still force a unique key
+    return cloneElement(child, {
+      key: `menu-generic-${index}`
+    });
   });
 
   return (
@@ -91,6 +98,5 @@ const MenuComponent = ({
   );
 };
 
-const Menu = memo(MenuComponent);
-
-export { Menu, useMenu };
+// ✅ Memoized Menu for performance
+export const Menu = memo(MenuComponent);

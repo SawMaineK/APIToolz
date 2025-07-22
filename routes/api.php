@@ -60,6 +60,8 @@ Route::prefix('api')->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware([]);
             Route::post('/', 'store')->middleware([]);
+            Route::get('/permissions', 'listPermissions')->middleware([]);
+            Route::post('/{role}/permissions', 'assignPermissions')->middleware([]);
             Route::get('/{role}', 'show')->middleware([]);
             Route::put('/{role}', 'update')->middleware([]);
             Route::delete('/{role}', 'destroy')->middleware([]);

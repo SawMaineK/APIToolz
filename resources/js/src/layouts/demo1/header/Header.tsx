@@ -3,14 +3,12 @@ import { useEffect } from 'react';
 import { Container } from '@/components/container';
 import { MegaMenu } from '../mega-menu';
 import { HeaderLogo, HeaderTopbar } from './';
-import { Breadcrumbs, useDemo1Layout } from '../';
-import { useLocation } from 'react-router';
-import { Role, useAuthContext } from '@/auth';
+import { useDemo1Layout } from '../';
+import { useAuthContext } from '@/auth';
 
 const Header = () => {
   const { headerSticky } = useDemo1Layout();
   const { currentUser } = useAuthContext();
-  const { pathname } = useLocation();
 
   useEffect(() => {
     if (headerSticky) {

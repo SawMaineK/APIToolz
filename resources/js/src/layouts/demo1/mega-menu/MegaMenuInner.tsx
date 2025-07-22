@@ -7,11 +7,8 @@ import {
   MenuLink,
   MenuTitle,
   MenuArrow,
-  Menu,
-  MenuSub,
-  MenuIcon
+  Menu
 } from '@/components/menu';
-import { MegaMenuSubHelp } from '@/partials/menu/mega-menu';
 import { useDemo1Layout } from '../Demo1LayoutProvider';
 import { MENU_MEGA } from '@/config';
 import { useLanguage } from '@/i18n';
@@ -41,32 +38,32 @@ const MegaMenuInner: React.FC = () => {
     </MenuArrow>
   );
 
-  const build = (items: TMenuConfig) => {
-    return (
-      <Fragment>
-        <MenuItem key="models">
-          <MenuLink path="admin/model" className={linkClass}>
-            <MenuTitle className={titleClass}>Models</MenuTitle>
-          </MenuLink>
-        </MenuItem>
-        <MenuItem key="models">
-          <MenuLink path="admin/model/relationship" className={linkClass}>
-            <MenuTitle className={titleClass}>Relationship</MenuTitle>
-          </MenuLink>
-        </MenuItem>
-        <MenuItem key="menu-config">
-          <MenuLink path="admin/menu-config" className={linkClass}>
-            <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>
-          </MenuLink>
-        </MenuItem>
-        {/* Add more items here if needed */}
-      </Fragment>
-    );
-  };
-
   const linkClass =
     'menu-link text-sm text-gray-700 font-medium menu-link-hover:text-primary menu-item-active:text-gray-900 menu-item-show:text-primary menu-item-here:text-gray-900';
   const titleClass = 'text-nowrap';
+
+  const build = (items: TMenuConfig) => (
+    <Fragment>
+      <MenuItem key="models">
+        <MenuLink path="admin/model" className={linkClass}>
+          <MenuTitle className={titleClass}>Models</MenuTitle>
+        </MenuLink>
+      </MenuItem>
+
+      {/* ✅ fixed key */}
+      <MenuItem key="relationship">
+        <MenuLink path="admin/model/relationship" className={linkClass}>
+          <MenuTitle className={titleClass}>Relationship</MenuTitle>
+        </MenuLink>
+      </MenuItem>
+
+      <MenuItem key="menu-config">
+        <MenuLink path="admin/menu-config" className={linkClass}>
+          <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>
+        </MenuLink>
+      </MenuItem>
+    </Fragment>
+  );
 
   return (
     <Menu

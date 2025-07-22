@@ -18,12 +18,8 @@ export interface User {
   dob: string | null;
   avatar: string;
   personal_access_token: string;
-  roles: Role[];
-}
-
-export interface Role {
-  name: string;
-  guard_name: string;
+  roles: string[];
+  permissions: string[];
 }
 
 export interface AuthModel {

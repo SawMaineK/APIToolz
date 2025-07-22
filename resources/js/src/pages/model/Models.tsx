@@ -201,7 +201,7 @@ const Models = () => {
         cell: (info) => (
           <div className="flex flex-col">
             <span className="text-gray-900 font-medium">
-              {info.row.original.roles ? `[${info.row.original.config.hook}]` : ``}
+              {info.row.original.config.hook ? `[${info.row.original.config.hook}]` : ``}
             </span>
           </div>
         ),
