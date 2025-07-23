@@ -453,7 +453,7 @@ You can import models using the \`apitoolz:import\` Artisan command. Below are s
   };
 
   return (
-    <div className="card">
+    <div className="hidden sm:block card">
       <div className="card-header">
         <h3 className="card-title">FAQ</h3>
       </div>
