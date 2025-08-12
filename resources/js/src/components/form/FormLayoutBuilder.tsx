@@ -36,7 +36,6 @@ import {
 import { FormFieldPropertiesPanel } from './FormFieldPropertiesPanel';
 import { MoveVertical, Plus, X } from 'lucide-react';
 import { AddFormInputModal } from './AddFormInputModal';
-import { KeenIcon } from '../keenicons';
 import clsx from 'clsx';
 
 export type IFormLayoutBuilder = {
@@ -175,7 +174,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
               setSelectedField(updated);
 
               setFormLayout((prev) =>
-                prev.map((f) => (f.unqKey === updated.unqKey ? { ...f, ...updated } : f))
+                prev.map((f: any) => (f.unqKey === updated.unqKey ? { ...f, ...updated } : f))
               );
             }}
             formField={selectedField}
@@ -191,10 +190,10 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
             unqKey: selectedField?.unqKey ?? uuid() // retain the same key for editing or generate new
           };
 
-          setFormLayout((prev) => {
+          setFormLayout((prev: any) => {
             // If editing an existing field
             if (selectedField) {
-              const index = prev.findIndex((f) => f.unqKey === selectedField.unqKey);
+              const index = prev.findIndex((f: any) => f.unqKey === selectedField.unqKey);
               if (index >= 0) {
                 const updatedLayout = [...prev];
                 updatedLayout[index] = newField;
@@ -204,7 +203,7 @@ export const FormLayoutBuilder = (props: IFormLayoutBuilder) => {
 
             // If inserting a new field after a specific inputField
             if (inputField) {
-              const insertIndex = prev.findIndex((f) => f.unqKey === inputField.unqKey);
+              const insertIndex = prev.findIndex((f: any) => f.unqKey === inputField.unqKey);
               if (insertIndex >= 0) {
                 const updatedLayout = [...prev];
                 updatedLayout.splice(insertIndex + 1, 0, newField);
@@ -455,12 +454,14 @@ function SortableFormField({
                     <label className="text-md font-semibold mb-4">{formField.label}</label>
                     <div className="form-array">
                       {/* Form Array */}
-                      <FormTableControl
-                        formField={formField}
-                        formLayout={formField.formArray}
-                        formArray={formGroup.get(formField.name) as FormArray}
-                        initValues={[]}
-                      />
+                      {formField.name && (
+                        <FormTableControl
+                          formField={formField}
+                          formLayout={formField.formArray}
+                          formArray={formGroup.get(formField.name) as FormArray}
+                          initValues={[]}
+                        />
+                      )}
                     </div>
                     {/* )} */}
                   </div>

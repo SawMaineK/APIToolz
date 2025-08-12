@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import {
   FormGroup,
   FieldArray,
@@ -17,8 +17,6 @@ import { FormCheckBox } from './base/form-checkbox';
 import { BaseFormGroup } from './base/form-group';
 import { FormRadio } from './base/form-radio';
 import { FormField } from './FormField';
-
-// import { requestFileUpload } from '../../services/AuthService';
 import { useEffect, useState } from 'react';
 import { FormPassword } from './base/form-password';
 
@@ -34,7 +32,7 @@ export const toFormGroup = (
         if (x.name) {
           let formGroup: FormGroup | any = {};
           x.formGroup.forEach((y: BaseForm<string>) => {
-            if (y.name) {
+            if (y.name && x.name) {
               switch (y.controlType) {
                 case 'form_group':
                   formGroup[y.name] = toFormGroup(
@@ -193,6 +191,7 @@ export type IFormLayout = {
   formLayout: BaseForm<string>[];
   initValues?: any;
   valiations?: Function | Function[] | any;
+  flowLayout?: boolean;
   onSubmitForm: (value: any, formGroup: FormGroup, submitted$: Subject<boolean>) => void;
   onResetForm?: (formGroup: FormGroup) => void;
 };
@@ -235,12 +234,21 @@ export const FormLayout = (props: IFormLayout) => {
             >
               {form.hasError('submit') && <Alert variant="danger">{form.getError('submit')}</Alert>}
               <div className="flex flex-wrap -mx-4">
-                <FormLayoutControl
-                  formLayout={props.formLayout}
-                  formGroup={formGroup}
-                  initValues={props.initValues}
-                  submitted$={submitted$}
-                />
+                {props.flowLayout ? (
+                  <FlowFormLayoutControl
+                    formLayout={props.formLayout}
+                    formGroup={formGroup}
+                    initValues={props.initValues}
+                    submitted$={submitted$}
+                  />
+                ) : (
+                  <FormLayoutControl
+                    formLayout={props.formLayout}
+                    formGroup={formGroup}
+                    initValues={props.initValues}
+                    submitted$={submitted$}
+                  />
+                )}
               </div>
             </form>
           );
@@ -387,7 +395,9 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                       <FormLayoutControl
                         formLayout={formField.formGroup}
                         formGroup={props.formGroup.get(formField.name)}
-                        initValues={props.initValues && props.initValues[formField.name]}
+                        initValues={
+                          formField.name && props.initValues && props.initValues[formField.name]
+                        }
                       />
                     )}
                   </div>
@@ -404,7 +414,12 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
                           formField={formField}
                           formLayout={formField.formArray}
                           formArray={props.formGroup.get(formField.name) as FormArray}
-                          initValues={(props.initValues && props.initValues[formField.name]) || []}
+                          initValues={
+                            (formField.name &&
+                              props.initValues &&
+                              props.initValues[formField.name]) ||
+                            []
+                          }
                         />
                       </div>
                     )}
@@ -425,6 +440,445 @@ export const FormLayoutControl = (props: IFormLayoutControl) => {
           })}
         </>
       )}
+    />
+  );
+};
+
+const getResponsiveWidthClass = (cols?: number) => {
+  let base = 'w-full sm:w-full md:w-1/2 lg:w-1/3';
+  switch (cols) {
+    case 1:
+      return `${base} xl:w-full`; // 1 columns large
+    case 2:
+      return `${base} xl:w-1/2`; // 2 columns large
+    case 3:
+      return `${base} xl:w-1/3`; // 3 columns large
+    case 4:
+      return `${base} xl:w-1/4`; // 4 columns large
+    default:
+      return `${base} xl:w-2/3`; // fallback
+  }
+};
+
+const groupNodesByRow = (nodes: BaseForm<string>[], tolerance = 50) => {
+  const sorted = [...nodes].sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0));
+  const rows: BaseForm<string>[][] = [];
+  let currentRow: BaseForm<string>[] = [];
+  let lastY: number | null = null;
+
+  sorted.forEach((node: any) => {
+    if (lastY === null || Math.abs((node.position?.y || 0) - lastY) < tolerance) {
+      currentRow.push(node);
+      lastY = lastY === null ? node.position?.y || 0 : Math.min(lastY, node.position?.y || 0);
+    } else {
+      rows.push([...currentRow]);
+      currentRow = [node];
+      lastY = node.position?.y || 0;
+    }
+  });
+  if (currentRow.length > 0) rows.push(currentRow);
+
+  // sort horizontally
+  rows.forEach((row) => row.sort((a: any, b: any) => (a.position?.x || 0) - (b.position?.x || 0)));
+  return rows;
+};
+
+export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
+  useEffect(() => {
+    const subscriptions: Subscription[] = [];
+
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Resolve a dotted path like "plan_id.unitprice"
+    // Uses: nested control via group.get(path), object value, or formDef.findOption (async)
+    const getValueForPath = async (path: string): Promise<any> => {
+      const parts = path.split('.');
+      const root = parts[0];
+      const rest = parts.slice(1);
+      const formDef = props.formLayout?.find((f) => f.name === root);
+      const rootCtrl = props.formGroup?.get(root);
+
+      // If entire dotted control exists in form, return its value
+      const nestedCtrl = props.formGroup?.get(path);
+      if (nestedCtrl) return nestedCtrl.value ?? 0;
+
+      // If no nesting in FormGroup, try the root control's value and walk the object
+      const rootVal = rootCtrl?.value;
+      if (rest.length > 0 && rootVal != null && typeof rootVal === 'object') {
+        let v: any = rootVal;
+        for (const p of rest) {
+          if (v == null) return 0;
+          v = v[p];
+        }
+        return v ?? 0;
+      }
+
+      // If there's a findOption for the root (e.g. root is an id), use it to resolve nested props
+      if (formDef?.findOption && rootCtrl) {
+        try {
+          const option = await formDef.findOption(rootCtrl.value);
+          if (option == null) return 0;
+          let v: any = option;
+          for (const p of rest) {
+            if (v == null) return 0;
+            v = v[p];
+          }
+          return v ?? 0;
+        } catch {
+          return 0;
+        }
+      }
+
+      // fallback
+      return rootVal ?? 0;
+    };
+
+    // Evaluate an expression asynchronously (resolves findOption as needed)
+    const evaluateExpressionAsync = async (expr: string): Promise<number | null> => {
+      // tokens like "plan_id.unitprice" or "amount"
+      const tokens = Array.from(new Set(expr.match(/[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*/g) || []));
+
+      // Resolve all values (may be async because of findOption)
+      const values = await Promise.all(tokens.map((t) => getValueForPath(t)));
+
+      // Replace tokens with numeric literals (escaped)
+      let substituted = expr;
+      tokens.forEach((t, i) => {
+        const rawVal = values[i];
+        const num = typeof rawVal === 'number' ? rawVal : Number(rawVal ?? 0);
+        substituted = substituted.replace(
+          new RegExp('\\b' + escapeRegExp(t) + '\\b', 'g'),
+          // ensure JS-flavored numeric literal
+          Number.isFinite(num) ? num.toString() : '0'
+        );
+      });
+
+      // Very small sanitization: allow only digits, whitespace, dot, parentheses, + - * / % operators
+      if (!/^[0-9+\-*/().%\s]+$/.test(substituted)) {
+        // Contains unexpected characters — abort
+        return null;
+      }
+
+      try {
+        const result = Function('"use strict"; return (' + substituted + ')')();
+        if (typeof result === 'number' && isFinite(result)) {
+          return result;
+        }
+      } catch (e) {
+        // evaluation failed
+      }
+
+      return null;
+    };
+
+    const processField = (formField: BaseForm<string>, parentGroup: FormGroup | FormArray) => {
+      if (!formField?.name || typeof formField.valueFn !== 'string') return;
+      const m = formField.valueFn.match(/^{(.+)}$/);
+      if (!m) return;
+      const expr = m[1].trim();
+
+      // exact single simple "key.prop" (no operators) -> use findOption branch if available
+      const simpleMatch = expr.match(/^([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)$/);
+
+      // tokens to subscribe to (roots)
+      const tokens = Array.from(new Set(expr.match(/[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*/g) || []));
+      const roots = Array.from(new Set(tokens.map((t) => t.split('.')[0])));
+
+      // recalc function (async because of findOption)
+      const recalc = async () => {
+        // helper to set value on a single abstract control
+        const applyToControl = async (target: AbstractControl | null) => {
+          if (!target) return;
+
+          if (simpleMatch) {
+            // preserve findOption behavior for simple "key.prop" case
+            const [, key, prop] = simpleMatch;
+            const formDef = props.formLayout?.find((f) => f.name === key);
+            const srcCtrl = props.formGroup?.get(key);
+            const srcVal = srcCtrl?.value;
+            if (prop && formDef?.findOption && srcVal !== undefined && srcVal !== null) {
+              try {
+                const option = await formDef.findOption(srcVal);
+                if (option && prop in option) {
+                  target.setValue(option[prop], { onlySelf: false, emitEvent: true });
+                  return;
+                } else {
+                  target.setValue(null, { onlySelf: false, emitEvent: true });
+                  return;
+                }
+              } catch {
+                target.setValue(null, { onlySelf: false, emitEvent: true });
+                return;
+              }
+            } else {
+              // fallback: set raw control value
+              target.setValue(srcVal ?? null, { onlySelf: false, emitEvent: true });
+              return;
+            }
+          }
+
+          // generic expression
+          const value = await evaluateExpressionAsync(expr);
+          if (value === null) {
+            // invalid or unsafe -> avoid setting Infinity/NaN. You can decide fallback (null or 0)
+            // here we set null so the UI can choose how to display
+            target.setValue(null, { onlySelf: false, emitEvent: true });
+          } else {
+            target.setValue(value, { onlySelf: false, emitEvent: true });
+          }
+        };
+
+        if (parentGroup instanceof FormGroup) {
+          const targetControl = parentGroup.get(formField.name);
+          await applyToControl(targetControl);
+        } else if (parentGroup instanceof FormArray) {
+          // apply to each FormGroup item in the array
+          parentGroup.controls.forEach((ctrl) => {
+            if (ctrl instanceof FormGroup) {
+              applyToControl(ctrl.get(formField.name));
+            }
+          });
+        }
+      };
+
+      // initial compute
+      recalc();
+
+      // subscribe to root control changes
+      roots.forEach((root) => {
+        const sourceCtrl = props.formGroup?.get(root);
+        if (sourceCtrl && 'valueChanges' in sourceCtrl) {
+          const sub = sourceCtrl.valueChanges.subscribe(() => {
+            recalc();
+          });
+          subscriptions.push(sub);
+        } else {
+          // If root sits inside array items, you may want to subscribe to array changes,
+          // or handle array-internal dependencies separately (depends on your data model).
+        }
+      });
+    };
+
+    const walkLayout = (layout: BaseForm<string>[], group: FormGroup | FormArray) => {
+      layout.forEach((formField) => {
+        if (formField.controlType === 'form_group' && formField.name) {
+          const nestedGroup = (group as FormGroup)?.get(formField.name) as FormGroup;
+          if (nestedGroup && formField.formGroup) walkLayout(formField.formGroup, nestedGroup);
+        } else if (formField.controlType === 'form_array' && formField.name) {
+          const nestedArray = (group as FormGroup)?.get(formField.name) as FormArray;
+          if (nestedArray && formField.formArray) walkLayout(formField.formArray, nestedArray);
+        } else {
+          processField(formField, group);
+        }
+      });
+    };
+
+    if (props.formGroup && props.formLayout) walkLayout(props.formLayout, props.formGroup);
+
+    return () => {
+      subscriptions.forEach((s) => {
+        try {
+          s.unsubscribe?.();
+        } catch {
+            //
+        }
+      });
+    };
+  }, [props.formGroup, props.formLayout]);
+
+  return (
+    <FieldGroup
+      control={props.formGroup}
+      render={() => {
+        const rows = groupNodesByRow(props.formLayout);
+        return (
+          <>
+            {rows.map((row, rowIndex) => (
+              <div key={`row-${rowIndex}`} className="flex flex-wrap w-full">
+                {row.map((formField, index) => {
+                  const matchValue = (
+                    values: any[] | boolean | string,
+                    criteriaValue: string | any
+                  ) => {
+                    if (Array.isArray(values)) {
+                      return values.includes(criteriaValue);
+                    }
+                    return values === criteriaValue || false;
+                  };
+
+                  const addValidators = (form: BaseFormGroup, formGroup: FormGroup) => {
+                    if (form.name && form instanceof BaseFormGroup) {
+                      let group = formGroup.get(form.name);
+                      form.formGroup.forEach((x: BaseForm<string>) => {
+                        if (x.name && x instanceof BaseFormGroup) {
+                          addValidators(x, group as FormGroup);
+                        } else if (x.name && x instanceof BaseFormArray) {
+                          addValidators(x, group as FormGroup);
+                        } else if (x.name) {
+                          let validators: any[] = x.required ? [Validators.required] : [];
+                          (group as FormGroup).controls[x.name].setValidators([
+                            ...validators,
+                            ...x.validators
+                          ]);
+                          (group as FormGroup).controls[x.name].updateValueAndValidity({
+                            onlySelf: false,
+                            emitEvent: false
+                          });
+                        }
+                      });
+                    }
+                    if (form.name && form instanceof BaseFormArray) {
+                      let group = (formGroup.get(form.name) as FormArray).controls;
+                      group.forEach((y) => {
+                        form.formArray.forEach((x: BaseForm<string>) => {
+                          if (x.name && x instanceof BaseFormGroup) {
+                            addValidators(x, y as FormGroup);
+                          } else if (x.name && x instanceof BaseFormArray) {
+                            addValidators(x, y as FormGroup);
+                          } else if (x.name) {
+                            let validators: any[] = x.required ? [Validators.required] : [];
+                            (y as FormGroup).controls[x.name].setValidators([
+                              ...validators,
+                              ...x.validators
+                            ]);
+                            (y as FormGroup).controls[x.name].updateValueAndValidity({
+                              onlySelf: false,
+                              emitEvent: false
+                            });
+                          }
+                        });
+                      });
+                    }
+                  };
+
+                  const removeValidators = (form: BaseFormGroup, formGroup: FormGroup) => {
+                    if (form.name && form instanceof BaseFormGroup) {
+                      let group = formGroup.get(form.name) as FormGroup;
+                      form.formGroup.forEach((x: BaseForm<string>) => {
+                        if (x.name && x instanceof BaseFormGroup) {
+                          removeValidators(x, group as FormGroup);
+                        } else if (x.name && x instanceof BaseFormArray) {
+                          removeValidators(x, group as FormGroup);
+                        } else if (x.name) {
+                          (group as FormGroup).controls[x.name].setValue('', {
+                            onlySelf: false,
+                            emitEvent: false
+                          });
+                          (group as FormGroup).controls[x.name].clearValidators();
+                          (group as FormGroup).controls[x.name].updateValueAndValidity({
+                            onlySelf: false,
+                            emitEvent: false
+                          });
+                        }
+                      });
+                    }
+                    if (form.name && form instanceof BaseFormArray) {
+                      let group = (formGroup.get(form.name) as FormArray).controls;
+                      group.forEach((y) => {
+                        form.formArray.forEach((x: BaseForm<string>) => {
+                          if (x.name && x instanceof BaseFormGroup) {
+                            removeValidators(x, y as FormGroup);
+                          } else if (x.name && x instanceof BaseFormArray) {
+                            removeValidators(x, y as FormGroup);
+                          } else if (x.name) {
+                            (y as FormGroup).controls[x.name].setValue('', {
+                              onlySelf: false,
+                              emitEvent: false
+                            });
+                            (y as FormGroup).controls[x.name].clearValidators();
+                            (y as FormGroup).controls[x.name].updateValueAndValidity({
+                              onlySelf: false,
+                              emitEvent: false
+                            });
+                          }
+                        });
+                      });
+                    }
+                  };
+
+                  const hasCriteria = (form: BaseFormGroup | any, group: any) => {
+                    if (form.name && form.criteriaValue) {
+                      if (
+                        form.criteriaValue &&
+                        matchValue(form.criteriaValue.value, group.value[form.criteriaValue.key])
+                      ) {
+                        addValidators(form, group);
+                        return true;
+                      } else {
+                        removeValidators(form, group);
+                        return false;
+                      }
+                    }
+                    return true;
+                  };
+
+                  switch (formField.controlType) {
+                    case 'form_group':
+                      return (
+                        <div
+                          key={index}
+                          className={`${getResponsiveWidthClass(formField.cols)} ${formField.altClass}`}
+                        >
+                          {hasCriteria(formField, props.formGroup) && (
+                            <FormLayoutControl
+                              formLayout={formField.formGroup}
+                              formGroup={props.formGroup.get(formField.name)}
+                              initValues={
+                                formField.name &&
+                                props.initValues &&
+                                props.initValues[formField.name]
+                              }
+                            />
+                          )}
+                        </div>
+                      );
+                    case 'form_array':
+                      return (
+                        <div
+                          key={index}
+                          className={`px-3 ${getResponsiveWidthClass(formField.cols)} ${formField.altClass}`}
+                        >
+                          {hasCriteria(formField, props.formGroup) && (
+                            <div className="form-array -mx-4">
+                              <div className="px-4 mb-4">
+                                <label className="text-md font-semibold">{formField.label}</label>
+                              </div>
+                              <FormTableControl
+                                formField={formField}
+                                formLayout={formField.formArray}
+                                formArray={props.formGroup.get(formField.name) as FormArray}
+                                initValues={
+                                  (formField.name &&
+                                    props.initValues &&
+                                    props.initValues[formField.name]) ||
+                                  []
+                                }
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    default:
+                      formField.submitted$ = props.submitted$;
+                      return (
+                        <div
+                          key={index}
+                          className={`px-3 ${getResponsiveWidthClass(formField.cols)} ${formField.altClass}`}
+                        >
+                          <FormField
+                            formLayout={props.formLayout}
+                            formField={formField}
+                            formGroup={props.formGroup}
+                          />
+                        </div>
+                      );
+                  }
+                })}
+              </div>
+            ))}
+          </>
+        );
+      }}
     />
   );
 };

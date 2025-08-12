@@ -188,6 +188,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
             <FormLayout
               initValues={initialValues}
               formLayout={formLayout}
+              flowLayout={model.config.formLayout ? true : false}
               onSubmitForm={formSubmit}
             />
           </div>

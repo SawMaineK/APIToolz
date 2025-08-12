@@ -17,6 +17,7 @@ export class BaseForm<T> {
   // Form Common Properties
   name: string | any;
   value: T | any;
+  valueFn: any | undefined;
   label: string;
   mask: string | [] | any;
   maskPlaceholder: string;
@@ -53,7 +54,9 @@ export class BaseForm<T> {
   style: any;
   inputClass: string;
   altClass: string;
-  columns: string;
+  columns: string | number | any;
+  width: number | any;
+  cols: number | any;
   dateView: string;
 
   // For Radio Button
@@ -66,6 +69,7 @@ export class BaseForm<T> {
   multiple: boolean;
   options: { id: string; name: string }[] | any[];
   options$?: AsyncOptionsFn;
+  findOption?: (id: string) => any | undefined;
   filter: { parent: string; key: string } | any;
   valueChanges$?: Subject<any>;
   valueChangeEvent: (value: any, index: number, form: this, formGroup: any) => void | any;
@@ -123,6 +127,7 @@ export class BaseForm<T> {
 
       name?: string;
       value?: T;
+      valueFn?: any;
       label?: string;
       mask?: string | [] | any;
       maskPlaceholder?: string;
@@ -166,6 +171,7 @@ export class BaseForm<T> {
       multiple?: boolean;
       options?: { id: string; name: string }[] | any[];
       options$?: AsyncOptionsFn;
+      findOption?: (id: string) => any | undefined;
       filter?: { parent: string; key: string } | any;
       valueChanges$?: Subject<any>;
       valueChangeEvent?: any;
@@ -213,6 +219,7 @@ export class BaseForm<T> {
 
     this.name = options.name;
     this.value = options.value;
+    this.valueFn = options.valueFn;
     this.label = options.label || '';
     this.mask = options.mask;
     this.maskPlaceholder = options.maskPlaceholder || '-';
@@ -255,6 +262,8 @@ export class BaseForm<T> {
     this.multiple = options.multiple || false;
     this.options = options.options || [];
     this.options$ = options.options$;
+    this.findOption =
+      options.findOption || ((id: string) => this.options.find((option) => option.id === id));
     this.filter = options.filter;
     this.valueChanges$ = options.valueChanges$;
     this.valueChangeEvent = options.valueChangeEvent;

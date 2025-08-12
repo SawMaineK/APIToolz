@@ -451,7 +451,16 @@ function createFormSelectField(field: any): FormSelect {
               key: field.option.lookup_filter_key || field.option.lookup_dependency_key
             }
           : null,
-      options$: loadData
+      options$: loadData,
+      findOption: (id: string) => {
+        return axios
+          .get(
+            `${import.meta.env.VITE_APP_API_URL}/${toLowerCase(field.option.lookup_model)}/${id}`
+          )
+          .then((res) => {
+            return res.data;
+          });
+      }
     });
   } else {
     const lookupData = field.option.lookup_query?.split('|').map((x: string) => {

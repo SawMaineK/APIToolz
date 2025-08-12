@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
 import axios from 'axios';
 import { ModelContentProps } from '../_models';
-import { FormLayout } from '@/components/form/FormLayout';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BaseForm } from '@/components/form/base/base-form';
 import { FormGroup } from 'react-reactive-form';
@@ -11,6 +10,7 @@ import { generateFormLayout } from '../_helper';
 import { FormLayoutBuilder } from '@/components/form/FormLayoutBuilder';
 import { useState } from 'react';
 import { unset } from 'lodash';
+import { FormLayoutFlow } from '@/components/form/FormLayoutFlow';
 
 const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
   const navigate = useNavigate();
@@ -42,9 +42,9 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
             if (Array.isArray(value[form.name])) {
               value[form.name].forEach((item: any) => {
                 if (item instanceof File || item instanceof Blob) {
-                  formData.append(form.name, item);
+                  formData.append(form.name || '', item);
                 } else {
-                  formData.append(form.name, JSON.stringify(item));
+                  formData.append(form.name || '', JSON.stringify(item));
                 }
               });
             }
@@ -105,10 +105,7 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
     console.log(JSON.stringify(formLayout));
     try {
       model.config.formLayout = formLayout;
-      const result = await axios.put(
-        `${import.meta.env.VITE_APP_API_URL}/model/${model.id}`,
-        model
-      );
+      await axios.put(`${import.meta.env.VITE_APP_API_URL}/model/${model.id}`, model);
       toast.success('Successfully updated');
     } catch (error: any) {
       console.error('Form submission failed:', error);
@@ -139,15 +136,15 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
 
   return (
     <div className="card w-full">
-      <div className="card-body flex flex-col gap-5">
-        <FormLayoutBuilder
+      <div className="card-body flex flex-col gap-5 p-0">
+        <FormLayoutFlow
           title={`Form Builder for ${model.title}`}
           initValues={{}}
           formLayout={formLayout}
+          onSubmitForm={() => {}}
           onSaveFormLayout={onSaveFormLayout}
           onResetFormLayout={onResetFormLayout}
-          onSubmitForm={formSubmit}
-        ></FormLayoutBuilder>
+        ></FormLayoutFlow>
       </div>
     </div>
   );

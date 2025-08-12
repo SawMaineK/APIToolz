@@ -178,6 +178,14 @@ export const FieldConfigForm = ({ form, onChange }: FieldConfigProps) => {
         </>
       )}
 
+      {floatingInput('value', form.value || '', 'Default Value', (e) =>
+        update('value', e.target.value)
+      )}
+
+      {floatingInput('valueFn', form.valueFn || '', 'Function Value', (e) =>
+        update('valueFn', e.target.value)
+      )}
+
       {floatingInput('columns', form.columns || '', 'Columns (e.g., w-full)', (e) =>
         update('columns', e.target.value)
       )}
