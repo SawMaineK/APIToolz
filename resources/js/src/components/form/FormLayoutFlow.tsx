@@ -207,10 +207,14 @@ export const FormLayoutFlow = (props: IFormLayoutBuilder) => {
         }
       } else {
         savedPositions = props.formLayout.reduce(
-          (acc: Record<string, { x: number; y: number; cols?: number }>, form: any) => {
+          (
+            acc: Record<string, { x: number; y: number; cols?: number }>,
+            form: any,
+            idx: number
+          ) => {
             acc[form.unqKey] = {
-              x: form.position.x,
-              y: form.position.y,
+              x: form.position?.x || 50,
+              y: form.position?.y || idx * 80,
               cols: form.cols
             };
             return acc;

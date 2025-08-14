@@ -7,7 +7,6 @@ import { FormGroup } from 'react-reactive-form';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { Subject } from 'rxjs';
 import { generateFormLayout } from '../_helper';
-import { FormLayoutBuilder } from '@/components/form/FormLayoutBuilder';
 import { useState } from 'react';
 import { unset } from 'lodash';
 import { FormLayoutFlow } from '@/components/form/FormLayoutFlow';
@@ -102,7 +101,6 @@ const FormBuilder = ({ model, modelData, isModal, onCreated }: ModelContentProps
   };
 
   const onSaveFormLayout = async (formLayout: BaseForm<string>[]) => {
-    console.log(JSON.stringify(formLayout));
     try {
       model.config.formLayout = formLayout;
       await axios.put(`${import.meta.env.VITE_APP_API_URL}/model/${model.id}`, model);

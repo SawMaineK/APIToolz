@@ -150,37 +150,6 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
                     <KeenIcon icon="setting-2" className="!text-base" />
                     Builder
                   </Link>
-
-                  <Menu>
-                    <MenuItem
-                      ref={itemAIChatRef}
-                      onShow={handleShow}
-                      toggle="dropdown"
-                      trigger="click"
-                      dropdownProps={{
-                        placement: isRTL() ? 'bottom-start' : 'bottom-end',
-                        modifiers: [
-                          {
-                            name: 'offset',
-                            options: {
-                              offset: isRTL() ? [-170, 10] : [50, -100]
-                            }
-                          }
-                        ]
-                      }}
-                    >
-                      <MenuToggle className="btn btn-sm btn-primary">
-                        <Cpu size={16} />
-                        AI Assist
-                      </MenuToggle>
-
-                      {DropdownChatAI({
-                        menuTtemRef: itemAIChatRef,
-                        slug: model.slug,
-                        type: 'request'
-                      })}
-                    </MenuItem>
-                  </Menu>
                 </ToolbarActions>
               )}
             </Toolbar>
