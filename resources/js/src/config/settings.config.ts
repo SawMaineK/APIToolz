@@ -31,7 +31,7 @@ const defaultSettings: ISettings = {
   },
   menuConfig: [
     {
-      title: 'Dashboards',
+      title: 'Dashboard',
       icon: 'home-2',
       path: '/admin'
     },

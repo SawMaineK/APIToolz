@@ -50,7 +50,12 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
   };
 
   const handleRemoveForm = (index: number) => {
-    setForms(forms.filter((_, i) => i !== index));
+    const updated = forms.filter((_, i) => i !== index);
+    setForms(updated);
+    if (formField) {
+      const key = formField.controlType === 'form_array' ? 'formArray' : 'formGroup';
+      onChange({ ...formField, [key]: updated } as BaseForm<any>);
+    }
   };
 
   const sensors = useSensors(useSensor(PointerSensor));

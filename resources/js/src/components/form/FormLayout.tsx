@@ -491,6 +491,7 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
 
     // Resolve a dotted path like "plan_id.unitprice"
     // Uses: nested control via group.get(path), object value, or formDef.findOption (async)
+    // Optimized getValueForPath: resolves dotted paths, supports arrays, objects, and async findOption
     const getValueForPath = async (path: string): Promise<any> => {
       const parts = path.split('.');
       const root = parts[0];
@@ -498,26 +499,15 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
       const formDef = props.formLayout?.find((f) => f.name === root);
       const rootCtrl = props.formGroup?.get(root);
 
-      // If entire dotted control exists in form, return its value
+      // Try to get the nested control directly
       const nestedCtrl = props.formGroup?.get(path);
       if (nestedCtrl) return nestedCtrl.value ?? 0;
 
-      // If no nesting in FormGroup, try the root control's value and walk the object
-      const rootVal = rootCtrl?.value;
-      if (rest.length > 0 && rootVal != null && typeof rootVal === 'object') {
-        let v: any = rootVal;
-        for (const p of rest) {
-          if (v == null) return 0;
-          v = v[p];
-        }
-        return v ?? 0;
-      }
-
-      // If there's a findOption for the root (e.g. root is an id), use it to resolve nested props
+      // Try to resolve via findOption if available
       if (formDef?.findOption && rootCtrl) {
         try {
           const option = await formDef.findOption(rootCtrl.value);
-          if (option == null) return 0;
+          if (!option) return 0;
           let v: any = option;
           for (const p of rest) {
             if (v == null) return 0;
@@ -529,8 +519,18 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
         }
       }
 
-      // fallback
-      return rootVal ?? 0;
+      // Walk through value if it's an object or array
+      let v = rootCtrl?.value;
+      for (const p of rest) {
+        if (v == null) return 0;
+        if (Array.isArray(v)) {
+          // Sum property p for all items in array
+          v = v.reduce((sum, item) => sum + (item?.[p] ?? 0), 0);
+        } else {
+          v = v[p];
+        }
+      }
+      return v ?? 0;
     };
 
     // Evaluate an expression asynchronously (resolves findOption as needed)
@@ -680,7 +680,7 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
         try {
           s.unsubscribe?.();
         } catch {
-            //
+          //
         }
       });
     };

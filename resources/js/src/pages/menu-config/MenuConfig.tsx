@@ -79,7 +79,7 @@ const MenuConfig = ({ menu }: MenuConfigProps) => {
     <div>
       <Toolbar>
         <ToolbarHeading>
-          <ToolbarPageTitle text={`Menu Configuration`} />
+          <ToolbarPageTitle text={`Menu Settings`} />
           <ToolbarDescription>
             Edit the structure of your sidebar menu, including nesting and order.
             <a

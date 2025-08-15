@@ -59,7 +59,7 @@ const MegaMenuInner: React.FC = () => {
 
       <MenuItem key="menu-config">
         <MenuLink path="admin/menu-config" className={linkClass}>
-          <MenuTitle className={titleClass}>Menu Configuration</MenuTitle>
+          <MenuTitle className={titleClass}>Menu Settings</MenuTitle>
         </MenuLink>
       </MenuItem>
     </Fragment>
