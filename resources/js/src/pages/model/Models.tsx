@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   DataGrid,
@@ -33,12 +33,19 @@ interface IColumnFilterProps<TData, TValue> {
 }
 
 const Models = () => {
+  const [refreshKey, setRefreshKey] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteData, setDeleteData] = useState<Model | null>(null);
   const handleClose = () => {
     setCreateModalOpen(false);
+    setRefreshKey((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
+
   const ColumnInputFilter = <TData, TValue>({ column }: IColumnFilterProps<TData, TValue>) => {
     return (
       <Input
@@ -340,6 +347,7 @@ const Models = () => {
     try {
       await axios.delete(`${import.meta.env.VITE_APP_API_URL}/model/${model.slug}/${deleteTable}`);
       toast.success(`${model.title} deleted successfully`);
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       toast.error('Error deleting record');
     }
@@ -406,6 +414,7 @@ const Models = () => {
       />
       <CreateModel open={createModalOpen} onOpenChange={handleClose} />
       <DataGrid
+        key={refreshKey}
         columns={columns}
         serverSide={true}
         onFetchData={fetchModels}

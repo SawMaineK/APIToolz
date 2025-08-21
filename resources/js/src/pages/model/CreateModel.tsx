@@ -18,6 +18,7 @@ import { startsWith } from 'lodash';
 import { FormGroup } from 'react-reactive-form';
 import { Subject } from 'rxjs';
 import { toast } from 'sonner';
+import { on } from 'events';
 
 interface IModalProps {
   open: boolean;
@@ -111,6 +112,8 @@ const CreateModel = ({ open, onOpenChange }: IModalProps) => {
       console.log('Form submitted:', value);
       await axios.post(`${import.meta.env.VITE_APP_API_URL}/model`, value);
       toast.success(`${value.name} created successfully!`);
+      formGroup.reset();
+      onOpenChange();
     } catch (error) {
       console.error('Form submission failed:', error);
 

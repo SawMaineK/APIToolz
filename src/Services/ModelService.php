@@ -96,9 +96,28 @@ class ModelService
                     'message' => "Model '{$data['name']}' created using SQL for table '{$tableName}'."
                 ];
             } else {
-                \Artisan::call('apitoolz:use-ai', [
-                    '--requirement' => "Create {$data['name']} table. ". ($data['instruction'] ?? '')
-                ]);
+                $table = $data['table'] ?? \Str::plural($data['name']);
+                $dbDriver = config('database.default');
+                $result = APIToolzGenerator::ask(
+                    "Create '{$data['name']}' model with table names as $table using SQL format for '{$dbDriver}'.",
+                    ['model_creation'],
+                    true
+                );
+                $command = preg_replace('/```(?:bash)?\s*|\s*```/', '', $result);
+                preg_match_all('/php artisan[\s\S]*?";(?=\n{2}|$)/i', $command, $matches);
+                \Log::info("Artisan command to be executed: {$command}");
+                $artisanCommand = \Str::after($command, 'php artisan ');
+                try {
+                    \Artisan::call($artisanCommand);
+                    \Log::info("The {$data['name']} model created successfully.");
+                } catch (\Throwable $e) {
+                    \Log::error("✖ Command failed: {$artisanCommand}");
+                    \Log::error("   ↳ {$e->getMessage()}");
+                    return [
+                        'status' => 'error',
+                        'message' => $e->getMessage()
+                    ];
+                }
                 return [
                     'status' => 'success',
                     'message' => "Model '{$data['name']}' created using AI-generated SQL."

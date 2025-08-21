@@ -46,7 +46,7 @@ const EntryCallout = ({ className }: IEntryCalloutProps) => {
         </div>
 
         <div className="card-footer justify-center">
-          <Link to="/account/home/get-started" className="btn btn-link">
+          <Link to="/admin/plan" className="btn btn-link">
             Get Started
           </Link>
         </div>

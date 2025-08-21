@@ -85,7 +85,7 @@ class ModelGenerator extends Command
             && !$this->option('rebuild')
             && !$this->option('remove')) {
             $create = 'yes';
-            if(!$this->option('force')) {
+            if(!$this->option('force') && !$this->option('use-ai')) {
                 $create = $this->ask("The $table table not found. Would you create $table table?(yes/no)",'yes');
             }
             if($create == 'yes' || $create == 'y') {
@@ -93,20 +93,32 @@ class ModelGenerator extends Command
                     DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
                     $this->info("The $table table has created successfully.");
                 } else {
-                    $askAi = $this->ask("Would you like to create $table table with AI? (yes/no)", 'yes');
-                    if($askAi) {
-                        $result = APIToolzGenerator::ask("Create $name model with table names as $table.", ['model_creation'], true);
+                    $askAi = 'no';
+                    if($this->option('use-ai')) {
+                        $askAi = 'yes';
+                    } else {
+                        $askAi = $this->ask("Would you like to create $table table with AI? (yes/no)", 'yes');
+                    }
+                    if($askAi == 'yes') {
+                        $dbDriver = config('database.default');
+                        $result = APIToolzGenerator::ask("Create $name model with table names as $table using SQL format for '{$dbDriver}'.", ['model_creation'], true);
                         $command = preg_replace('/```(?:bash)?\s*|\s*```/', '', $result);
                         preg_match_all('/php artisan[\s\S]*?";(?=\n{2}|$)/i', $command, $matches);
                         echo "➜  {$command}\n\n";
-                        $artisanCommand = \Str::after($command, 'php artisan ');
-                        try {
-                            Artisan::call($artisanCommand);
-                            echo "The $name model created successfully.";
-                            $this->input->setOption('update', true);
-                        } catch (\Throwable $e) {
-                            echo "✖ Command failed: {$artisanCommand}\n";
-                            echo "   ↳ {$e->getMessage()}\n\n";
+                        $confirm = $this->ask("Are you sure to create this model with this SQL? (yes/no)", 'yes');
+                        if($confirm == 'yes') {
+                            $artisanCommand = \Str::after($command, 'php artisan ');
+                            try {
+                                Artisan::call($artisanCommand);
+                                echo "The $name model created successfully.";
+                                $this->input->setOption('update', true);
+                            } catch (\Throwable $e) {
+                                echo "✖ Command failed: {$artisanCommand}\n";
+                                echo "   ↳ {$e->getMessage()}\n\n";
+                            }
+                        } else {
+                            $this->info("Process abort...");
+                            return;
                         }
                     } else {
                         $fields = $this->askTableField();
@@ -119,6 +131,8 @@ class ModelGenerator extends Command
                 $this->info("Process abort...");
                 return;
             }
+        } else {
+            $this->info("The $table table already exists.");
         }
         if ($this->option('use-roles')) {
             $roles = explode(',', $this->option('use-roles'));

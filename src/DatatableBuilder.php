@@ -306,6 +306,7 @@ class DatatableBuilder
                 return 'string';
             case 'character':
                 return 'string';
+            case 'real':
             case 'numeric':
                 return 'decimal';
             case 'enum':

@@ -7,7 +7,7 @@ class APIToolzGenerator
     public static function blend($str, $data)
     {
         self::verifyValitation();
-        $response = \Http::retry(3, 100)->post(config('apitoolz.host').'/apps/v1/blend', [
+        $response = \Http::retry(3,  100)->withoutVerifying()->post(config('apitoolz.host').'/apps/v1/blend', [
             'tpl' => $str,
             'codes' => json_encode($data),
             'key' => config('apitoolz.activated_key')
@@ -35,7 +35,13 @@ class APIToolzGenerator
     public static function ask($prompt, $tags = [], $onlyContent = false, $output = 'md')
     {
         self::verifyValitation();
-        $response = \Http::post(config('apitoolz.host').'/apps/ask', [
+        $headers = array_filter([
+            'OpenAI-Key'   => env('OPENAI_API_KEY'),
+            'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
+            'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
+        ]);
+
+        $response = \Http::withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
             'prompt' => $prompt,
             'tags' => $tags,
             'only_content' => $onlyContent,
@@ -65,14 +71,19 @@ class APIToolzGenerator
     public static function madePlan($prompt, $id = null)
     {
         self::verifyValitation();
+        $headers = array_filter([
+            'OpenAI-Key'   => env('OPENAI_API_KEY'),
+            'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
+            'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
+        ]);
         if($id) {
             if($prompt == '') {
-                $response = \Http::get(config('apitoolz.host').'/api/madeplan/'.$id, [
+                $response = \Http::withHeaders($headers)->withoutVerifying()->get(config('apitoolz.host').'/api/madeplan/'.$id, [
                     'problem' => $prompt,
                     'owner' => config('apitoolz.activated_key')
                 ]);
             } else {
-                $response = \Http::post(config('apitoolz.host').'/api/madeplan/'.$id, [
+                $response = \Http::withHeaders($headers)->post(config('apitoolz.host').'/api/madeplan/'.$id, [
                     'id' => $id,
                     '_method' => 'PUT',
                     'next' => $prompt,
@@ -84,7 +95,7 @@ class APIToolzGenerator
             if($prompt == '') {
                 return "Please provide a problem description.\n";
             }
-            $response = \Http::post(config('apitoolz.host').'/api/madeplan', [
+            $response = \Http::withHeaders($headers)->post(config('apitoolz.host').'/api/madeplan', [
                 'problem' => $prompt,
                 'owner' => config('apitoolz.activated_key')
             ]);
@@ -125,7 +136,12 @@ class APIToolzGenerator
     public static function askReact($project, $prompt, $theme, $ts, $f, $rollback)
     {
         self::verifyValitation();
-        $response = \Http::timeout(180)->post(config('apitoolz.host').'/apps/ask-react', [
+        $headers = array_filter([
+            'OpenAI-Key'   => env('OPENAI_API_KEY'),
+            'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
+            'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
+        ]);
+        $response = \Http::timeout(180)->withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask-react', [
             'project' => $project,
             'theme' => $theme,
             'prompt' => $prompt,

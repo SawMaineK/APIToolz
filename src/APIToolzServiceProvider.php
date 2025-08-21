@@ -25,7 +25,6 @@ use Sawmainek\Apitoolz\Console\ModelRelationGenerator;
 use Sawmainek\Apitoolz\Console\ModelExportGenerator;
 use Sawmainek\Apitoolz\Console\ModelImportGenerator;
 use Sawmainek\Apitoolz\Console\ActivateGenerator;
-use Sawmainek\Apitoolz\Console\OpenAIGenerator;
 use Sawmainek\Apitoolz\Console\ModelCleanUpGenerator;
 use Sawmainek\Apitoolz\Console\ReactAppGenerator;
 use Sawmainek\Apitoolz\Models\AppSetting;
@@ -104,10 +103,6 @@ class APIToolzServiceProvider extends ServiceProvider
 
         $this->app->singleton('command.apitoolz:clean', function ($app) {
             return $app->make(ModelCleanUpGenerator::class);
-        });
-
-        $this->app->singleton('command.apitoolz:ai', function ($app) {
-            return $app->make(OpenAIGenerator::class);
         });
     }
 
@@ -197,8 +192,7 @@ class APIToolzServiceProvider extends ServiceProvider
             ActivateGenerator::class,
             ModelCleanUpGenerator::class,
             ModelRebuildGenerator::class,
-            BrandingGenerator::class,
-            OpenAIGenerator::class
+            BrandingGenerator::class
         ]);
     }
 
@@ -228,8 +222,7 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.activate',
             'command.apitoolz.clean',
             'command.apitoolz.rebuild',
-            'command.apitoolz.branding',
-            'command.apitoolz.ai'
+            'command.apitoolz.branding'
         ];
     }
 

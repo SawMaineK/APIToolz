@@ -52,17 +52,6 @@ To enable the APIToolz UI mode, publish the UI assets:
 php artisan vendor:publish --tag=apitoolz-ui
 ```
 
-### Update `.env` File
-
-Add or update the following environment variables in your `.env` file:
-
-```shell
-SCOUT_DRIVER=database
-SCOUT_QUEUE=true
-ALGOLIA_APP_ID=
-ALGOLIA_SECRET=
-```
-
 ## Activation
 
 Activate `APIToolz` using the `apitoolz:activate` Artisan command with your `purchase key` and `DNS`:
@@ -126,11 +115,20 @@ This command streamlines React frontend setup, ensuring best practices and rapid
 
 ### How can I generate a model?
 
-To generate a model, use the `apitoolz:model` Artisan command:
+To generate a model using AI, use the `apitoolz:model` Artisan command:
 
 ```shell
-php artisan apitoolz:model Product --table=products --soft-delete
+php artisan apitoolz:model Product --table=products --use-ai
 ```
+> **Note:** You must provide your OpenAI Organization ID and API Secret to enable AI-powered features.
+>
+> Update `.env` environment variables:
+>
+> ```env
+> OPENAI_API_KEY=xxx
+> OPENAI_ORGANIZATION=xxx
+> OPENAI_MODEL=gpt-5.0
+> ```
 
 ### Available Options for Model Generation
 
