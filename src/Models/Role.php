@@ -2,18 +2,14 @@
 
 namespace Sawmainek\Apitoolz\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Scout\Searchable;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
 
     use QueryFilterTrait;
-    use Searchable;
     use Notifiable;
 
     /**

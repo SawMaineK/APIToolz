@@ -6,13 +6,11 @@ use Sawmainek\Apitoolz\Traits\QueryFilterTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Scout\Searchable;
 
 class AppSetting extends Model
 {
     use SoftDeletes;
     use QueryFilterTrait;
-    use Searchable;
     use Notifiable;
 
     protected $table = "app_settings";
