@@ -15,6 +15,10 @@ export interface ProcessItem {
 export interface DataModelItem {
   table_name: string;
   description: string;
+  has: {
+    model: boolean;
+    table: boolean;
+  };
 }
 
 export interface TechnologyItem {

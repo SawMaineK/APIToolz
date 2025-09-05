@@ -2,6 +2,8 @@
 
 namespace Sawmainek\Apitoolz;
 
+use Sawmainek\Apitoolz\Models\Model;
+
 class APIToolzGenerator
 {
     public static function blend($str, $data)
@@ -129,7 +131,36 @@ class APIToolzGenerator
 
                 exec($cmd);
             }
-            return json_decode($response->body());
+            if(\Str::startsWith($prompt, "php artisan apitoolz:model")) {
+                $result = json_decode($response->body(), true);
+                // Pattern: match line starting with "php artisan apitoolz:model Notification" until line break
+                preg_match_all('/(php artisan[\s\S]*?)(?=(?:\nphp artisan|$))/i', $result['raw_model_bash'], $matches);
+                $commands = array_map('trim', $matches[1]);
+                $matchCommands = array_filter($commands, fn($cmd) => str_contains($cmd, $prompt));
+                if (!empty($matchCommands)) {
+                    $cmd = trim(reset($matchCommands));
+                    \Log::info("➡ Running: {$cmd}");
+
+                    // Strip the leading php artisan (keep the rest intact)
+                    $artisanCommand = preg_replace('/^php artisan\s+/', '', $cmd);
+
+                    try {
+                        \Artisan::call($artisanCommand);
+                        \Log::info("✅ Success\n\n");
+                    } catch (\Throwable $e) {
+                        \Log::error("❌ Command failed: {$artisanCommand}");
+                        \Log::error("   ↳ {$e->getMessage()}");
+                    }
+                }
+            }
+            $result = json_decode($response->body(), true);
+            if(isset($result['data_models']) && count($result['data_models']) > 0) {
+                foreach($result['data_models'] as $key => $model) {
+                   $result['data_models'][$key]['has']['model'] = Model::where('name', $model['table_name'])->exists();
+                   $result['data_models'][$key]['has']['table'] = \Schema::hasTable(strtolower(\Str::plural($model['table_name'])));
+                }
+            }
+            return $result;
         }
     }
 

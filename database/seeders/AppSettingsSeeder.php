@@ -19,7 +19,7 @@ class AppSettingsSeeder extends Seeder
                 'key' => 'default_settings',
                 'menu_config' => [
                     [
-                      'title'=> 'Dashboards',
+                      'title'=> 'Dashboard',
                       'icon'=> 'home-2',
                       'path'=> '/admin',
                       'roles'=> ['super', 'admin']
@@ -41,12 +41,12 @@ class AppSettingsSeeder extends Seeder
                       'roles'=> ['super']
                     ]
                 ],
-                'branding' => json_encode([
+                'branding' => [
                     'app_name' => 'APIToolz',
                     'logo_url' => '/media/app/default-logo.svg',
                     'logo_small_url' => '/media/app/mini-logo.svg',
-                    'theme_color' => '#4f46e5'
-                ]),
+                    'theme_color' => '#00A193'
+                ],
                 'email_config' => [
                     'mail_driver' => 'smtp',
                     'mail_host' => 'smtp.mailtrap.io',

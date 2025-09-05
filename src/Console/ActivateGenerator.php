@@ -34,7 +34,7 @@ class ActivateGenerator extends Command
 
         $dns = $this->option('client-dns');
         if($dns == '') {
-            $dns = $this->ask("Please set your DNS.","https://apitoolz.com");
+            $dns = $this->ask("Please set your DNS.","http://localhost:8100");
         }
         $this->info("Activate DNS={$dns}");
         $key = $this->option('purchase-key');
@@ -91,17 +91,10 @@ class ActivateGenerator extends Command
             $data = json_decode($response->body(), true);
             if($data['client_dns'] == $dns) {
                 $this->updateEnvFile([
-                    "SCOUT_DRIVER" => 'database',
                     "APITOOLZ_PURCHASE_KEY" => $data['purchase_key'],
                     "APITOOLZ_ACTIVATED_KEY" => $data['activated_key'],
                     "APITOOLZ_ACTIVATED_DNS" => $data['client_dns']
                 ]);
-
-                \Artisan::call('install:api --without-migration-prompt');
-                \Artisan::call('vendor:publish', ['--provider'=>'Laravel\Scout\ScoutServiceProvider']);
-                \Artisan::call('vendor:publish', ['--provider'=>'L5Swagger\L5SwaggerServiceProvider']);
-                \Artisan::call('vendor:publish', ['--provider'=>'Sawmainek\Apitoolz\APIToolzServiceProvider','--tag' => 'config', '--force'=> true]);
-
                 \Artisan::call('config:clear');
 
                 return $this->info("Activation has successfully. Now, you can create model using the `apitoolz:model`");

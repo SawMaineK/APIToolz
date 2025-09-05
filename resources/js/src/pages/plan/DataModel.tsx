@@ -1,13 +1,15 @@
-import React from 'react';
-import { Share2, Table2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, Plus, Share2, Table2 } from 'lucide-react';
 import { MadePlan } from '.';
 import { Link } from 'react-router-dom';
 
 interface DataModelProps {
   plan?: MadePlan;
+  onCreateModel?: (table: string) => void;
 }
 
-export const DataModel: React.FC<DataModelProps> = ({ plan }) => {
+export const DataModel: React.FC<DataModelProps> = ({ plan, onCreateModel }) => {
+  const [loading, setLoading] = useState(false);
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-white mb-4">
       {/* Header */}
@@ -41,12 +43,53 @@ export const DataModel: React.FC<DataModelProps> = ({ plan }) => {
               </div>
 
               {/* Text content */}
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900">{table.table_name}</span>
+                  <div>
+                    <span className="font-medium text-gray-900">{table.table_name}</span>
+                    <p className="text-sm text-gray-600 mt-1">{table.description}</p>
+                    <button
+                      onClick={async () => {
+                        const newModelName = prompt('Enter new model name:');
+                        if (newModelName && onCreateModel) {
+                          setLoading(true);
+                          try {
+                            await onCreateModel(`Please add new data model for ${newModelName}`);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }
+                      }}
+                      className="btn btn-sm btn-light mt-2 flex items-center gap-1"
+                      disabled={loading}
+                    >
+                      <Plus className="w-4 h-4" /> New Model
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{table.description}</p>
               </div>
+              {plan.raw_model_bash && !table.has.model && !table.has.table && (
+                <button
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      await onCreateModel?.(`php artisan apitoolz:model ${table.table_name}`);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="ml-2 px-3 py-1 text-xs rounded bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 flex items-center gap-2"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4" />
+                    </>
+                  ) : (
+                    'Create'
+                  )}
+                </button>
+              )}
             </div>
           ))}
       </div>

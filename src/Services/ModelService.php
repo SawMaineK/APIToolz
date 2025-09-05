@@ -96,7 +96,7 @@ class ModelService
                     'message' => "Model '{$data['name']}' created using SQL for table '{$tableName}'."
                 ];
             } else {
-                $table = $data['table'] ?? \Str::plural($data['name']);
+                $table = $data['table'] ?? strtolower(\Str::plural($data['name']));
                 $dbDriver = config('database.default');
                 $result = APIToolzGenerator::ask(
                     "Create '{$data['name']}' model with table names as $table using SQL format for '{$dbDriver}'.",
@@ -149,7 +149,7 @@ class ModelService
                 $request->question,
                 $request->id ?? null
             );
-        } else  if($slug == 'dashboard' || $slug == 'general_configuration') {
+        } else if($slug == 'dashboard' || $slug == 'general_configuration') {
             preg_match_all('/#([A-Za-z0-9_]+)/', $request->get('question', ''), $matches);
             $fields = [];
             foreach($matches[1] as $model) {

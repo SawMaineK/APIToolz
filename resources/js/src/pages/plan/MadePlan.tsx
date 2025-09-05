@@ -13,7 +13,7 @@ import ReactFlow, {
   MarkerType
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Table, Share2, PanelRightClose, SaveAll } from 'lucide-react';
+import { Table, Share2, PanelRightClose, SaveAll, Loader, Loader2 } from 'lucide-react';
 
 const IconLabel = ({ icon, title, desc }: { icon: string; title: string; desc: string }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
@@ -24,15 +24,6 @@ const IconLabel = ({ icon, title, desc }: { icon: string; title: string; desc: s
       <div style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{title}</div>
     </div>
     <div style={{ fontSize: 13, color: '#374151' }}>{desc}</div>
-  </div>
-);
-
-const DataModelList = ({ label }: { label: string }) => (
-  <div className="flex items-center gap-2 p-3 rounded-md border bg-white hover:bg-gray-50">
-    <div className="bg-green-100 text-green-600 p-2 rounded">
-      <Table size={16} />
-    </div>
-    <span className="text-sm font-medium">{label}</span>
   </div>
 );
 
@@ -58,15 +49,15 @@ import { FloatingToolbar } from './FloatingToolbar';
 import SkeletonLoader from './SkeletonLoader';
 import { useNavigate } from 'react-router';
 import { makeIcon, PlanRequirement } from './PlanRequirement';
-import { DataModelItem, MadePlan as plan, ProcessItem } from '.';
+import { DataModelItem, MadePlan as plan } from '.';
 import { PopupMessage } from './PopupMessage';
 import { UserProcesses } from './UserProcesses';
-import { ProcessNodeCard } from './ProcessNodeCard';
 import { DataModel } from './DataModel';
 import { TechnologySection } from './TechnologySection';
 import { TechnologyCard } from './TechnologyCard';
 import { ProcessCard } from './ProcessCard';
 import { Link } from 'react-router-dom';
+import { DataTable } from './DataTable';
 export const MadePlan = ({ id }: any) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -272,7 +263,12 @@ export const MadePlan = ({ id }: any) => {
               </div>
               <div className="flex flex-col gap-2">
                 {madePlan.data_models.map((dm: DataModelItem, i: number) => (
-                  <DataModelList key={i} label={dm.table_name} />
+                  <DataTable
+                    key={i}
+                    model={dm}
+                    isCreate={(madePlan.raw_model_bash && !dm.has.model && !dm.has.table) || false}
+                    onCreateModel={handleCreateModel}
+                  />
                 ))}
               </div>
             </div>
@@ -367,6 +363,18 @@ export const MadePlan = ({ id }: any) => {
     }
   };
 
+  const handleCreateModel = async (table: string) => {
+    try {
+      const { data } = await axios.post<any>(`${import.meta.env.VITE_APP_API_URL}/model/plan/ask`, {
+        question: `${table}`,
+        id
+      });
+      setMadePlan(data);
+    } catch (error) {
+      console.error('Error creating model:', error);
+    }
+  };
+
   if (id == null && showMakerPlan) {
     return <PlanMaker handleSubmit={handleSubmit} />;
   }
@@ -444,7 +452,9 @@ export const MadePlan = ({ id }: any) => {
             {loading && <SkeletonLoader />}
             {!loading && madePlan?.requirements && <PlanRequirement plan={madePlan} />}
             {!loading && madePlan?.processes && <UserProcesses plan={madePlan} />}
-            {!loading && madePlan?.data_models && <DataModel plan={madePlan} />}
+            {!loading && madePlan?.data_models && (
+              <DataModel plan={madePlan} onCreateModel={handleCreateModel} />
+            )}
             {!loading && madePlan?.technology && <TechnologySection plan={madePlan} />}
             <div
               style={{

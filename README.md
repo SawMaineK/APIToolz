@@ -51,6 +51,11 @@ To enable the APIToolz UI mode, publish the UI assets:
 ```shell
 php artisan vendor:publish --tag=apitoolz-ui
 ```
+## Admin Panel
+
+1. Start your Laravel server and ensure APIToolz is installed and activated.
+2. Open your browser and navigate to [http://localhost:8100/admin](http://localhost:8100/admin).
+3. Log in using your admin credentials (set during installation or via the CLI).
 
 ## Activation
 
