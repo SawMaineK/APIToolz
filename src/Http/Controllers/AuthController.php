@@ -371,4 +371,31 @@ class AuthController extends APIToolzController
             return $this->response(['message' => 'An error occurred while logging out.'], 500);
         }
     }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/delete",
+     *     summary="Delete user account",
+     *     tags={"Account"},
+     *     security={{"apiAuth":{}}},
+     *     @OA\Response(response=204, description="Account deleted successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
+     */
+    public function delete(Request $request)
+    {
+        Log::info("Processing account deletion request.");
+
+        try {
+            $message = $this->authService->delete($request);
+
+            return $this->response([
+                'message' => $message
+            ], 204);
+        } catch (\Exception $e) {
+            Log::error("Delete error: " . $e->getMessage());
+            return $this->response(['message' => 'An error occurred while deleting the account.'], 500);
+        }
+    }
 }

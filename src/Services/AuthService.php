@@ -154,4 +154,15 @@ class AuthService
 
         return "Account logout successful.";
     }
+
+    public function delete(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        $user->delete();
+
+        Log::info("User account deleted.", ['user_id' => $user->id]);
+
+        return "Account deleted successfully.";
+    }
 }

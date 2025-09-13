@@ -17,6 +17,7 @@ Route::prefix('api')->group(function () {
         Route::post('/edit-profile', 'editProfile')->middleware(['auth:sanctum']);
         Route::post('/change-password', 'changePassword')->middleware(['auth:sanctum']);
         Route::post('/logout', 'logout')->middleware(['auth:sanctum']);
+        Route::delete('/delete', 'delete')->middleware(['auth:sanctum']);
         Route::post('/forgot-password', 'forgotPassword');
         Route::post('/verify-otp', 'verifyOTP');
         Route::post('/reset-password', 'resetPassword');
