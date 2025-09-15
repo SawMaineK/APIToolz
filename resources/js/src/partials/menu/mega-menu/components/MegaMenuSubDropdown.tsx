@@ -12,8 +12,10 @@ import {
 } from '@/components/menu';
 import { useResponsive } from '@/hooks';
 import { useLanguage } from '@/i18n';
+import { toPascalCase } from '@/pages/dashboards/demo1';
 import clsx from 'clsx';
 import { ReactNode } from 'react';
+import * as LucideIcons from 'lucide-react';
 
 const MegaMenuSubDropdown = (items: TMenuConfig) => {
   const desktopMode = useResponsive('up', 'lg');
@@ -21,6 +23,8 @@ const MegaMenuSubDropdown = (items: TMenuConfig) => {
 
   const buildItems = (items: TMenuConfig): ReactNode => {
     return items.map((item, index) => {
+      const IconName = item.icon ? toPascalCase(item.icon) : null;
+      const Icon = IconName && (LucideIcons as any)[IconName];
       if (item.separator) {
         return <MenuSeparator key={index} />;
       } else if (item.children) {
@@ -34,11 +38,7 @@ const MegaMenuSubDropdown = (items: TMenuConfig) => {
             }}
           >
             <MenuLink className="grow-0">
-              {item.icon && (
-                <MenuIcon>
-                  <KeenIcon icon={item.icon} />
-                </MenuIcon>
-              )}
+              {item.icon && <MenuIcon>{Icon && <Icon className={'h-16 w-16'} />}</MenuIcon>}
               <MenuTitle className={clsx('')}>{item.title}</MenuTitle>
               <MenuArrow>
                 <KeenIcon icon="right" className="text-3xs rtl:transform rtl:rotate-180" />

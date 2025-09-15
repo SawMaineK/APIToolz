@@ -37,12 +37,15 @@ class APIToolzGenerator
     public static function ask($prompt, $tags = [], $onlyContent = false, $output = 'md')
     {
         self::verifyValitation();
+        if (empty(env('OPENAI_API_KEY')) || empty(env('OPENAI_ORGANIZATION'))) {
+            echo "Please set 'OPENAI_API_KEY' and 'OPENAI_ORGANIZATION' in your .env file.";
+            exit;
+        }
         $headers = array_filter([
             'OpenAI-Key'   => env('OPENAI_API_KEY'),
             'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
             'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
         ]);
-
         $response = \Http::withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
             'prompt' => $prompt,
             'tags' => $tags,
@@ -70,9 +73,68 @@ class APIToolzGenerator
         }
     }
 
+    public static function madeWorkflow($prompt) {
+        self::verifyValitation();
+        if (empty(env('OPENAI_API_KEY')) || empty(env('OPENAI_ORGANIZATION'))) {
+            echo "Please set 'OPENAI_API_KEY' and 'OPENAI_ORGANIZATION' in your .env file.";
+            exit;
+        }
+        $headers = array_filter([
+            'OpenAI-Key'   => env('OPENAI_API_KEY'),
+            'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
+            'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
+        ]);
+
+        $response = \Http::withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
+            'prompt' => $prompt,
+            'tags' => ['workflow'],
+            'only_content' => true,
+            'key' => config('apitoolz.activated_key')
+        ]);
+
+        if($response->failed()) {
+            switch ($response->status()) {
+                case 400:
+                case 419:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+                default:
+                    echo "{$response->body()}\n";
+                    echo "Abort...\n";
+                    dd();
+                    break;
+            }
+        }
+        if($response->successful()) {
+            $result = json_decode($response->body());
+            $tempFile = storage_path('app/create_model_cmd.txt');
+            file_put_contents($tempFile, $result);
+
+            // Run another PHP process in the background
+            $phpBinary = PHP_BINARY; // path to PHP
+            $artisanPath = base_path('artisan');
+            $cmd = "{$phpBinary} {$artisanPath} apitoolz:create-models {$tempFile} > /dev/null 2>&1 &";
+
+            exec($cmd);
+
+            if (preg_match('/```yaml\n*(.*?)\n```/s', $result, $matches)) {
+                $yamlContent = $matches[1];
+                return $yamlContent;
+            }
+            return json_decode("");
+        }
+
+    }
+
     public static function madePlan($prompt, $id = null)
     {
         self::verifyValitation();
+        if (empty(env('OPENAI_API_KEY')) || empty(env('OPENAI_ORGANIZATION'))) {
+            echo "Please set 'OPENAI_API_KEY' and 'OPENAI_ORGANIZATION' in your .env file.";
+            exit;
+        }
         $headers = array_filter([
             'OpenAI-Key'   => env('OPENAI_API_KEY'),
             'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
@@ -164,9 +226,13 @@ class APIToolzGenerator
         }
     }
 
-    public static function askReact($project, $prompt, $theme, $ts, $f, $rollback)
+    public static function madeReactApp($project, $prompt, $theme, $ts, $f, $rollback)
     {
         self::verifyValitation();
+        if (empty(env('OPENAI_API_KEY')) || empty(env('OPENAI_ORGANIZATION'))) {
+            echo "Please set 'OPENAI_API_KEY' and 'OPENAI_ORGANIZATION' in your .env file.";
+            exit;
+        }
         $headers = array_filter([
             'OpenAI-Key'   => env('OPENAI_API_KEY'),
             'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
@@ -266,17 +332,17 @@ class APIToolzGenerator
 
     static function verifyValitation() {
         if(config('apitoolz.host') == '') {
-            echo "Please define APITOOLZ_HOST= in env.\n";
+            echo "Please set APITOOLZ_HOST= in env.\n";
             echo "Abort...\n";
             dd();
         }
         if(config('apitoolz.purchase_key') == '') {
-            echo "Please define APITOOLZ_PURCHASE_KEY= in env.\n";
+            echo "Please set APITOOLZ_PURCHASE_KEY= in env.\n";
             echo "Abort...\n";
             dd();
         }
         if(config('apitoolz.activated_key') == '') {
-            echo "Please define APITOOLZ_ACTIVATED_KEY= in env.\n";
+            echo "Please set APITOOLZ_ACTIVATED_KEY= in env.\n";
             echo "Abort...\n";
             dd();
         }

@@ -8,11 +8,8 @@ import { FormGroup } from 'react-reactive-form';
 import { FormSubmit } from '@/components/form/base/form-submit';
 import { Subject } from 'rxjs';
 import { generateFormLayout, objectToFormData, toFormLayout } from '../_helper';
-import { Menu, MenuItem, MenuToggle } from '@/components';
 import { Toolbar, ToolbarActions, ToolbarHeading, ToolbarPageTitle } from '@/partials/toolbar';
 import { KeenIcon } from '@/components/keenicons';
-import { Cpu } from 'lucide-react';
-import { DropdownChatAI } from '@/partials/dropdowns/chat-ai';
 import { useLanguage } from '@/i18n';
 import { useRef } from 'react';
 import { useAuthContext } from '@/auth';
@@ -26,12 +23,6 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
   const canCreate = currentUser?.permissions?.some((perm) => perm === 'create');
   const canEdit = currentUser?.permissions?.some((perm) => perm === 'edit');
   const hasRole = currentUser?.roles?.some((role) => role === 'super');
-
-  const itemAIChatRef = useRef<any>(null);
-
-  const handleShow = () => {
-    window.dispatchEvent(new Event('resize'));
-  };
 
   const initialValues = {
     ...modelData

@@ -4,11 +4,6 @@ namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
 use Sawmainek\Apitoolz\Models\Model;
-use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
-use Sawmainek\Apitoolz\ModelBuilder;
-use Sawmainek\Apitoolz\DatatableBuilder;
-use Sawmainek\Apitoolz\APIToolzGenerator;
-use Illuminate\Support\Facades\Artisan;
 use Sawmainek\Apitoolz\SeederBuilder;
 
 class ModelSeederGenerator extends Command
@@ -87,7 +82,19 @@ class ModelSeederGenerator extends Command
 
     protected function printDocumentation()
     {
-
+        $this->info("Usage: php artisan apitoolz:seeder {model} {--key=} {--data=} {--count=} {--use-ai} {--ask=} {--force} {--doc}");
+        $this->info("");
+        $this->info("Options:");
+        $this->info("  --key=         The unique key field in the model table to ensure uniqueness.");
+        $this->info("  --data=       JSON string of additional data to include in each record.");
+        $this->info("  --count=      Number of records to generate (default is 5).");
+        $this->info("  --use-ai      Use AI to generate realistic data.");
+        $this->info("  --ask=        Comma-separated list of fields to prompt for user input.");
+        $this->info("  --force       Overwrite existing records with the same key.");
+        $this->info("  --doc         Display this documentation.");
+        $this->info("");
+        $this->info("Example:");
+        $this->info('  php artisan apitoolz:seeder User --key=email --data=\'{\"status\":\"active\"}\' --count=10 --use-ai --ask=first_name,last_name');
     }
 
 }

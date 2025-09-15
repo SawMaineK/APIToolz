@@ -6,6 +6,7 @@ use Sawmainek\Apitoolz\Http\Controllers\RoleController;
 use Sawmainek\Apitoolz\Http\Controllers\TwoFactorAuthController;
 use Sawmainek\Apitoolz\Http\Controllers\ModelController;
 use Sawmainek\Apitoolz\Http\Controllers\UsersController;
+use Sawmainek\Apitoolz\Http\Controllers\WorkflowController;
 
 Route::prefix('api')->group(function () {
     // Auth
@@ -29,6 +30,18 @@ Route::prefix('api')->group(function () {
         Route::post('/verify-2fa', 'verify2FA');
         Route::post('/enable-2fa', 'enable2FA')->middleware(['auth:sanctum']);
         Route::post('/disable-2fa', 'disable2FA')->middleware(['auth:sanctum']);
+    });
+    // Workflow Controller
+    Route::controller(WorkflowController::class)
+    ->prefix('workflow')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('/', [WorkflowController::class, 'index']);
+        Route::post('/', [WorkflowController::class, 'store']);
+        Route::put('/{id}', [WorkflowController::class, 'update']);
+        Route::delete('/{id}', [WorkflowController::class, 'delete']);
+        Route::get('/{name}/definition', 'definition');
+        Route::post('/{name}/start', 'start');
+        Route::post('/{name}/{instanceId}/step/{stepId}', 'submitStep');
+        Route::get('/{instanceId}/history', 'history');
     });
     // Model Controller
     Route::controller(ModelController::class)

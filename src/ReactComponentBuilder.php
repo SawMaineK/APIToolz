@@ -8,7 +8,7 @@ class ReactComponentBuilder
 {
     public static function buildComponentsFromBRS(string $brsText, string $projectName, $themeColor = 'blue', $ts = false, $force = false, $rollback = 0): array
     {
-        $response = APIToolzGenerator::askReact(
+        $response = APIToolzGenerator::madeReactApp(
             project: $projectName,
             theme: $themeColor,
             prompt: $brsText,

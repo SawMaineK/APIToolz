@@ -68,7 +68,7 @@ export class BaseForm<T> {
   // Form Select 2
   multiple: boolean;
   options: { id: string; name: string }[] | any[];
-  options$?: AsyncOptionsFn;
+  options$?: AsyncOptionsFn | any;
   findOption?: (id: string) => any | undefined;
   filter: { parent: string; key: string } | any;
   valueChanges$?: Subject<any>;

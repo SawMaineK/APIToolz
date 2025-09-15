@@ -19,6 +19,10 @@ import { RelationshipPage } from '@/pages/model/relationship/RelationshipPage';
 import { TrashUsersPage } from '@/pages/users/UsersTrashPage';
 import { TrashDataTablePage } from '@/pages/model/datatable/TrashDataTablePage';
 import { PermissionsPage } from '@/pages/roles/PermissionsPage';
+import { WorkflowRunnerPage } from '@/pages/workflows/WorkflowRunnerPage';
+import { Workflow } from 'lucide-react';
+import { WorkflowsPage } from '@/pages/workflows/WorkflowsPage';
+import { WorkflowDefinitionPage } from '@/pages/workflows/WorkflowDefinitionPage';
 const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
@@ -35,6 +39,9 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/admin" element={<DefaultPage />} />
           <Route path="/admin/plan" element={<MadePlanPage />} />
           <Route path="/admin/plan/:id" element={<MadePlanPage />} />
+          <Route path="/admin/workflows" element={<WorkflowsPage />} />
+          <Route path="/admin/workflow/definition" element={<WorkflowDefinitionPage />} />
+          <Route path="/admin/workflow/:id" element={<WorkflowRunnerPage />} />
           <Route path="/admin/model" element={<ModelsPage />} />
           <Route path="/admin/model/relationship" element={<RelationshipPage />} />
           <Route path="/admin/model/:id" element={<DataTablePage />} />

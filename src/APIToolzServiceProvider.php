@@ -10,6 +10,7 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Connection;
 use Sawmainek\Apitoolz\Console\BrandingGenerator;
 use Sawmainek\Apitoolz\Console\CreateModelsGenerator;
+use Sawmainek\Apitoolz\Console\CreateWorkflowGenerator;
 use Sawmainek\Apitoolz\Console\ModelBuilderGenerator;
 use Sawmainek\Apitoolz\Console\ModelFilterGenerator;
 use Sawmainek\Apitoolz\Console\ModelRebuildGenerator;
@@ -104,6 +105,10 @@ class APIToolzServiceProvider extends ServiceProvider
         $this->app->singleton('command.apitoolz:clean', function ($app) {
             return $app->make(ModelCleanUpGenerator::class);
         });
+
+        $this->app->singleton('command.apitoolz:workflow', function ($app) {
+            return $app->make(CreateWorkflowGenerator::class);
+        });
     }
 
     /**
@@ -192,7 +197,8 @@ class APIToolzServiceProvider extends ServiceProvider
             ActivateGenerator::class,
             ModelCleanUpGenerator::class,
             ModelRebuildGenerator::class,
-            BrandingGenerator::class
+            BrandingGenerator::class,
+            CreateWorkflowGenerator::class
         ]);
     }
 
@@ -222,7 +228,8 @@ class APIToolzServiceProvider extends ServiceProvider
             'command.apitoolz.activate',
             'command.apitoolz.clean',
             'command.apitoolz.rebuild',
-            'command.apitoolz.branding'
+            'command.apitoolz.branding',
+            'command.apitoolz.workflow'
         ];
     }
 
