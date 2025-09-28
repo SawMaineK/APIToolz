@@ -2,6 +2,7 @@
 
 namespace Sawmainek\Apitoolz\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Sawmainek\Apitoolz\APIToolzGenerator;
 use Sawmainek\Apitoolz\Http\Requests\WorkflowRequest;
@@ -100,11 +101,13 @@ class WorkflowController extends APIToolzController
         $workflow = $this->loadWorkflow($name);
         $firstStep = $workflow['steps'][0]['id'] ?? null;
 
+        $modelType = $this->validateModelType($workflow['model_type'] ?? null);
+
         $instance = WorkflowInstance::create([
             'workflow_name' => $name,
             'current_step' => $firstStep,
             'data' => [],
-            'model_type' => $workflow['model_type'] ?? null,
+            'model_type' => $modelType,
             'model_id' => null
         ]);
 
@@ -133,7 +136,10 @@ class WorkflowController extends APIToolzController
         // 1) If this step has create_model, create it now and save the id to workflow data
         if (isset($step['create_model']) && is_array($step['create_model'])) {
             $cm = $step['create_model'];
-            $modelType = $cm['model_type'];
+            $modelType = $this->validateModelType($cm['model_type'] ?? null);
+            if (!$modelType) {
+                abort(400, "Workflow step '{$stepId}' is missing a valid model_type definition.");
+            }
             $fieldsMap = $cm['fields'] ?? [];
 
             $modelAttributes = [];
@@ -164,7 +170,10 @@ class WorkflowController extends APIToolzController
         // 2) Update models declared in update_models (can be multiple)
         if (isset($step['update_models']) && is_array($step['update_models'])) {
             foreach ($step['update_models'] as $modelConfig) {
-                $modelType = $modelConfig['model_type'];
+                $modelType = $this->validateModelType($modelConfig['model_type'] ?? null);
+                if (!$modelType) {
+                    abort(400, "Workflow step '{$stepId}' attempted to update an undefined model type.");
+                }
                 $modelIdField = $modelConfig['model_id_field'] ?? null;
                 if (!$modelIdField) continue;
 
@@ -187,7 +196,7 @@ class WorkflowController extends APIToolzController
 
         // 3) Also apply update_model (single-model convenience), e.g. update_model: { status: 'applied' }
         if (isset($step['update_model']) && is_array($step['update_model'])) {
-            $primaryModelType = $instance->model_type;
+            $primaryModelType = $this->validateModelType($instance->model_type);
             $primaryModelId = $instance->model_id;
             if ($primaryModelType && $primaryModelId) {
                 $pModel = $primaryModelType::find($primaryModelId);
@@ -266,5 +275,25 @@ class WorkflowController extends APIToolzController
             // log($e->getMessage());
             return false;
         }
+    }
+
+    private function validateModelType(?string $modelType): ?string
+    {
+        if (!$modelType) {
+            return null;
+        }
+
+        $modelType = ltrim($modelType, '\\');
+
+        $allowedModels = config('apitoolz.workflow.allowed_models', []);
+        if (!in_array($modelType, $allowedModels, true)) {
+            abort(403, "The model type '{$modelType}' is not allowed in workflow definitions.");
+        }
+
+        if (!class_exists($modelType) || !is_subclass_of($modelType, Model::class)) {
+            abort(400, "Invalid model type '{$modelType}' in workflow definition.");
+        }
+
+        return $modelType;
     }
 }
