@@ -28,12 +28,14 @@ interface IModalProps {
 const CreateUserModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
   const fetchRoles = async () => {
     try {
-      return await axios.get(`${import.meta.env.VITE_APP_API_URL}/role`).then((res) => {
-        return res.data.data.map((role: any) => ({
-          label: role.name,
-          value: role.id
-        }));
-      });
+      return await axios
+        .get(`${import.meta.env.VITE_APP_API_URL}/role?per_page=9999`)
+        .then((res) => {
+          return res.data.data.map((role: any) => ({
+            label: role.name,
+            value: role.id
+          }));
+        });
     } catch (error) {
       console.error('Error fetching roles:', error);
       toast.error('Failed to fetch roles');

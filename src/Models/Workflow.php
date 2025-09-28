@@ -9,5 +9,5 @@ class Workflow extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'definition'];
+    protected $fillable = ['name', 'slug', 'description', 'definition'];
 }

@@ -9,7 +9,7 @@ class APIToolzGenerator
     public static function blend($str, $data)
     {
         self::verifyValitation();
-        $response = \Http::retry(3,  100)->withoutVerifying()->post(config('apitoolz.host').'/apps/v1/blend', [
+        $response = \Http::retry(3,  180 * 1000)->withoutVerifying()->post(config('apitoolz.host').'/apps/v1/blend', [
             'tpl' => $str,
             'codes' => json_encode($data),
             'key' => config('apitoolz.activated_key')
@@ -46,7 +46,7 @@ class APIToolzGenerator
             'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
             'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
         ]);
-        $response = \Http::withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
+        $response = \Http::withHeaders($headers)->timeout( 180)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
             'prompt' => $prompt,
             'tags' => $tags,
             'only_content' => $onlyContent,
@@ -85,7 +85,7 @@ class APIToolzGenerator
             'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
         ]);
 
-        $response = \Http::withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
+        $response = \Http::withHeaders($headers)->timeout(seconds: 180)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask', [
             'prompt' => $prompt,
             'tags' => ['workflow'],
             'only_content' => true,
@@ -142,7 +142,7 @@ class APIToolzGenerator
         ]);
         if($id) {
             if($prompt == '') {
-                $response = \Http::withHeaders($headers)->withoutVerifying()->get(config('apitoolz.host').'/api/madeplan/'.$id, [
+                $response = \Http::withHeaders($headers)->timeout(seconds: 180)->withoutVerifying()->get(config('apitoolz.host').'/api/madeplan/'.$id, [
                     'problem' => $prompt,
                     'owner' => config('apitoolz.activated_key')
                 ]);
@@ -238,7 +238,7 @@ class APIToolzGenerator
             'OpenAI-Org'   => env('OPENAI_ORGANIZATION'),
             'OpenAI-Model' => env('OPENAI_MODEL') ?? 'gpt-4.1',
         ]);
-        $response = \Http::timeout(180)->withHeaders($headers)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask-react', [
+        $response = \Http::withHeaders($headers)->timeout(180)->withoutVerifying()->post(config('apitoolz.host').'/apps/ask-react', [
             'project' => $project,
             'theme' => $theme,
             'prompt' => $prompt,

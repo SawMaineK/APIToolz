@@ -375,7 +375,8 @@ export const MENU_MEGA: TMenuConfig = [
     icon: 'settings',
     children: [
       //   { title: 'Plans', icon: 'notebook', path: 'admin/plans' },
-      { title: 'Workflows', icon: 'workflow', path: 'admin/workflows' }
+      { title: 'Workflows', icon: 'workflow', path: 'admin/workflows' },
+      { title: 'Integrations', icon: 'workflow', path: 'admin/integrations' }
     ]
   },
   //   {

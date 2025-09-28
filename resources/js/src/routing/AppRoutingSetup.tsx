@@ -20,13 +20,43 @@ import { TrashUsersPage } from '@/pages/users/UsersTrashPage';
 import { TrashDataTablePage } from '@/pages/model/datatable/TrashDataTablePage';
 import { PermissionsPage } from '@/pages/roles/PermissionsPage';
 import { WorkflowRunnerPage } from '@/pages/workflows/WorkflowRunnerPage';
-import { Workflow } from 'lucide-react';
 import { WorkflowsPage } from '@/pages/workflows/WorkflowsPage';
 import { WorkflowDefinitionPage } from '@/pages/workflows/WorkflowDefinitionPage';
+import WorkflowHistoryPage from '@/pages/workflows/WorkflowHistoryPage';
+import { Demo2Layout } from '@/layouts/demo2';
+import { Demo3Layout } from '@/layouts/demo3';
+import { Demo4Layout } from '@/layouts/demo4';
+import { Demo5Layout } from '@/layouts/demo5';
+import { Demo6Layout } from '@/layouts/demo6';
+import { Demo7Layout } from '@/layouts/demo7';
+import { Demo8Layout } from '@/layouts/demo8';
+import { Demo9Layout } from '@/layouts/demo9';
+import { Demo10Layout } from '@/layouts/demo10';
+import { IntegrationsPage } from '@/pages/integrations/IntegrationPage';
+import { IntDefinitionPage } from '@/pages/integrations/IntDefinitionPage';
+import { WorkflowInstancesPage } from '@/pages/workflows/histories/WorkflowInstancesPage';
 const getLayout = (): ReactElement => {
   const layout = localStorage.getItem('selectedLayout') || 'demo1';
 
   switch (layout) {
+    case 'demo2':
+      return <Demo2Layout />;
+    case 'demo3':
+      return <Demo3Layout />;
+    case 'demo4':
+      return <Demo4Layout />;
+    case 'demo5':
+      return <Demo5Layout />;
+    case 'demo6':
+      return <Demo6Layout />;
+    case 'demo7':
+      return <Demo7Layout />;
+    case 'demo8':
+      return <Demo8Layout />;
+    case 'demo9':
+      return <Demo9Layout />;
+    case 'demo10':
+      return <Demo10Layout />;
     default:
       return <Demo1Layout />;
   }
@@ -42,6 +72,11 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/admin/workflows" element={<WorkflowsPage />} />
           <Route path="/admin/workflow/definition" element={<WorkflowDefinitionPage />} />
           <Route path="/admin/workflow/:id" element={<WorkflowRunnerPage />} />
+          <Route path="/admin/workflow/:id/instances" element={<WorkflowInstancesPage />} />
+          <Route path="/admin/workflow/:id/:instanceId" element={<WorkflowRunnerPage />} />
+          <Route path="/admin/workflow/:instanceId/history" element={<WorkflowHistoryPage />} />
+          <Route path="/admin/integrations" element={<IntegrationsPage />} />
+          <Route path="/admin/integration/definition" element={<IntDefinitionPage />} />
           <Route path="/admin/model" element={<ModelsPage />} />
           <Route path="/admin/model/relationship" element={<RelationshipPage />} />
           <Route path="/admin/model/:id" element={<DataTablePage />} />

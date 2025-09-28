@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FormSubmit } from '../base/form-submit';
 
-export const Submit = ({ formGroup, ...props }: FormSubmit | any) => {
+export const Submit = ({ formGroup, ...props }: FormSubmit) => {
   const [submitted, setSubmitted] = useState(true);
 
   // This effect runs once when the component is mounted.
@@ -35,7 +35,7 @@ export const Submit = ({ formGroup, ...props }: FormSubmit | any) => {
             <button
               type="submit"
               className={`btn btn-primary ${props.inputClass}`}
-              disabled={!submitted}
+              disabled={!submitted || props.disabled}
             >
               {/* Form Prefix */}
               {(props.prefix || props.prefixHtml) && (

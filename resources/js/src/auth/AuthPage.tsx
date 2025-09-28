@@ -9,9 +9,9 @@ import {
   Signup,
   TwoFactorAuth
 } from './pages/jwt';
-import { AuthBrandedLayout } from '@/layouts/auth-branded';
 import { AuthLayout } from '@/layouts/auth';
 import { CheckEmail } from '@/auth/pages/jwt';
+import AuthCallback from './AuthCallback';
 
 const AuthPage = () => (
   <Routes>
@@ -26,6 +26,7 @@ const AuthPage = () => (
       <Route path="/reset-password/check-email" element={<ResetPasswordCheckEmail />} />
       <Route path="/reset-password/change" element={<ResetPasswordChange />} />
       <Route path="/reset-password/changed" element={<ResetPasswordChanged />} />
+      <Route path="/callback" element={<AuthCallback />} />
       <Route path="*" element={<Navigate to="/error/404" />} />
     </Route>
 

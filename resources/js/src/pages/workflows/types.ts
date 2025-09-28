@@ -5,6 +5,7 @@ import { Validators } from 'react-reactive-form';
 export type WorkflowStep = {
   id: string;
   label: string;
+  roles: string[];
   form?: {
     fields: BaseForm<string>[];
   };
@@ -17,7 +18,19 @@ export type WorkflowInstance = {
   data: Record<string, any>;
 };
 
-type FieldType = 'text' | 'number' | 'email' | 'date' | 'textarea' | 'select' | 'dropdown' | 'file';
+type FieldType =
+  | 'text'
+  | 'number'
+  | 'email'
+  | 'date'
+  | 'datetime'
+  | 'textarea'
+  | 'select'
+  | 'checkbox'
+  | 'dropdown'
+  | 'radio'
+  | 'file'
+  | 'sub_title';
 
 type ValidatorConfig = {
   rule: string;
@@ -34,6 +47,7 @@ export function createWorkflowField(type: FieldType, options: BaseForm<string>):
       controlType = 'textarea';
       break;
     case 'select':
+    case 'radio':
     case 'dropdown':
       controlType = 'dropdown';
       if (options.options$?.type === 'api') {
@@ -58,11 +72,20 @@ export function createWorkflowField(type: FieldType, options: BaseForm<string>):
         options$ = async () => options.options || [];
       }
       break;
+    case 'checkbox':
+      controlType = 'checkbox';
+      break;
     case 'date':
       controlType = 'date';
       break;
+    case 'datetime':
+      controlType = 'datetime';
+      break;
     case 'file':
       controlType = 'file';
+      break;
+    case 'sub_title':
+      controlType = 'sub_title';
       break;
     default:
       controlType = 'textbox';

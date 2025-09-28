@@ -61,7 +61,7 @@ export const FormField = (props: IFormField) => {
         }
         return true;
       } else {
-        if (props.formField.name) {
+        if (props.formField.name && !props.formField.readonly) {
           props.formGroup.controls[props.formField.name].setValue('', {
             onlySelf: true,
             emitEvent: false

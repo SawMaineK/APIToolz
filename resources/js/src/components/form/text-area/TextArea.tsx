@@ -29,6 +29,7 @@ export const TextArea = ({ handler, formGroup, ...props }: FormTextArea) => {
                 name={props.name}
                 placeholder={props.placeholder}
                 readOnly={props.readonly}
+                disabled={props.disabled}
                 className={`textarea ${props.inputClass}`}
               />
               {props.tooltip ? (

@@ -5,26 +5,33 @@ import { FormLayout } from '@/components/form/FormLayout';
 import { FormGroup } from 'react-reactive-form';
 import { Subject } from 'rxjs';
 import { FormSubmit } from '@/components/form/base/form-submit';
+import { useAuthContext } from '@/auth';
 
 interface Props {
   fields: BaseForm<string>[];
+  roles: string[];
   onSubmit: (values: any, formGroup: FormGroup, submitted$: Subject<boolean>) => void;
+  initialValues?: Record<string, any>;
 }
 
-const WorkflowForm: React.FC<Props> = ({ fields, onSubmit }) => {
-  const formLayout: BaseForm<string>[] = fields.map((field) => {
-    return createWorkflowField(field.type as any, field);
-  });
+const WorkflowForm: React.FC<Props> = ({ fields, roles, onSubmit, initialValues = {} }) => {
+  const { currentUser } = useAuthContext();
+  const hasRoleAccess = (): boolean => {
+    const userRoles = currentUser?.roles ?? [];
+    return userRoles.some((role: string) => roles.includes(role));
+  };
+  const formLayout: BaseForm<string>[] = fields
+    .filter((f) => f.type != 'hidden')
+    .map((field) => createWorkflowField(field.type as any, field));
+
   formLayout.push(
     new FormSubmit({
-      label: `Submit`,
-      display: 'flex flex-col gap-1',
-      altClass: 'flex',
-      inputClass: 'flex justify-center'
+      label: 'Submit & Continue',
+      disabled: !hasRoleAccess()
     })
   );
 
-  return <FormLayout initValues={{}} formLayout={formLayout} onSubmitForm={onSubmit} />;
+  return <FormLayout initValues={initialValues} formLayout={formLayout} onSubmitForm={onSubmit} />;
 };
 
 export default WorkflowForm;

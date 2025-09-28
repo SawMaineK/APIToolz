@@ -14,6 +14,7 @@ import { FormGroup } from 'react-reactive-form';
 import { Subject } from 'rxjs';
 import { toast } from 'sonner';
 import { handleFormError } from '@/utils/ErrorHandler';
+import { FormSelect } from '@/components/form/base/form-select';
 
 interface IModalProps {
   open: boolean;
@@ -31,12 +32,15 @@ const CreateRoleModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
       display: 'flex flex-col gap-1',
       required: true
     }),
-    new FormInput({
+    new FormSelect({
       name: 'guard_name',
       label: 'Guard Name',
-      placeholder: 'Enter guard name',
-      display: 'flex flex-col gap-1',
-      required: true
+      placeholder: 'Choose guard name',
+      required: true,
+      options$: async () => [
+        { label: 'sanctum', value: 'sanctum' },
+        { label: 'web', value: 'web' }
+      ]
     }),
     new FormSubmit({
       label: 'Submit',
@@ -66,7 +70,7 @@ const CreateRoleModal = ({ open, onOpenChange, onCreated }: IModalProps) => {
           <DialogTitle>{`Create Role`}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className="grid px-5 pt-5">
+        <div className="grid px-5 py-5">
           <FormLayout formLayout={formLayout} onSubmitForm={formSubmit}></FormLayout>
         </div>
       </DialogContent>

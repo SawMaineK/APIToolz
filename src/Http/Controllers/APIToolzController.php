@@ -85,158 +85,107 @@ class APIToolzController extends Controller
     {
         $data = $request->all();
         $form = $this->info->config['forms'];
+
         foreach ($form as $f) {
-            if ($f['type'] == 'password') {
+            // Password handling
+            if ($f['type'] === 'password') {
                 if (!empty($data[$f['field']])) {
                     $data[$f['field']] = bcrypt($data[$f['field']]);
                 } else {
                     unset($data[$f['field']]);
                 }
             }
-            if ($f['type'] == 'file' && $request->hasFile($f['field'])) {
-                if ($f['file']['image_multiple']) {
-                    foreach ($request->file($f['field']) as $file) {
-                        if (!$file->isValid()) {
-                            return false;
-                        }
+
+            // File handling
+            if ($f['type'] === 'file' && $request->hasFile($f['field'])) {
+                $uploadedFile = $request->file($f['field']);
+                $fileOption = $f['file'] ?? [];
+
+                // Normalize to array for multiple/single files
+                $files = is_array($uploadedFile) ? $uploadedFile : [$uploadedFile];
+
+                // Validate each file
+                $acceptFiles = $fileOption['acceptFiles'] ?? [];
+                foreach ($files as $file) {
+                    if (!$file->isValid()) {
+                        return false;
                     }
-                    $data[$f['field']] = $this->saveAsFile($request->file($f['field']), $f['file']);
-                    // merge old images with new image files
-                    if(isset($data[$this->info['key']])) {
-                        $model = $this->model->find($data[$this->info['key']]);
-                        if($model) {
-                            $data[$f['field']] = array_merge($data[$f['field']] ?? [], $model->{$f['field']} ?? []);
-                        }
+                    if ($acceptFiles && !in_array($file->extension(), $acceptFiles)) {
+                        return false;
                     }
-                } else {
-                    if ($request->file($f['field'])->isValid()) {
-                        $data[$f['field']] = (object) $this->saveAsFile($request->file($f['field']), $f['file']);
-                        //delete old image file
-                        if(isset($data[$this->info['key']]) && isset($data[$f['field']])) {
-                            $model = $this->model->find($data[$this->info['key']]);
-                            if ($model && $model->{$f['field']}) {
-                                if (isset($model->{$f['field']}->url)) {
-                                    switch ($f['file']['save_full_path']) {
-                                        case "1":
-                                            $deletePath = str_replace(url('/img'), '', $model->{$f['field']}->url);
-                                            Storage::delete($deletePath);
-                                            break;
-                                        default:
-                                            Storage::delete($model->{$f['field']}->url);
-                                            break;
-                                    }
-                                }
-                            }
-                        }
+                }
+
+                $fileOption['image_multiple'] = $fileOption['image_multiple'] ?? is_array($uploadedFile);
+                $fileOption['path_to_upload'] = $fileOption['path_to_upload'] ?? 'uploads';
+                $fileOption['upload_type'] = $fileOption['upload_type'] ?? 'file';
+                $fileOption['save_full_path'] = !empty($fileOption['save_full_path']);
+
+                $savedFiles = $this->saveAsFile($uploadedFile, $fileOption);
+
+                // Merge with old files if multiple
+                if ($fileOption['image_multiple'] && isset($data[$this->info['key']])) {
+                    $model = $this->model->find($data[$this->info['key']]);
+                    if ($model) {
+                        $savedFiles = array_merge($savedFiles, $model->{$f['field']} ?? []);
+                    }
+                }
+
+                $data[$f['field']] = $fileOption['image_multiple'] ? $savedFiles : (object) $savedFiles;
+
+                // Delete old single file if replacing
+                if (!$fileOption['image_multiple'] && isset($data[$this->info['key']])) {
+                    $model = $this->model->find($data[$this->info['key']]);
+                    if ($model && $model->{$f['field']}?->url) {
+                        $oldPath = str_replace(url('/'), '', $model->{$f['field']}->url);
+                        Storage::delete($oldPath);
                     }
                 }
             }
-            if ($f['cast'] == 'boolean' && isset($data[$f['field']]) && $data[$f['field']] != null) {
-                $data[$f['field']] = $data[$f['field']] == 'true' ? true : false;
+
+            // Casting fields
+            if ($f['cast'] === 'boolean' && isset($data[$f['field']])) {
+                $data[$f['field']] = filter_var($data[$f['field']], FILTER_VALIDATE_BOOLEAN);
             }
-            if ($f['cast'] == 'object' && isset($data[$f['field']]) && $data[$f['field']] != null) {
-                $data[$f['field']] = is_object($data[$f['field']]) || is_array($data[$f['field']]) ? $data[$f['field']] : json_decode($data[$f['field']]);
-            }
-            if ($f['cast'] == 'array' && isset($data[$f['field']]) && $data[$f['field']] != null) {
-                $data[$f['field']] = is_array($data[$f['field']]) ? $data[$f['field']] : json_decode($data[$f['field']], true);
+
+            if (($f['cast'] === 'array' || $f['cast'] === 'object') && isset($data[$f['field']])) {
+                $data[$f['field']] = is_array($data[$f['field']]) || is_object($data[$f['field']])
+                    ? $data[$f['field']]
+                    : json_decode($data[$f['field']], $f['cast'] === 'array');
             }
         }
+
         return $data;
     }
 
-    public function saveAsFile($file, $option)
+    public function saveAsFile($file, array $option)
     {
-        if ($option['image_multiple']) {
-            if (is_array($file) && count($file) > 0) {
-                $files = [];
-                foreach ($file as $f) {
-                    $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $f->extension();
-                    $destFolder = Str::slug(env('FILESYSTEM_PREFIX', 'APIToolz'));
-                    $storeFilePath = $destFolder . '/' . $option['path_to_upload'];
-                    $path = $f->storeAs($storeFilePath, $filename);
-                    $saveAsFile['name'] = $f->getClientOriginalName();
-                    $saveAsFile['type'] = $f->getMimeType();
-                    $saveAsFile['size'] = $f->getSize();
-                    if ($option['upload_type'] == 'image') {
-                        $saveAsFile['url'] = $option['save_full_path'] ? url("img/{$path}") : $path;
-                    } else {
-                        $saveAsFile['url'] = $option['save_full_path'] ? url("files/{$path}") : $path;
-                    }
-                    $files[] = $saveAsFile;
-                }
-                return $files;
-            }
-        } else {
-            $filename = date("Ymdhms") . "-" . mt_rand(100000, 999999) . "." . $file->extension();
-            $destFolder = Str::slug(env('FILESYSTEM_PREFIX', ''));
-            $storeFilePath = $destFolder . '/' . $option['path_to_upload'];
-            $path = $file->storeAs($storeFilePath, $filename);
-            $saveAsFile['name'] = $file->getClientOriginalName();
-            $saveAsFile['type'] = $file->getMimeType();
-            $saveAsFile['size'] = $file->getSize();
-            if ($option['upload_type'] == 'image') {
-                $saveAsFile['url'] = $option['save_full_path'] ? url("img/{$path}") : $path;
-            } else {
-                $saveAsFile['url'] = $option['save_full_path'] ? url("files/{$path}") : $path;
-            }
-            return $saveAsFile;
-        }
-    }
+        if (!$file) return null;
 
-    public function uploadFile(Request $request)
-    {
-        $option = [];
-        $maxFileSize = 1024 * 10; //100MB
-        $request->validate([
-            'files' => "required|mimes:jpg,jpeg,png,bmp,gif,csv,txt,xlx,xls,pdf,mp3,mp4|max:{$maxFileSize}"
-        ]);
-        if($request->file('files') && $request->file('files')->isValid()) {
-            $option['image_multiple'] = is_array($request->file('files')) ? true : false;
-            $option['upload_type'] = 'file';
-            $option['save_full_path'] = false;
-            $option['path_to_upload'] = 'raws';
+        $destFolder = Str::slug(env('FILESYSTEM_PREFIX', 'APIToolz'));
+        $storeFilePath = $destFolder . '/' . ($option['path_to_upload'] ?? 'uploads');
+        $uploadType = $option['upload_type'] ?? 'file';
+        $saveFullPath = !empty($option['save_full_path']);
 
-            $files = $this->saveAsFile($request->file('files'), $option);
-            $files['id'] = $request->id;
-            return $this->response($files);
+        $filesToProcess = is_array($file) ? $file : [$file];
+        $results = [];
+
+        foreach ($filesToProcess as $f) {
+            $filename = date("YmdHis") . "-" . mt_rand(100000, 999999) . "." . $f->extension();
+            $path = $f->storeAs($storeFilePath, $filename, env('FILESYSTEM_DISK', 'public'));
+
+            $fileData = [
+                'name' => $f->getClientOriginalName(),
+                'type' => $f->getMimeType(),
+                'size' => $f->getSize(),
+                'url' => ($uploadType === 'image')
+                    ? ($saveFullPath ? Storage::url($path) : $path)
+                    : ($saveFullPath ? Storage::url($path) : $path),
+            ];
+
+            $results[] = $fileData;
         }
 
+        return $option['image_multiple'] ? $results : $results[0];
     }
 
-    public function deleteFile($path)
-    {
-        Storage::delete($path);
-        return $this->response(['message' => 'Successfully deleted file.']);
-    }
-
-    public function removeFile(Request $request)
-    {
-        $form = $this->info->config['forms'];
-        foreach ($form as $f) {
-            if($f['field'] == $request->field) {
-                $model = $this->model->find($request->{$this->info['key']});
-                if ($model && $f['cast'] == 'array' && is_array($model->{$request->field})) {
-                    $leftimg = [];
-                    foreach ($model->{$request->field} as $img) {
-                        if($img['url'] == $request->path) {
-                            $deletePath = str_replace(url('/img'), '', $img['url']);
-                            Storage::delete($deletePath);
-                        } else {
-                            $leftimg[] = $img;
-                        }
-                    }
-                    $model->{$request->field} = $leftimg;
-                    $model->save();
-                } elseif( $model && $f['cast'] != 'array' && $model->{$request->field}) {
-                    $deletePath = str_replace(url('/img'), '', $request->path);
-                    if($deletePath) {
-                        Storage::delete($deletePath);
-                        $model->{$request->field} = null;
-                        $model->save();
-                    }
-                }
-            }
-        }
-        return $this->response("The file has deleted successfully.", 204);
-    }
 }

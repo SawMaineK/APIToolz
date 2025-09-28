@@ -19,10 +19,14 @@ import { useNavigate } from 'react-router';
 import { Subject } from 'rxjs';
 import { toast } from 'sonner';
 import WorkflowDeleteDialog from './WorkflowDeleteDialog';
+import EmptyState from '@/partials/common/EmptyState';
+import { useAuthContext } from '@/auth';
+import yaml from 'js-yaml';
 
 export interface Workflow {
   id: number;
   name: string;
+  slug: string;
   description: string;
   definition: string;
   created_at: string;
@@ -35,27 +39,28 @@ const Workflows: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
   const [deleteData, setDeleteData] = useState<Workflow | undefined>();
   const navigate = useNavigate();
+  const { currentUser } = useAuthContext();
   const formLayout: BaseForm<string>[] = [
     new FormInput({
       name: 'name',
       label: 'Name',
       type: 'text',
       placeholder: 'Enter workflow name',
-      hint: 'Unique name, no spaces or special characters',
+      hint: 'Unique name, no special characters',
       required: true
     }),
     new FormTextArea({
       name: 'description',
-      label: 'Description',
+      label: 'Describe',
       type: 'text',
-      placeholder: 'Describe the workflow details',
+      placeholder: 'Describe the workflow step details',
       hint: 'A brief description of the workflow',
-      required: true,
       defaultLength: 3
     }),
     new FormCheckBox({
       name: 'use_ai',
-      label: 'Use AI Agent'
+      label: 'Use AI Agent',
+      value: false
     }),
     new FormSubmit({
       label: `Create Workflow`,
@@ -67,7 +72,7 @@ const Workflows: React.FC = () => {
   const fetchWorkflows = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${import.meta.env.VITE_APP_API_URL}/workflow`);
+      const { data } = await axios.get(`${import.meta.env.VITE_APP_API_URL}/workflows`);
       setWorkflows(data);
     } catch (err) {
       console.error('Failed to fetch workflows', err);
@@ -82,7 +87,7 @@ const Workflows: React.FC = () => {
 
   const handleCreate = async (values: any, formGroup: FormGroup, submitted$: Subject<boolean>) => {
     try {
-      const newWorkflow = await axios.post(`${import.meta.env.VITE_APP_API_URL}/workflow`, values);
+      const newWorkflow = await axios.post(`${import.meta.env.VITE_APP_API_URL}/workflows`, values);
       setWorkflows((prev) => [...prev, newWorkflow.data]);
       formGroup.reset();
       submitted$.next(true);
@@ -101,12 +106,28 @@ const Workflows: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${import.meta.env.VITE_APP_API_URL}/workflow/${deleteData?.id}`);
+      await axios.delete(`${import.meta.env.VITE_APP_API_URL}/workflows/${deleteData?.id}`);
       toast.success(`${deleteData?.name} deleted successfully`);
       setWorkflows((prev) => prev.filter((w) => w.id !== deleteData?.id));
     } catch (error) {
       toast.error('Error deleting record');
     }
+  };
+
+  const getFirstStepRoles = (wf: Workflow): string[] => {
+    try {
+      const def = yaml.load(wf.definition || '') as any;
+      return def?.steps?.[0]?.roles ?? [];
+    } catch (e) {
+      console.error('Invalid workflow definition', e);
+      return [];
+    }
+  };
+
+  const hasRoleAccess = (wf: Workflow): boolean => {
+    const firstStepRoles = getFirstStepRoles(wf) ?? [];
+    const userRoles = currentUser?.roles ?? [];
+    return userRoles.some((role: string) => firstStepRoles.includes(role));
   };
 
   return (
@@ -117,9 +138,11 @@ const Workflows: React.FC = () => {
           <ToolbarDescription>Manage all your workflows effectively</ToolbarDescription>
         </ToolbarHeading>
         <ToolbarActions>
-          <button onClick={() => setShowModal(true)} className="btn btn-primary">
-            <Plus className="w-4 h-4" /> Create Workflow
-          </button>
+          {currentUser?.roles.includes('super') && (
+            <button onClick={() => setShowModal(true)} className="btn btn-primary">
+              <Plus className="w-4 h-4" /> Create Workflow
+            </button>
+          )}
         </ToolbarActions>
       </Toolbar>
 
@@ -127,7 +150,12 @@ const Workflows: React.FC = () => {
       {loading ? (
         <p>Loading workflows...</p>
       ) : workflows.length === 0 ? (
-        <p>No workflows available.</p>
+        <EmptyState
+          title="Add New Workflow"
+          description="Design and automate your business processes with intuitive, <br />powerful workflows that help streamline tasks and improve team efficiency."
+          buttonText="Create Workflow"
+          onButtonClick={() => setShowModal(true)}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 mt-8">
           {workflows.map((wf) => (
@@ -145,7 +173,7 @@ const Workflows: React.FC = () => {
                 ✕
               </button>
               <div>
-                <h2 className="text-xl font-semibold mb-4 uppercase">{wf.name}</h2>
+                <h2 className="text-xl font-semibold mb-4">{wf.name}</h2>
                 <p className="text-gray-600 mb-4 text-md line-clamp-3">
                   {wf.description || 'No description'}
                 </p>
@@ -154,9 +182,10 @@ const Workflows: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex justify-between gap-2 mt-4">
                 <button
                   className="btn btn-sm btn-light"
+                  disabled={!currentUser?.roles.includes('super')}
                   onClick={() => {
                     navigate('/admin/workflow/definition', {
                       state: {
@@ -170,22 +199,26 @@ const Workflows: React.FC = () => {
                     {wf.definition ? 'Edit' : 'Create'} Definition
                   </span>
                 </button>
-                <button
-                  className="btn btn-sm btn-success"
-                  onClick={() => navigate(`/admin/workflow/${wf.name}`)}
-                  disabled={!wf.definition}
-                >
-                  <Play className="h-4 w-4" />
-                  <span className="max-sm:hidden">Start</span>
-                </button>
-                <button
-                  className="btn btn-sm btn-primary btn-primary"
-                  onClick={() => console.log('View History', wf.id)}
-                  disabled={!wf.definition}
-                >
-                  <Eye className="h-4 w-4" />
-                  <span className="max-sm:hidden">View History</span>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-sm btn-success"
+                    onClick={() => navigate(`/admin/workflow/${wf.slug}`)}
+                    disabled={!wf.definition || !hasRoleAccess(wf)}
+                  >
+                    <Play className="h-4 w-4" />
+                    <span className="max-sm:hidden">Start</span>
+                  </button>
+                  <button
+                    className="btn btn-sm btn-primary btn-primary"
+                    onClick={() => {
+                      navigate(`/admin/workflow/${wf.slug}/instances`);
+                    }}
+                    disabled={!wf.definition}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="max-sm:hidden">Histories</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

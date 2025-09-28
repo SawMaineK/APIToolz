@@ -131,8 +131,6 @@ class ModelGenerator extends Command
                 $this->info("Process abort...");
                 return;
             }
-        } else {
-            $this->info("The $table table already exists.");
         }
         if ($this->option('use-roles')) {
             $roles = explode(',', $this->option('use-roles'));

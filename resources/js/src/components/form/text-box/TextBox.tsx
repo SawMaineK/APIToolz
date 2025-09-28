@@ -30,6 +30,7 @@ export const TextBox = ({ handler, formGroup, ...props }: FormInput) => {
                 placeholder={props.placeholder}
                 readOnly={props.readonly}
                 className={props.inputClass}
+                disabled={props.disabled}
               />
               {props.tooltip ? (
                 <span className="leading-none" data-tooltip={`#${props.name}-${unqKey}-tooltip`}>

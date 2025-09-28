@@ -1,12 +1,39 @@
 <?php
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Sawmainek\Apitoolz\Http\Controllers\AppSettingController;
 use Sawmainek\Apitoolz\Http\Controllers\AuthController;
+use Sawmainek\Apitoolz\Http\Controllers\IntegrationController;
+use Sawmainek\Apitoolz\Http\Controllers\OIDCLoginController;
 use Sawmainek\Apitoolz\Http\Controllers\RoleController;
 use Sawmainek\Apitoolz\Http\Controllers\TwoFactorAuthController;
 use Sawmainek\Apitoolz\Http\Controllers\ModelController;
 use Sawmainek\Apitoolz\Http\Controllers\UsersController;
 use Sawmainek\Apitoolz\Http\Controllers\WorkflowController;
+use Sawmainek\Apitoolz\Services\IntegrationService;
+
+Route::prefix('oidc')->group(function () {
+    Route::get('/login', [OIDCLoginController::class, 'login'])->name('oidc.login');
+    Route::get('/callback', [OIDCLoginController::class, 'login'])->name('oidc.callback');
+    Route::post('/logout', [OIDCLoginController::class, 'logout'])->name('oidc.logout');
+});
+
+Route::match(['get', 'post'], '/integration/trigger/{workflow}/{stepId}', function (Request $request, string $workflow, string $stepId) {
+    $integration = new IntegrationService();
+
+    // Use query parameters for GET, body for POST
+    $context = $request->isMethod('get') ? $request->query() : $request->all();
+
+    \Log::debug("Request context: ", $context);
+
+    $response = $integration->runWorkflow($workflow, $stepId, $context);
+
+    if ($response instanceof RedirectResponse) {
+        return $response;
+    }
+
+    return response()->json($response);
+});
 
 Route::prefix('api')->group(function () {
     // Auth
@@ -33,15 +60,32 @@ Route::prefix('api')->group(function () {
     });
     // Workflow Controller
     Route::controller(WorkflowController::class)
-    ->prefix('workflow')->middleware(['auth:sanctum'])->group(function () {
-        Route::get('/', [WorkflowController::class, 'index']);
-        Route::post('/', [WorkflowController::class, 'store']);
-        Route::put('/{id}', [WorkflowController::class, 'update']);
-        Route::delete('/{id}', [WorkflowController::class, 'delete']);
+    ->prefix('workflows')->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'delete');
         Route::get('/{name}/definition', 'definition');
         Route::post('/{name}/start', 'start');
         Route::post('/{name}/{instanceId}/step/{stepId}', 'submitStep');
-        Route::get('/{instanceId}/history', 'history');
+        Route::get('/{name}/instance/{instanceId}', 'instance');
+        Route::get('/{name}/instances', 'instances');
+        Route::get('/instance/{instanceId}', 'history');
+        Route::put('/steps/{id}/comment', 'updateComment');
+    Route::delete('/steps/{id}/comment', 'destroyComment');
+    });
+    // Integration Controller
+    Route::controller(IntegrationController::class)
+    ->prefix('integrations')->middleware(['auth:sanctum'])
+    ->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('{slug}', 'show');
+        Route::put('{slug}', 'update');
+        Route::delete('{slug}', 'destroy');
+
+        Route::post('{slug}/run', 'run');
     });
     // Model Controller
     Route::controller(ModelController::class)

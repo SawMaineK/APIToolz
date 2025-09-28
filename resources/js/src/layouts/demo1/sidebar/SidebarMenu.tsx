@@ -18,6 +18,7 @@ import {
 } from '@/components/menu';
 import { useMenus } from '@/providers';
 import { useAuthContext } from '@/auth';
+import { toLowerCase } from '@/pages/model/_helper';
 
 function toPascalCase(str: string): string {
   return str
@@ -116,7 +117,7 @@ const SidebarMenu = () => {
       return (
         <MenuItem key={index}>
           <MenuLink
-            path={item.path}
+            path={toLowerCase(item.path ?? '')}
             className={clsx(
               'border border-transparent menu-item-active:bg-secondary-active dark:menu-item-active:bg-coal-300 dark:menu-item-active:border-gray-100 menu-item-active:rounded-lg hover:bg-secondary-active dark:hover:bg-coal-300 dark:hover:border-gray-100 hover:rounded-lg',
               accordionLinkGap[0],
@@ -226,7 +227,7 @@ const SidebarMenu = () => {
       return (
         <MenuItem key={index}>
           <MenuLink
-            path={item.path}
+            path={toLowerCase(item.path || '')}
             className={clsx(
               'border border-transparent items-center grow menu-item-active:bg-secondary-active dark:menu-item-active:bg-coal-300 dark:menu-item-active:border-gray-100 menu-item-active:rounded-lg hover:bg-secondary-active dark:hover:bg-coal-300 dark:hover:border-gray-100 hover:rounded-lg',
               accordionLinkGap[level],

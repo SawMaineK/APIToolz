@@ -24,6 +24,7 @@ export class BaseForm<T> {
   placeholder: string;
   required: boolean;
   autoComplete: string;
+  disabled: boolean;
 
   // Form Advance Properties
   config: any | {};
@@ -34,8 +35,9 @@ export class BaseForm<T> {
   dateFormat: string | undefined;
   minDate: string | undefined;
   maxDate: string | undefined;
-  acceptFiles: string;
+  acceptFiles: string[];
   filePreview: boolean;
+  multipleFile: boolean;
   tooltip: string;
   hint: string;
   readonly: boolean;
@@ -134,6 +136,7 @@ export class BaseForm<T> {
       placeholder?: string;
       required?: boolean;
       autoComplete?: string;
+      disabled?: boolean;
 
       config?: any;
       component?: any;
@@ -142,8 +145,9 @@ export class BaseForm<T> {
       dateFormat?: string;
       minDate?: string;
       maxDate?: string;
-      acceptFiles?: string;
+      acceptFiles?: string[];
       filePreview?: boolean;
+      multipleFile?: boolean;
       tooltip?: string;
       hint?: string;
       readonly?: boolean;
@@ -226,6 +230,7 @@ export class BaseForm<T> {
     this.placeholder = options.placeholder || '';
     this.required = options.required || false;
     this.autoComplete = options.autoComplete || 'off';
+    this.disabled = options.disabled || false;
 
     this.config = options.config || {};
     this.component = options.component;
@@ -234,8 +239,9 @@ export class BaseForm<T> {
     this.dateFormat = options.dateFormat;
     this.minDate = options.minDate;
     this.maxDate = options.maxDate;
-    this.acceptFiles = options.acceptFiles || '*';
+    this.acceptFiles = options.acceptFiles || [];
     this.filePreview = options.filePreview || false;
+    this.multipleFile = options.multipleFile || false;
     this.tooltip = options.tooltip || '';
     this.hint = options.hint || '';
     this.readonly = options.readonly || false;

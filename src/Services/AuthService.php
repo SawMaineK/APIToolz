@@ -73,7 +73,7 @@ class AuthService
         $data['password'] = bcrypt($data['password']);
 
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            $avatar = $request->file('avatar')->store('users', 'public');
+            $avatar = $request->file('avatar')->store('avatars', env('FILESYSTEM_DISK', 'public'));
             $data['avatar'] = $avatar;
         }
 
@@ -92,7 +92,7 @@ class AuthService
 
         // Handle avatar upload
         if (isset($data['avatar']) && $data['avatar']->isValid()) {
-            $avatarPath = $data['avatar']->store('avatars');
+            $avatarPath = $data['avatar']->store('avatars', env('FILESYSTEM_DISK', 'public'));
             $data['avatar'] = $avatarPath;
         }
 
@@ -121,6 +121,7 @@ class AuthService
             'avatar' => $user->avatar,
             'is_active' => $user->is_active,
             'last_activity' => $user->last_activity,
+            'personal_access_token' => $request->user()->currentAccessToken()->plainTextToken,
             'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
             'created_at' => $user->created_at,

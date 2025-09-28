@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('workflow_name');
             $table->string('current_step')->nullable();
             $table->json('data')->nullable();
-            $table->string('model_type')->nullable(); // optional primary model type
-            $table->unsignedBigInteger('model_id')->nullable(); // primary model id
+            $table->string('model_type')->nullable();
+            $table->unsignedBigInteger('model_id')->nullable();
             $table->timestamps();
         });
     }

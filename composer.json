@@ -29,6 +29,8 @@
         "laravel/sanctum": "^4.0",
         "spatie/laravel-permission": "^6.17",
         "symfony/expression-language": "^7.3",
+        "inertiajs/inertia-laravel": "^2.0",
+        "jumbojett/openid-connect-php": "^1.0",
         "symfony/yaml": "^7.3"
     },
     "minimum-stability": "stable"

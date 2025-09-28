@@ -20,7 +20,6 @@ class WorkflowRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'alpha_dash',
                 Rule::unique('workflows', 'name')->ignore($this->id),
             ],
             'description' => 'nullable|string',

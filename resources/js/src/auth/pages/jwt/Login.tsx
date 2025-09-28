@@ -11,6 +11,7 @@ import { FormGroup, Validators } from 'react-reactive-form';
 import { FormInput } from '@/components/form/base/form-input';
 import { Subject } from 'rxjs';
 import { FormPassword } from '@/components/form/base/form-password';
+import { Button } from '@/components/ui/button';
 
 const initialValues = {
   email: '',
@@ -19,7 +20,7 @@ const initialValues = {
 };
 
 const Login = () => {
-  const { login } = useAuthContext();
+  const { login, loginWithOidc } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/admin';
@@ -117,6 +118,17 @@ const Login = () => {
           formLayout={formLayout}
           onSubmitForm={formSubmit}
         ></FormLayout>
+        <div className="relative py-1.5">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+        <Button variant="outline" type="button" onClick={loginWithOidc}>
+          Login with OIDC (Google / Keycloak)
+        </Button>
       </div>
     </div>
   );

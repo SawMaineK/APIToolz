@@ -17,8 +17,6 @@ import { FormDate } from '@/components/form/base/form-date';
 import { FormDateTime } from '@/components/form/base/form-datetime';
 import { FormFile } from '@/components/form/base/form-file';
 import { FormPassword } from '@/components/form/base/form-password';
-import { Link } from 'react-router-dom';
-import { create } from 'lodash';
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -338,8 +336,8 @@ export const generateFormField = (field: FormField) => {
         type: 'file',
         columns: 'w-full md:w-2/3',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
-        multiple: field?.file?.image_multiple,
-        //   filePreview: field?.file?.upload_type == 'image' ? true : false,
+        multipleFile: field?.file?.image_multiple || false,
+        filePreview: true,
         handler: () => {},
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }

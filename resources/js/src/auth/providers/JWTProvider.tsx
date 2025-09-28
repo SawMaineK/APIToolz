@@ -32,6 +32,7 @@ interface AuthContextProps {
   loginWithGoogle?: () => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
   loginWithGithub?: () => Promise<void>;
+  loginWithOidc: () => void;
   register: (
     name: string,
     email: string,
@@ -197,6 +198,10 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     return await axios.get<ApiResponse<User>>(GET_USER_URL);
   };
 
+  const loginWithOidc = () => {
+    window.location.href = `/oidc/login`;
+  };
+
   const logout = () => {
     saveAuth(undefined);
     setCurrentUser(undefined);
@@ -216,6 +221,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         register,
         requestPasswordResetLink,
         changePassword,
+        loginWithOidc,
         getUser,
         logout,
         verify

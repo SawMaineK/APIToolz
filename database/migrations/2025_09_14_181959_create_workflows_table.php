@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('workflows', function (Blueprint $table) {
             $table->id();
             $table->string(column: 'name')->unique()->notNullable();
+            $table->string(column: 'slug')->unique()->notNullable();
             $table->text('description')->nullable();
             $table->text('definition')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

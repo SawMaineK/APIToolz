@@ -26,7 +26,8 @@ export const Flatpicker = ({
   placeholder,
   inputClass,
   minDate,
-  maxDate
+  maxDate,
+  readonly
 }: IFlatpickerProps) => {
   const flatpickrRef = useRef<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -100,7 +101,7 @@ export const Flatpicker = ({
       value={selectedDate}
       data-enable-time={enableTime}
       placeholder={placeholder}
-      readOnly={false}
+      readOnly={readonly}
       options={{
         altInput: true,
         altInputClass: inputClass ?? '',
@@ -110,6 +111,7 @@ export const Flatpicker = ({
         altFormat: enableTime ? 'F j, Y H:i' : 'F j, Y',
         dateFormat: enableTime ? 'Y-m-d H:i:S' : 'Y-m-d',
         appendTo: document.body,
+        clickOpens: !readonly,
         onChange: handleChange,
         onClose: handleClose
       }}
