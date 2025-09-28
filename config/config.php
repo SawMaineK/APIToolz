@@ -18,5 +18,16 @@ return [
 
     'log' => [
         'enable' => env('LOG_DEBUG', true),
-    ]
+    ],
+
+    'workflow' => [
+        /*
+         * Define the fully-qualified model classes that workflows are permitted to
+         * create or update. Restricting the list prevents malicious workflow
+         * definitions from interacting with unexpected Eloquent models.
+         */
+        'allowed_models' => [
+            // Example: App\Models\Order::class,
+        ],
+    ],
 ];
