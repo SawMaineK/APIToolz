@@ -73,7 +73,9 @@ Route::prefix('api')->group(function () {
         Route::get('/{name}/instances', 'instances');
         Route::get('/instance/{instanceId}', 'history');
         Route::put('/steps/{id}/comment', 'updateComment');
-    Route::delete('/steps/{id}/comment', 'destroyComment');
+        Route::delete('/{id}', 'deleteWorkflow');
+        Route::delete('/instance/{id}', 'deleteInstance');
+        Route::delete('/steps/{id}/comment', 'destroyComment');
     });
     // Integration Controller
     Route::controller(IntegrationController::class)

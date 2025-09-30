@@ -7,9 +7,6 @@ const CreateContent = ({ model, modelData, onCreated }: ModelContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
       <Create model={model} modelData={modelData} onCreated={onCreated} />
-      <MiscFaq />
-
-      <MiscHelp />
     </div>
   );
 };

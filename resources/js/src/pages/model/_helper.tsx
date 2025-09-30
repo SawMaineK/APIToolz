@@ -221,7 +221,7 @@ export const generateFormField = (field: FormField) => {
       return new FormPassword({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -232,7 +232,7 @@ export const generateFormField = (field: FormField) => {
         name: field.field,
         label: field.label,
         type: 'email',
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -243,7 +243,7 @@ export const generateFormField = (field: FormField) => {
         name: field.field,
         label: field.label,
         type: 'number',
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -254,7 +254,7 @@ export const generateFormField = (field: FormField) => {
       return new FormTextArea({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         defaultLength: 3,
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
@@ -265,7 +265,7 @@ export const generateFormField = (field: FormField) => {
       return new FormInputEditor({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -275,7 +275,7 @@ export const generateFormField = (field: FormField) => {
       return new FormCheckBox({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         handler: () => {},
         ...(field.criteria
@@ -289,7 +289,7 @@ export const generateFormField = (field: FormField) => {
       });
       return new FormRadioGroup({
         name: field.field,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         ...(field.criteria
           ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }
@@ -310,7 +310,7 @@ export const generateFormField = (field: FormField) => {
       return new FormDate({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         handler: () => {},
         ...(field.criteria
@@ -322,7 +322,7 @@ export const generateFormField = (field: FormField) => {
       return new FormDateTime({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         handler: () => {},
         ...(field.criteria
@@ -334,7 +334,7 @@ export const generateFormField = (field: FormField) => {
         name: field.field,
         label: field.label,
         type: 'file',
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         multipleFile: field?.file?.image_multiple || false,
         filePreview: true,
@@ -350,7 +350,7 @@ export const generateFormField = (field: FormField) => {
       return new FormInput({
         name: field.field,
         label: field.label,
-        columns: 'w-full md:w-2/3',
+        columns: 'w-full',
         placeholder: field.option?.placeholder || `Enter ${field.label}`,
         required: field?.validator && field?.validator?.indexOf('required') != -1 ? true : false,
         validators:
@@ -410,7 +410,7 @@ function createFormSelectField(field: any): FormSelect {
     name: field.field,
     label: field.label,
     multiple: field.option.select_multiple,
-    columns: 'w-full md:w-2/3',
+    columns: 'w-full',
     required: isRequired,
     ...(field.criteria
       ? { criteriaValue: { key: field.criteria.key, value: field.criteria.value } }

@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import clsx from 'clsx';
 import { toast } from 'sonner';
@@ -42,29 +42,6 @@ const LAYOUT_OPTIONS = [
   { value: 'demo10', label: 'Demo 10' }
 ];
 
-type BrandingLogoKey = 'logo_url' | 'logo_small_url' | 'logo_dark_url' | 'logo_dark_small_url';
-
-const LOGO_KEYS: BrandingLogoKey[] = ['logo_url', 'logo_small_url', 'logo_dark_url', 'logo_dark_small_url'];
-
-const LOGO_FIELD_CONFIG: Record<BrandingLogoKey, { label: string; description: string }> = {
-  logo_url: {
-    label: 'Primary logo',
-    description: 'Displayed on light backgrounds like default headers and loaders.'
-  },
-  logo_small_url: {
-    label: 'Compact logo',
-    description: 'Used for tight spaces such as collapsed sidebars.'
-  },
-  logo_dark_url: {
-    label: 'Dark mode logo',
-    description: 'Shown on dark backgrounds when available.'
-  },
-  logo_dark_small_url: {
-    label: 'Dark mode compact logo',
-    description: 'Shown in compact areas on dark backgrounds.'
-  }
-};
-
 const mapBranding = (source?: TBranding | null): TBranding => ({
   app_name: source?.app_name ?? '',
   logo_url: source?.logo_url ?? '',
@@ -75,82 +52,26 @@ const mapBranding = (source?: TBranding | null): TBranding => ({
   layout: source?.layout ?? DEFAULT_BRANDING_LAYOUT
 });
 
-const createEmptyLogoFiles = () =>
-  LOGO_KEYS.reduce(
-    (acc, key) => {
-      acc[key] = null;
-      return acc;
-    },
-    {} as Record<BrandingLogoKey, File | null>
-  );
-
-const getLogoPreviewState = (branding: TBranding) =>
-  LOGO_KEYS.reduce(
-    (acc, key) => {
-      acc[key] = (branding[key] as string | undefined) ?? '';
-      return acc;
-    },
-    {} as Record<BrandingLogoKey, string>
-  );
-
 const BrandingPage = () => {
   const { settings, updateSettings, storeSettings, getThemeMode } = useSettings();
 
   const settingsBranding = useMemo(() => mapBranding(settings.branding), [settings.branding]);
   const [branding, setBranding] = useState<TBranding>(settingsBranding);
-  const [logoFiles, setLogoFiles] = useState<Record<BrandingLogoKey, File | null>>(createEmptyLogoFiles());
-  const [logoPreviews, setLogoPreviews] = useState<Record<BrandingLogoKey, string>>(
-    getLogoPreviewState(settingsBranding)
-  );
   const [isSaving, setIsSaving] = useState(false);
   const [themeMode, setThemeMode] = useState<TSettingsThemeMode>(settings.themeMode);
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>(
     getThemeMode() === 'dark' ? 'dark' : 'light'
   );
-  const objectUrlRef = useRef<Record<BrandingLogoKey, string | null>>({
-    logo_url: null,
-    logo_small_url: null,
-    logo_dark_url: null,
-    logo_dark_small_url: null
-  });
-
-  const resetLogoState = useCallback(
-    (source: TBranding) => {
-      LOGO_KEYS.forEach((key) => {
-        const currentUrl = objectUrlRef.current[key];
-        if (currentUrl) {
-          URL.revokeObjectURL(currentUrl);
-          objectUrlRef.current[key] = null;
-        }
-      });
-
-      setLogoFiles(createEmptyLogoFiles());
-      setLogoPreviews(getLogoPreviewState(source));
-    },
-    []
-  );
 
   useEffect(() => {
     setBranding(settingsBranding);
-    resetLogoState(settingsBranding);
-  }, [settingsBranding, resetLogoState]);
+  }, [settingsBranding]);
 
   useEffect(() => {
     setThemeMode(settings.themeMode);
     const resolved = getThemeMode();
     setPreviewTheme(resolved === 'dark' ? 'dark' : 'light');
   }, [settings.themeMode, getThemeMode]);
-
-  useEffect(() => {
-    return () => {
-      LOGO_KEYS.forEach((key) => {
-        const currentUrl = objectUrlRef.current[key];
-        if (currentUrl) {
-          URL.revokeObjectURL(currentUrl);
-        }
-      });
-    };
-  }, []);
 
   const handleInputChange = (key: keyof TBranding) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -180,60 +101,8 @@ const BrandingPage = () => {
     handleThemeSelect(nextMode);
   };
 
-  const handleLogoFileChange = (key: BrandingLogoKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    if (!file) {
-      event.target.value = '';
-      return;
-    }
-
-    const previousUrl = objectUrlRef.current[key];
-    if (previousUrl) {
-      URL.revokeObjectURL(previousUrl);
-    }
-
-    const nextPreview = URL.createObjectURL(file);
-    objectUrlRef.current[key] = nextPreview;
-
-    setLogoFiles((prev) => ({
-      ...prev,
-      [key]: file
-    }));
-
-    setLogoPreviews((prev) => ({
-      ...prev,
-      [key]: nextPreview
-    }));
-
-    event.target.value = '';
-  };
-
-  const handleLogoRemove = (key: BrandingLogoKey) => {
-    const currentUrl = objectUrlRef.current[key];
-    if (currentUrl) {
-      URL.revokeObjectURL(currentUrl);
-      objectUrlRef.current[key] = null;
-    }
-
-    setLogoFiles((prev) => ({
-      ...prev,
-      [key]: null
-    }));
-
-    setLogoPreviews((prev) => ({
-      ...prev,
-      [key]: ''
-    }));
-
-    setBranding((prev) => ({
-      ...prev,
-      [key]: ''
-    }));
-  };
-
   const handleReset = () => {
     setBranding(settingsBranding);
-    resetLogoState(settingsBranding);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -243,43 +112,24 @@ const BrandingPage = () => {
     }
 
     setIsSaving(true);
-    const formData = new FormData();
-    formData.append('key', settings.configKey);
-    formData.append('branding[app_name]', branding.app_name ?? '');
-    formData.append('branding[layout]', branding.layout ?? DEFAULT_BRANDING_LAYOUT);
-
-    const themeColor =
-      branding.theme_color && branding.theme_color.length > 0
-        ? branding.theme_color
-        : DEFAULT_BRANDING_COLOR;
-    formData.append('branding[theme_color]', themeColor);
-
-    LOGO_KEYS.forEach((key) => {
-      const currentValue = (branding[key] as string | undefined) ?? '';
-      formData.append(`branding[${key}]`, currentValue);
-
-      const file = logoFiles[key];
-      if (file) {
-        const fieldKey = `branding_${key}`;
-        formData.append(fieldKey, file);
+    const payload = {
+      key: settings.configKey,
+      branding: {
+        ...branding,
+        theme_color: branding.theme_color && branding.theme_color.length > 0
+          ? branding.theme_color
+          : DEFAULT_BRANDING_COLOR
       }
-    });
+    };
 
     try {
       const { data } = await axios.put(
         `${import.meta.env.VITE_APP_API_URL}/appsetting/${settings.configId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+        payload
       );
 
       const responseBranding = mapBranding(data?.branding);
       updateSettings({ branding: responseBranding });
-      resetLogoState(responseBranding);
-      setBranding(responseBranding);
       toast.success('Branding settings updated successfully.');
     } catch (error) {
       console.error('Failed to update branding settings', error);
@@ -289,86 +139,24 @@ const BrandingPage = () => {
     }
   };
 
-  const brandingForPreview = useMemo(() => {
-    const previewBranding: TBranding = { ...branding };
-    LOGO_KEYS.forEach((key) => {
-      const previewValue = logoPreviews[key];
-      if (previewValue !== undefined) {
-        previewBranding[key] = previewValue;
-      }
-    });
-    return previewBranding;
-  }, [branding, logoPreviews]);
-
-  const brandingAssets = useMemo(() => resolveBrandingAssets(brandingForPreview), [brandingForPreview]);
+  const brandingAssets = useMemo(() => resolveBrandingAssets(branding), [branding]);
 
   const isBrandingDirty = useMemo(() => {
-    const hasLogoFileChanges = LOGO_KEYS.some((key) => Boolean(logoFiles[key]));
-
-    const hasLogoValueChanges = LOGO_KEYS.some((key) => {
-      const currentValue = (branding[key] as string | undefined) ?? '';
-      const initialValue = (settingsBranding[key] as string | undefined) ?? '';
-      return currentValue !== initialValue;
-    });
-
     return (
       (branding.app_name ?? '') !== (settingsBranding.app_name ?? '') ||
+      (branding.logo_url ?? '') !== (settingsBranding.logo_url ?? '') ||
+      (branding.logo_small_url ?? '') !== (settingsBranding.logo_small_url ?? '') ||
+      (branding.logo_dark_url ?? '') !== (settingsBranding.logo_dark_url ?? '') ||
+      (branding.logo_dark_small_url ?? '') !== (settingsBranding.logo_dark_small_url ?? '') ||
       (branding.layout ?? DEFAULT_BRANDING_LAYOUT) !==
         (settingsBranding.layout ?? DEFAULT_BRANDING_LAYOUT) ||
       (branding.theme_color ?? DEFAULT_BRANDING_COLOR) !==
-        (settingsBranding.theme_color ?? DEFAULT_BRANDING_COLOR) ||
-      hasLogoFileChanges ||
-      hasLogoValueChanges
+        (settingsBranding.theme_color ?? DEFAULT_BRANDING_COLOR)
     );
-  }, [branding, logoFiles, settingsBranding]);
+  }, [branding, settingsBranding]);
 
   const appliedTheme = previewTheme === 'dark' ? 'dark' : 'light';
   const switchChecked = themeMode === 'system' ? previewTheme === 'dark' : themeMode === 'dark';
-
-  const renderLogoUpload = (key: BrandingLogoKey) => {
-    const { label, description } = LOGO_FIELD_CONFIG[key];
-    const preview = logoPreviews[key];
-    const currentFile = logoFiles[key];
-    const savedValue = (branding[key] as string | undefined) ?? '';
-
-    const showRemoveButton = Boolean(currentFile || savedValue);
-
-    return (
-      <div key={key} className="grid gap-2">
-        <label className="text-sm font-medium text-muted-foreground">{label}</label>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex h-16 w-28 items-center justify-center overflow-hidden rounded border border-dashed border-muted-foreground/30 bg-muted/10">
-            {preview ? (
-              <img src={preview} alt={`${label} preview`} className="max-h-full w-full object-contain" />
-            ) : (
-              <span className="text-xs text-muted-foreground">No preview</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <Input type="file" accept="image/*" onChange={handleLogoFileChange(key)} />
-            <p className="text-xs text-muted-foreground">{description}</p>
-            {currentFile && (
-              <p className="text-xs text-muted-foreground/80">Selected file: {currentFile.name}</p>
-            )}
-            {!currentFile && savedValue && (
-              <p className="text-xs text-muted-foreground/80 break-all">Current: {savedValue}</p>
-            )}
-          </div>
-          {showRemoveButton && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleLogoRemove(key)}
-              className="self-start text-muted-foreground hover:text-foreground"
-            >
-              Remove
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <form onSubmit={handleSubmit} className="h-full">
@@ -439,13 +227,53 @@ const BrandingPage = () => {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {(['logo_url', 'logo_small_url'] as BrandingLogoKey[]).map((key) => renderLogoUpload(key))}
+                <div className="grid gap-2">
+                  <label htmlFor="logo_url" className="text-sm font-medium text-muted-foreground">
+                    Primary logo URL
+                  </label>
+                  <Input
+                    id="logo_url"
+                    value={branding.logo_url ?? ''}
+                    onChange={handleInputChange('logo_url')}
+                    placeholder="/media/app/default-logo.svg"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="logo_small_url" className="text-sm font-medium text-muted-foreground">
+                    Compact logo URL
+                  </label>
+                  <Input
+                    id="logo_small_url"
+                    value={branding.logo_small_url ?? ''}
+                    onChange={handleInputChange('logo_small_url')}
+                    placeholder="/media/app/mini-logo.svg"
+                  />
+                </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {(['logo_dark_url', 'logo_dark_small_url'] as BrandingLogoKey[]).map((key) =>
-                  renderLogoUpload(key)
-                )}
+                <div className="grid gap-2">
+                  <label htmlFor="logo_dark_url" className="text-sm font-medium text-muted-foreground">
+                    Dark mode logo URL
+                  </label>
+                  <Input
+                    id="logo_dark_url"
+                    value={branding.logo_dark_url ?? ''}
+                    onChange={handleInputChange('logo_dark_url')}
+                    placeholder="Leave empty to reuse the primary logo"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="logo_dark_small_url" className="text-sm font-medium text-muted-foreground">
+                    Dark mode compact logo URL
+                  </label>
+                  <Input
+                    id="logo_dark_small_url"
+                    value={branding.logo_dark_small_url ?? ''}
+                    onChange={handleInputChange('logo_dark_small_url')}
+                    placeholder="Leave empty to reuse the compact logo"
+                  />
+                </div>
               </div>
 
               <div className="grid gap-2">

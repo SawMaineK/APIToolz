@@ -11,9 +11,7 @@ const ToolbarPageTitle = ({ text }: IToolbarPageTitleProps) => {
   const menuConfig = getMenuConfig('primary');
   const menuItem = useMenuCurrentItem(pathname, menuConfig);
 
-  return (
-    <h1 className="text-2xl font-bold leading-none text-gray-900">{text ?? menuItem?.title}</h1>
-  );
+  return <h2 className="text-xl font-bold">{text ?? menuItem?.title}</h2>;
 };
 
 export { ToolbarPageTitle };
