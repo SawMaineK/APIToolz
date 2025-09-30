@@ -244,6 +244,7 @@ const BrandingPage = () => {
 
     setIsSaving(true);
     const formData = new FormData();
+    formData.append('_method', 'PUT');
     formData.append('key', settings.configKey);
     formData.append('branding[app_name]', branding.app_name ?? '');
     formData.append('branding[layout]', branding.layout ?? DEFAULT_BRANDING_LAYOUT);
@@ -266,7 +267,7 @@ const BrandingPage = () => {
     });
 
     try {
-      const { data } = await axios.put(
+      const { data } = await axios.post(
         `${import.meta.env.VITE_APP_API_URL}/appsetting/${settings.configId}`,
         formData,
         {
