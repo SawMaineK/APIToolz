@@ -396,31 +396,31 @@ export const MENU_MEGA: TMenuConfig = [
 
 export const MENU_ROOT: TMenuConfig = [
   {
-    title: 'Public Profile',
-    icon: 'profile-circle',
-    rootPath: '/public-profile/',
-    path: 'public-profile/profiles/default',
+    title: 'Data Models',
+    icon: 'database',
+    rootPath: 'model',
+    path: 'admin/model',
     childrenIndex: 2
   },
   {
-    title: 'Account',
-    icon: 'setting-2',
-    rootPath: '/account/',
-    path: '/',
+    title: 'Workflow Automation',
+    icon: 'workflow',
+    rootPath: 'workflows',
+    path: '/admin/workflows',
     childrenIndex: 3
   },
   {
-    title: 'Network',
-    icon: 'users',
-    rootPath: '/network/',
-    path: 'network/get-started',
+    title: 'System Integrations',
+    icon: 'plug',
+    rootPath: 'integrations',
+    path: 'admin/integrations',
     childrenIndex: 4
   },
   {
-    title: 'Authentication',
-    icon: 'security-user',
-    rootPath: '/authentication/',
-    path: 'authentication/get-started',
+    title: 'Navigation Settings',
+    icon: 'menu-setting',
+    rootPath: 'menu-config',
+    path: 'admin/menu-config',
     childrenIndex: 5
   }
 ];

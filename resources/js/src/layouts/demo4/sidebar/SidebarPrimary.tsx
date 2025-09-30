@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { getHeight, toAbsoluteUrl } from '@/utils';
 import { useBranding, useViewport } from '@/hooks';
 import { DropdownUser } from '@/partials/dropdowns/user';
-import { DropdownChat } from '@/partials/dropdowns/chat';
-import { DropdownApps } from '@/partials/dropdowns/apps';
 import { useLanguage } from '@/i18n';
 import { useAuthContext } from '@/auth';
 import { useMenus } from '@/providers';
 import { useRoleAccess } from '@/auth';
 import { filterMenuConfigByRoles } from '@/components/menu/utils';
 import { IMenuItemConfig, TMenuConfig } from '@/components/menu';
+import { toPascalCase } from '@/pages/dashboards';
+import * as LucideIcons from 'lucide-react';
 
 interface SidebarNavItem {
   icon: string;
@@ -19,39 +19,6 @@ interface SidebarNavItem {
   path: string;
   rootPath?: string;
 }
-
-const FALLBACK_ITEMS: SidebarNavItem[] = [
-  { icon: 'chart-line-star', tooltip: 'Dashboard', path: '/', rootPath: '/' },
-  {
-    icon: 'profile-circle',
-    tooltip: 'Profile',
-    path: '/public-profile/profiles/default',
-    rootPath: '/public-profile/'
-  },
-  {
-    icon: 'setting-2',
-    tooltip: 'Account',
-    path: '/account/home/get-started',
-    rootPath: '/account/'
-  },
-  { icon: 'users', tooltip: 'Network', path: '/network/get-started', rootPath: '/network/' },
-  {
-    icon: 'security-user',
-    tooltip: 'Authentication',
-    path: '/authentication/get-started',
-    rootPath: '/authentication/'
-  },
-  { icon: 'code', tooltip: 'Plans', path: '/account/billing/plans', rootPath: '/account/billing' },
-  {
-    icon: 'shop',
-    tooltip: 'Security Logs',
-    path: '/account/security/security-log',
-    rootPath: '/account/security'
-  },
-  { icon: 'cheque', tooltip: 'Notifications', path: '/account/notifications', rootPath: '/account/notifications' },
-  { icon: 'code', tooltip: 'ACL', path: '/account/members/roles', rootPath: '/account/members' },
-  { icon: 'question', tooltip: 'API Keys', path: '/account/api-keys', rootPath: '/account/api-keys' }
-];
 
 const flattenMenuToSidebarItems = (menu: TMenuConfig | null | undefined): SidebarNavItem[] => {
   if (!menu) {
@@ -79,18 +46,11 @@ const flattenMenuToSidebarItems = (menu: TMenuConfig | null | undefined): Sideba
   const visit = (configs: TMenuConfig) => {
     configs.forEach((config) => {
       if (config.heading || config.disabled) {
-        if (config.children) {
-          visit(config.children);
-        }
-        return;
+        return; // skip headings and disabled
       }
 
       if (config.children && config.children.length > 0) {
-        if (config.path) {
-          addItem(config);
-        }
-        visit(config.children);
-        return;
+        return; // skip parent menus with children
       }
 
       addItem(config);
@@ -130,10 +90,9 @@ const SidebarPrimary = () => {
   const scrollableOffset = 80;
   const { isRTL } = useLanguage();
   const { currentUser } = useAuthContext();
-  const avatarSrc =
-    currentUser?.avatar
-      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
-      : toAbsoluteUrl('/media/avatars/blank.png');
+  const avatarSrc = currentUser?.avatar
+    ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+    : toAbsoluteUrl('/media/avatars/blank.png');
 
   useEffect(() => {
     if (headerRef.current && footerRef.current) {
@@ -155,10 +114,11 @@ const SidebarPrimary = () => {
     () => filterMenuConfigByRoles(primaryMenu ?? [], hasRole),
     [primaryMenu, hasRole]
   );
+
   const menuItems = useMemo(() => {
-    const flattened = flattenMenuToSidebarItems(accessibleMenu);
-    return flattened.length > 0 ? flattened : FALLBACK_ITEMS;
+    return flattenMenuToSidebarItems(accessibleMenu);
   }, [accessibleMenu]);
+
   const [selectedMenuItem, setSelectedMenuItem] = useState<SidebarNavItem | null>(null);
 
   useEffect(() => {
@@ -168,21 +128,25 @@ const SidebarPrimary = () => {
     }
 
     const activeItem = menuItems.find((item) => isSidebarItemActive(item, pathname));
-    setSelectedMenuItem(activeItem ?? menuItems[0]);
+
+    if (activeItem) {
+      setSelectedMenuItem(activeItem);
+    } else {
+      setSelectedMenuItem(null); // no fallback to index 0
+    }
   }, [menuItems, pathname]);
-  const itemChatRef = useRef<any>(null);
-  const handleDropdownChatShow = () => {
-    window.dispatchEvent(new Event('resize'));
-  };
 
   return (
     <div className="flex flex-col items-stretch shrink-0 gap-5 py-5 w-[70px] border-e border-gray-300 dark:border-gray-200">
+      {/* Header Logo */}
       <div ref={headerRef} className="hidden lg:flex items-center justify-center shrink-0">
         <Link to="/">
           <img src={logoSmall} className="dark:hidden min-h-[30px]" alt="logo" />
           <img src={logoDarkSmall} className="hidden dark:block min-h-[30px]" alt="logo" />
         </Link>
       </div>
+
+      {/* Sidebar Menu */}
       <div className="flex grow shrink-0">
         <div
           className="scrollable-y-hover grow gap-2.5 shrink-0 flex ps-4 flex-col"
@@ -191,15 +155,21 @@ const SidebarPrimary = () => {
           }}
         >
           {menuItems.map((item) => {
-            const isActive = selectedMenuItem?.path === item.path;
+            const IconName = item.icon ? toPascalCase(item.icon) : null;
+            const Icon = IconName && (LucideIcons as any)[IconName];
+            const isActive = isSidebarItemActive(item, pathname);
+
             return (
-              <DefaultTooltip key={item.path} title={item.tooltip} placement="right">
+              <DefaultTooltip key={item.path?.toLowerCase()} title={item.tooltip} placement="right">
                 <Link
-                  to={item.path}
-                  className={`btn btn-icon btn-icon-xl rounded-md size-9 border border-transparent text-gray-600 hover:bg-light hover:text-primary hover:border-gray-200${isActive ? ' active bg-light text-primary border-gray-200' : ''}`}
+                  to={item.path?.toLowerCase()}
+                  className={`btn btn-icon btn-icon-xl rounded-md size-9 border border-transparent text-gray-600 hover:bg-light hover:text-primary hover:border-gray-200${
+                    isActive ? ' active bg-light text-primary border-gray-200' : ''
+                  }`}
                 >
                   <MenuIcon>
-                    <KeenIcon icon={item.icon} />
+                    {item.icon && Icon && <Icon className="w-5 h-5" />}
+                    {item.icon && !Icon && <KeenIcon icon={item.icon} className="text-lg" />}
                   </MenuIcon>
                   <span className="tooltip">{item.tooltip}</span>
                 </Link>
@@ -208,61 +178,9 @@ const SidebarPrimary = () => {
           })}
         </div>
       </div>
+
+      {/* Footer User Menu */}
       <div ref={footerRef} className="flex flex-col gap-5 items-center shrink-0">
-        <div className="flex flex-col gap-1.5">
-          <Menu>
-            <MenuItem
-              ref={itemChatRef}
-              onShow={handleDropdownChatShow}
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: isRTL() ? 'left-end' : 'right-end',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [10, 15] // [skid, distance]
-                    }
-                  }
-                ]
-              }}
-            >
-              <MenuToggle className="btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600">
-                <KeenIcon icon="messages" />
-              </MenuToggle>
-
-              {/* {DropdownChat({ menuTtemRef: itemChatRef })} */}
-            </MenuItem>
-          </Menu>
-
-          <Menu>
-            <MenuItem
-              ref={itemChatRef}
-              onShow={handleDropdownChatShow}
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: isRTL() ? 'left-end' : 'right-end',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: isRTL() ? [10, 15] : [-10, 15] // [skid, distance]
-                    }
-                  }
-                ]
-              }}
-            >
-              <MenuToggle className="btn btn-icon btn-icon-xl relative rounded-md size-9 border border-transparent hover:bg-light hover:text-primary hover:border-gray-200 dropdown-open:bg-gray-200 text-gray-600">
-                <KeenIcon icon="setting-2" />
-              </MenuToggle>
-
-              {DropdownApps()}
-            </MenuItem>
-          </Menu>
-        </div>
-
         <Menu>
           <MenuItem
             ref={itemUserRef}
@@ -273,9 +191,7 @@ const SidebarPrimary = () => {
               modifiers: [
                 {
                   name: 'offset',
-                  options: {
-                    offset: isRTL() ? [10, 15] : [-10, 15] // [skid, distance]
-                  }
+                  options: { offset: isRTL() ? [10, 15] : [-10, 15] }
                 }
               ]
             }}

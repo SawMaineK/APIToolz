@@ -37,43 +37,6 @@ const Main = () => {
               <main className="grow" role="content">
                 <Toolbar>
                   <ToolbarHeading />
-
-                  <ToolbarActions>
-                    <button
-                      onClick={handleOpen}
-                      className="btn btn-icon btn-icon-lg size-9 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600"
-                    >
-                      <KeenIcon icon="magnifier" />
-                    </button>
-                    <ModalSearch open={searchModalOpen} onOpenChange={handleClose} />
-                    <Menu>
-                      <MenuItem
-                        ref={itemNotificationsRef}
-                        toggle="dropdown"
-                        trigger="click"
-                        dropdownProps={{
-                          placement: 'bottom-end',
-                          modifiers: [
-                            {
-                              name: 'offset',
-                              options: {
-                                offset: [10, 10] // [skid, distance]
-                              }
-                            }
-                          ]
-                        }}
-                      >
-                        <MenuToggle className="btn btn-icon btn-icon-lg size-9 rounded-md hover:bg-gray-200 dropdown-open:bg-gray-200 hover:text-primary text-gray-600">
-                          <KeenIcon icon="notification-status" />
-                        </MenuToggle>
-                        {DropdownNotifications({ menuTtemRef: itemNotificationsRef })}
-                      </MenuItem>
-                    </Menu>
-                    <Link to={'/account/home/get-started'} className="btn btn-xs btn-light">
-                      <KeenIcon icon="exit-down" />
-                      Export
-                    </Link>
-                  </ToolbarActions>
                 </Toolbar>
 
                 <Outlet />
