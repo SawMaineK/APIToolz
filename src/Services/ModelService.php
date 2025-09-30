@@ -6,6 +6,7 @@ use Sawmainek\Apitoolz\APIToolzGenerator;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
 use Sawmainek\Apitoolz\Models\Model as ApiToolzModel;
 use Sawmainek\Apitoolz\SeederBuilder;
+use Symfony\Component\Console\Input\StringInput;
 
 class ModelService
 {
@@ -18,9 +19,13 @@ class ModelService
 
     public function get(Request $request)
     {
-        $request->merge(['only_trashed' => true]);
-        $perPage = $request->get('per_page', 15);
-        return $this->model->paginate($perPage);
+        $query = ApiToolzModel::filter($request);
+
+        if($request->has('aggregate')) {
+            return $query;
+        }
+        $perPage = $request->query('per_page', 10);
+        return $query->paginate($perPage);
     }
 
     public function listTables()
@@ -99,24 +104,46 @@ class ModelService
                 $table = $data['table'] ?? strtolower(\Str::plural($data['name']));
                 $dbDriver = config('database.default');
                 $result = APIToolzGenerator::ask(
-                    "Create '{$data['name']}' model with table names as $table using SQL format for '{$dbDriver}'.",
-                    ['model_creation'],
+                    "Create '{$data['name']}' model with table names as $table using SQL format for '{$dbDriver}', {$data['instruction']}",
+                    ['model_creation', 'model_configuration'],
                     true
                 );
-                $command = preg_replace('/```(?:bash)?\s*|\s*```/', '', $result);
-                preg_match_all('/php artisan[\s\S]*?";(?=\n{2}|$)/i', $command, $matches);
-                \Log::info("Artisan command to be executed: {$command}");
-                $artisanCommand = \Str::after($command, 'php artisan ');
-                try {
-                    \Artisan::call($artisanCommand);
-                    \Log::info("The {$data['name']} model created successfully.");
-                } catch (\Throwable $e) {
-                    \Log::error("✖ Command failed: {$artisanCommand}");
-                    \Log::error("   ↳ {$e->getMessage()}");
-                    return [
-                        'status' => 'error',
-                        'message' => $e->getMessage()
-                    ];
+                $raw = $result;
+                // 1. Remove code fences like ```bash ... ```
+                $raw = preg_replace('/```(?:bash)?\s*|\s*```/', '', $raw);
+                // 2. Normalize line breaks (collapse backslash-newlines if any)
+                $raw = str_replace("\r\n", "\n", $raw);
+                // 3. Join multi-line SQL into one line so it stays inside the --sql="..."
+                $raw = preg_replace_callback('/--sql="([\s\S]+?)"/', function ($m) {
+                    // Collapse newlines + trim inside SQL
+                    $sql = preg_replace('/\s+/', ' ', trim($m[1]));
+                    return '--sql="' . $sql . '"';
+                }, $raw);
+                // 4. Extract all commands
+                preg_match_all('/^php artisan.*$/m', $raw, $matches);
+                $commands = array_map(function ($cmd) {
+                    // Remove stray trailing "bash" or quotes
+                    return trim(preg_replace('/\s*bash$/i', '', $cmd));
+                }, $matches[0]);
+
+                \Log::info("Extracted commands", $commands);
+
+                foreach ($commands as $artisanCommand) {
+                    \Log::info("➡ Running: {$artisanCommand}");
+
+                    // Remove "php artisan " prefix
+                    $artisanCommand = trim(preg_replace('/^php artisan\s+/', '', $artisanCommand));
+
+                    try {
+                        // Let Symfony Console parse the string safely
+                        $input = new StringInput($artisanCommand);
+                        \Artisan::call($input);
+
+                        \Log::info("✔ Success: {$artisanCommand}");
+                    } catch (\Throwable $e) {
+                        \Log::error("✖ Command failed: {$artisanCommand}");
+                        \Log::error("   ↳ {$e->getMessage()}");
+                    }
                 }
                 return [
                     'status' => 'success',

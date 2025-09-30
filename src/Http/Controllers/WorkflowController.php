@@ -76,9 +76,17 @@ class WorkflowController extends APIToolzController
         return response()->json($workflow);
     }
 
-    public function delete(int $id)
+    public function deleteWorkflow(int $id)
     {
         $workflow = Workflow::findOrFail($id);
+        $workflow->delete();
+
+        return response()->noContent();
+    }
+
+    public function deleteInstance(int $id)
+    {
+        $workflow = WorkflowInstance::findOrFail($id);
         $workflow->delete();
 
         return response()->noContent();

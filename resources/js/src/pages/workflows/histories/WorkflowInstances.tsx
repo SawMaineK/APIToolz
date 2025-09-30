@@ -246,7 +246,7 @@ const WorkflowInstances: React.FC<Props> = ({ workflowName, roles }) => {
   const handleDeleteClick = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this workflow instance?')) {
       try {
-        await axios.delete(`${import.meta.env.VITE_APP_API_URL}/workflow-instances/${id}`);
+        await axios.delete(`${import.meta.env.VITE_APP_API_URL}/workflows/instance/${id}`);
         toast.success('Workflow instance deleted');
         setRefreshKey((prev) => prev + 1);
       } catch (error) {
