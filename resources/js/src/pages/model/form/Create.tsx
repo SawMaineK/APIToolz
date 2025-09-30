@@ -123,7 +123,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
           />
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto my-10 bg-white border rounded-xl shadow-lg">
+        <div className="max-w-2xl mx-auto my-10 border rounded-xl shadow-lg">
           <div className="card-body flex flex-col gap-5">
             <Toolbar>
               <ToolbarHeading>

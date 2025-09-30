@@ -39,16 +39,6 @@ class AppSettingsSeeder extends Seeder
                       'icon'=> 'security-user',
                       'path'=> '/admin/roles',
                       'roles'=> ['super']
-                    ],
-                    [
-                      'heading'=> 'Settings',
-                      'roles'=> ['super', 'admin']
-                    ],
-                    [
-                      'title'=> 'Branding',
-                      'icon'=> 'brush',
-                      'path'=> '/admin/branding',
-                      'roles'=> ['super', 'admin']
                     ]
                 ],
                 'branding' => [

@@ -390,7 +390,10 @@ export const MENU_MEGA: TMenuConfig = [
   {
     title: 'Settings',
     icon: 'settings',
-    children: [{ title: 'Menu Settings', icon: 'settings', path: 'admin/menu-config' }]
+    children: [
+      { title: 'Menu Settings', icon: 'settings', path: 'admin/menu-config' },
+      { title: 'Branding', icon: 'branding', path: 'admin/branding' }
+    ]
   }
 ];
 
@@ -421,6 +424,13 @@ export const MENU_ROOT: TMenuConfig = [
     icon: 'menu-setting',
     rootPath: 'menu-config',
     path: 'admin/menu-config',
+    childrenIndex: 5
+  },
+  {
+    title: 'Branding',
+    icon: 'menu-setting',
+    rootPath: 'branding',
+    path: 'admin/branding',
     childrenIndex: 5
   }
 ];

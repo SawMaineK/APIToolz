@@ -180,7 +180,7 @@ const WorkflowRunner: React.FC<Props> = ({
   return renderedView ? (
     <HtmlWithScripts renderedView={renderedView} />
   ) : (
-    <div className="max-w-2xl mx-auto my-10 p-6 bg-white border rounded-xl shadow-lg">
+    <div className="max-w-2xl mx-auto my-10 p-6 border rounded-xl shadow-lg">
       {/* Stepper */}
       <WorkflowStepper steps={steps} currentIndex={currentIndex} />
 
@@ -209,7 +209,7 @@ const WorkflowRunner: React.FC<Props> = ({
           />
         ) : (
           <div className="flex flex-col items-center py-6">
-            <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-3 text-gray-600">Processing step...</p>
           </div>
         )}

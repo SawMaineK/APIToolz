@@ -179,8 +179,16 @@ class AppSettingController extends APIToolzController
 
             if ($request->hasFile($uploadField) && $file && $file->isValid()) {
                 $filename = now()->format('YmdHis') . '-' . Str::random(12) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('branding', $filename, env('FILESYSTEM_DISK', 'public'));
-                $branding[$brandingKey] = Storage::url($path);
+                $destinationPath = public_path('branding');
+
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0775, true);
+                }
+
+                $file->move($destinationPath, $filename);
+
+                // Save relative path like: branding/xxx.png
+                $branding[$brandingKey] = '/branding/' . $filename;
             } elseif (array_key_exists($brandingKey, $brandingInput)) {
                 $branding[$brandingKey] = $brandingInput[$brandingKey];
             }

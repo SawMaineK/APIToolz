@@ -45,7 +45,7 @@ const WorkflowStepper: React.FC<StepperProps> = ({ steps, currentIndex }) => {
                     isCompleted
                       ? 'bg-green-500 border-green-500 text-white'
                       : isActive
-                        ? 'border-blue-500 text-primary font-semibold'
+                        ? 'border-primary text-primary font-semibold'
                         : 'border-gray-300 text-gray-400'
                   }
                 `}

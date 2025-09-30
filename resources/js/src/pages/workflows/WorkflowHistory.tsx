@@ -128,13 +128,17 @@ export const WorkflowHistory = ({ workflowInstanceId }: WorkflowHistoryProps) =>
           return (
             <a
               key={idx}
-              href={url}
+              href={isImage ? `/img/${url}` : `/file/${url}`}
               target="_blank"
               rel="noopener noreferrer"
               className="border rounded p-2 flex flex-col items-center justify-center hover:shadow hover:bg-gray-50 transition"
             >
               {isImage ? (
-                <img src={url} alt={name} className="w-full h-32 object-cover rounded mb-1" />
+                <img
+                  src={`/img/${url}`}
+                  alt={name}
+                  className="w-full h-32 object-cover rounded mb-1"
+                />
               ) : (
                 <div className={`flex flex-col items-center justify-center ${color}`}>
                   <Icon className="w-12 h-12 mb-1" />
