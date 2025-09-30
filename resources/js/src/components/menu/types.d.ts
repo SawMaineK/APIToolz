@@ -182,6 +182,8 @@ export interface TBranding {
   logo_small_url?: string;
   logo_dark_url?: string;
   logo_dark_small_url?: string;
+  theme_color?: string;
+  layout?: string;
 }
 
 export interface IMenuBreadcrumb {

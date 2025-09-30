@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
 import { KeenIcon } from '@/components/keenicons';
-import { toAbsoluteUrl } from '@/utils';
-
 import { useDemo1Layout } from '../';
-import { useSettings } from '@/providers';
+import { useBranding } from '@/hooks';
 
 const HeaderLogo = () => {
-  const { settings } = useSettings();
+  const { logoSmall, logoDarkSmall } = useBranding();
   const { setMobileSidebarOpen, setMobileMegaMenuOpen, megaMenuEnabled } = useDemo1Layout();
 
   const handleSidebarOpen = () => {
@@ -20,11 +18,8 @@ const HeaderLogo = () => {
   return (
     <div className="flex gap-1 lg:hidden items-center -ms-1">
       <Link to="/" className="shrink-0">
-        <img
-          src={toAbsoluteUrl('/media/app/mini-logo.svg')}
-          className="max-h-[25px] w-full"
-          alt="mini-logo"
-        />
+        <img src={logoSmall} className="max-h-[25px] w-full dark:hidden" alt="mini-logo" />
+        <img src={logoDarkSmall} className="max-h-[25px] w-full hidden dark:block" alt="mini-logo" />
       </Link>
 
       <div className="flex items-center">

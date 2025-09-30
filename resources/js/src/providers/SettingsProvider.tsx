@@ -1,6 +1,7 @@
 import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react';
 
 import { defaultSettings, ISettings, type TSettingsThemeMode } from '@/config/settings.config';
+import { IMenuItemConfig, TMenuConfig } from '@/components/menu';
 
 import { getData, setData } from '@/utils';
 import axios from 'axios';
@@ -14,6 +15,87 @@ export interface ISettingsProps {
 }
 
 const SETTINGS_CONFIGS_KEY = 'settings-configs';
+
+const BRANDING_PATH = '/admin/branding';
+
+const BRANDING_MENU_ITEM: IMenuItemConfig = {
+  title: 'Branding',
+  icon: 'brush',
+  path: BRANDING_PATH,
+  roles: ['super', 'admin']
+};
+
+const cloneMenuConfig = (items?: TMenuConfig | null): TMenuConfig => {
+  if (!items) {
+    return [];
+  }
+
+  return items.map((item) => ({
+    ...item,
+    ...(item.children ? { children: cloneMenuConfig(item.children) } : {})
+  }));
+};
+
+const containsBrandingMenu = (items?: TMenuConfig | null): boolean => {
+  if (!items) {
+    return false;
+  }
+
+  return items.some((item) => {
+    if (item.path === BRANDING_PATH) {
+      return true;
+    }
+
+    if (item.children && item.children.length > 0) {
+      return containsBrandingMenu(item.children);
+    }
+
+    return false;
+  });
+};
+
+const insertBrandingMenu = (items: TMenuConfig): boolean => {
+  for (let index = 0; index < items.length; index += 1) {
+    const item = items[index];
+
+    if (item.children && insertBrandingMenu(item.children)) {
+      return true;
+    }
+
+    const titleKey = item.title?.toLowerCase();
+    const headingKey = item.heading?.toLowerCase();
+
+    if (titleKey === 'settings') {
+      if (item.children && item.children.length > 0) {
+        item.children = [...item.children, { ...BRANDING_MENU_ITEM }];
+      } else {
+        items.splice(index + 1, 0, { ...BRANDING_MENU_ITEM });
+      }
+      return true;
+    }
+
+    if (headingKey === 'settings') {
+      items.splice(index + 1, 0, { ...BRANDING_MENU_ITEM });
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const ensureBrandingMenu = (menu: TMenuConfig | null): TMenuConfig => {
+  const clonedMenu = cloneMenuConfig(menu);
+
+  if (containsBrandingMenu(clonedMenu)) {
+    return clonedMenu;
+  }
+
+  if (!insertBrandingMenu(clonedMenu)) {
+    clonedMenu.push({ ...BRANDING_MENU_ITEM });
+  }
+
+  return clonedMenu;
+};
 
 const getStoredSettings = (): Partial<ISettings> => {
   return (getData(SETTINGS_CONFIGS_KEY) as Partial<ISettings>) || {};
@@ -34,12 +116,18 @@ const SettingsProvider = ({ children }: PropsWithChildren) => {
   const [settings, setSettings] = useState(initialProps.settings);
 
   const updateSettings = (newSettings: Partial<ISettings>) => {
-    setSettings({ ...settings, ...newSettings });
+    const normalizedMenu = ensureBrandingMenu(newSettings.menuConfig ?? settings.menuConfig);
+    setSettings({ ...settings, ...newSettings, menuConfig: normalizedMenu });
   };
 
   const storeSettings = (newSettings: Partial<ISettings>) => {
-    setData(SETTINGS_CONFIGS_KEY, { ...getStoredSettings(), ...newSettings });
-    updateSettings(newSettings);
+    const normalizedMenu = ensureBrandingMenu(newSettings.menuConfig ?? settings.menuConfig);
+    setData(SETTINGS_CONFIGS_KEY, {
+      ...getStoredSettings(),
+      ...newSettings,
+      menuConfig: normalizedMenu
+    });
+    updateSettings({ ...newSettings, menuConfig: normalizedMenu });
   };
 
   const getSettings = async () => {

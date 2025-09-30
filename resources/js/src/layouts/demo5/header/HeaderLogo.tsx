@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { toAbsoluteUrl } from '@/utils';
-import { useResponsive } from '@/hooks';
+import { useResponsive, useBranding } from '@/hooks';
 import {
   Menu,
   MenuArrow,
@@ -39,6 +38,7 @@ interface IHeaderLogoStagings extends Array<IHeaderLogoStaging> {}
 const HeaderLogo = () => {
   const desktopMode = useResponsive('up', 'lg');
   const { setMobileSidebarOpen } = useDemo5Layout();
+  const { appName, logoSmall, logoDarkSmall } = useBranding();
   const { isRTL } = useLanguage();
 
   const handleSidebarOpen = () => {
@@ -47,7 +47,7 @@ const HeaderLogo = () => {
 
   const teams: IHeaderLogoTeams = [
     {
-      title: 'APIToolz',
+      title: appName,
       icon: 'profile-circle',
       urlPartial: '/public-profile/',
       path: '/public-profile/profiles/default'
@@ -101,16 +101,8 @@ const HeaderLogo = () => {
       </button>
 
       <Link to="/">
-        <img
-          src={toAbsoluteUrl('/media/app/mini-logo-circle.svg')}
-          className="dark:hidden min-h-[34px]"
-          alt="logo"
-        />
-        <img
-          src={toAbsoluteUrl('/media/app/mini-logo-circle-dark.svg')}
-          className="hidden dark:inline-block min-h-[34px]"
-          alt="logo"
-        />
+        <img src={logoSmall} className="dark:hidden min-h-[34px]" alt="logo" />
+        <img src={logoDarkSmall} className="hidden dark:inline-block min-h-[34px]" alt="logo" />
       </Link>
 
       {desktopMode && (
@@ -132,7 +124,7 @@ const HeaderLogo = () => {
               }}
             >
               <MenuToggle className="text-gray-900 text-sm font-medium">
-                APIToolz
+                {appName}
                 <MenuArrow>
                   <KeenIcon icon="down" />
                 </MenuArrow>

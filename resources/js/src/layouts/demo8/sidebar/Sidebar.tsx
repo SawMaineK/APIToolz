@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { KeenIcon, Menu, MenuItem, MenuToggle } from '@/components';
 import { useEffect, useRef, useState } from 'react';
 import { getHeight, toAbsoluteUrl } from '@/utils';
-import { useResponsive, useViewport } from '@/hooks';
+import { useBranding, useResponsive, useViewport } from '@/hooks';
 import { DropdownUser } from '@/partials/dropdowns/user';
 import { DropdownChat } from '@/partials/dropdowns/chat';
 import { DropdownApps } from '@/partials/dropdowns/apps';
@@ -18,6 +18,7 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
+import { useAuthContext } from '@/auth';
 
 const Sidebar = () => {
   const desktopMode = useResponsive('up', 'lg');
@@ -27,6 +28,13 @@ const Sidebar = () => {
   const itemChatRef = useRef<any>(null);
   const itemUserRef = useRef<any>(null);
   const { isRTL } = useLanguage();
+  const { currentUser } = useAuthContext();
+  const { logoSmall, logoDarkSmall } = useBranding();
+
+  const avatarSrc =
+    currentUser?.avatar
+      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+      : toAbsoluteUrl('/media/avatars/blank.png');
 
   const handleDropdownChatShow = () => {
     window.dispatchEvent(new Event('resize'));
@@ -62,14 +70,8 @@ const Sidebar = () => {
             className="hidden lg:flex items-center justify-center shrink-0 pt-8 pb-3.5"
           >
             <Link to="/">
-              <img
-                src={toAbsoluteUrl('/media/app/mini-logo-square-gray.svg')}
-                className="dark:hidden min-h-[42px]"
-              />
-              <img
-                src={toAbsoluteUrl('/media/app/mini-logo-square-gray-dark.svg')}
-                className="hidden dark:block min-h-[42px]"
-              />
+              <img src={logoSmall} className="dark:hidden min-h-[42px]" alt="logo" />
+              <img src={logoDarkSmall} className="hidden dark:block min-h-[42px]" alt="logo" />
             </Link>
           </div>
         )}
@@ -158,7 +160,7 @@ const Sidebar = () => {
               <MenuToggle className="btn btn-icon">
                 <img
                   className="size-8 justify-center rounded-lg border border-gray-500 shrink-0"
-                  src={toAbsoluteUrl('/media/avatars/gray/5.png')}
+                  src={avatarSrc}
                   alt=""
                 />
               </MenuToggle>
