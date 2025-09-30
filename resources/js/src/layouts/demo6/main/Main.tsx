@@ -3,8 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Outlet, useLocation } from 'react-router';
 import { useMenuCurrentItem } from '@/components/menu';
 import { Footer, Header, Sidebar, Toolbar, ToolbarActions, ToolbarHeading } from '../';
-import { useMenus } from '@/providers';
-import { useResponsive } from '@/hooks';
+import { useAccessibleMenu, useResponsive } from '@/hooks';
 import { Link } from 'react-router-dom';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,8 +17,7 @@ import { KeenIcon } from '@/components/keenicons';
 const Main = () => {
   const mobileMode = useResponsive('down', 'lg');
   const { pathname } = useLocation();
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
+  const menuConfig = useAccessibleMenu('primary');
   const menuItem = useMenuCurrentItem(pathname, menuConfig);
 
   const [date, setDate] = useState<DateRange | undefined>({

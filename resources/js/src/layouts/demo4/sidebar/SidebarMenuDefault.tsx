@@ -11,19 +11,16 @@ import {
   MenuSub,
   MenuTitle
 } from '@/components/menu';
-import { useMenus } from '@/providers';
+import { useAccessibleMenu } from '@/hooks';
 
 const SidebarMenuDefault = () => {
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('secondary');
+  const menuConfig = useAccessibleMenu('secondary');
   const indention = ['ps-2.5', 'ps-5', 'px-7'];
 
   const buildMenu = (items: TMenuConfig) => {
-    return items.map((item, index) => {
-      if (!item.disabled) {
-        return buildMenuItem(item, index);
-      }
-    });
+    return items
+      .filter((item) => !item.disabled && item.title !== 'New Item' && item.title != null) // ✅ filter
+      .map((item, index) => buildMenuItem(item, index));
   };
 
   const buildMenuItem = (item: IMenuItemConfig, index: number, level: number = 0) => {
@@ -37,7 +34,7 @@ const SidebarMenuDefault = () => {
         >
           <MenuLink
             className={clsx(
-              'py-2 pe-2.5 rounded-md border border-transparent',
+              'py-2 ps-2.5 pe-2.5 rounded-md border border-transparent',
               indention[level - 1]
             )}
           >
@@ -62,9 +59,9 @@ const SidebarMenuDefault = () => {
       return (
         <MenuItem key={index}>
           <MenuLink
-            path={item.path}
+            path={item.path?.toLowerCase()}
             className={clsx(
-              'py-2 pe-2.5 rounded-md border border-transparent menu-item-active:border-gray-200 menu-item-active:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200',
+              'py-2 ps-2.5 pe-2.5 rounded-md border border-transparent menu-item-active:border-gray-200 menu-item-active:bg-light menu-link-hover:bg-light menu-link-hover:border-gray-200',
               indention[level]
             )}
           >
@@ -78,11 +75,9 @@ const SidebarMenuDefault = () => {
   };
 
   const buildMenuChildren = (items: TMenuConfig, level: number) => {
-    return items.map((item, index) => {
-      if (!item.disabled) {
-        return buildMenuItem(item, index, level);
-      }
-    });
+    return items
+      .filter((item) => !item.disabled && item.title !== 'New Item' && item.title != null) // ✅ filter
+      .map((item, index) => buildMenuItem(item, index, level));
   };
 
   const buildMenuArrow = () => {
@@ -96,7 +91,7 @@ const SidebarMenuDefault = () => {
 
   return (
     <Menu highlight={true} multipleExpand={false} className="flex flex-col w-full gap-px px-2.5">
-      {menuConfig && buildMenu(menuConfig)}
+      {buildMenu(menuConfig)}
     </Menu>
   );
 };

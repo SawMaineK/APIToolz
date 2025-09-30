@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Link } from 'react-router-dom';
+import * as LucideIcons from 'lucide-react';
 import { KeenIcon } from '@/components/keenicons';
 import { useResponsive, useViewport } from '@/hooks';
 import { useDemo3Layout } from '..';
@@ -15,6 +16,7 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
+import { toPascalCase } from '@/pages/dashboards';
 
 interface SidebarNavItem {
   icon: string;
@@ -22,69 +24,6 @@ interface SidebarNavItem {
   tooltip: string;
   rootPath?: string;
 }
-
-const FALLBACK_ITEMS: SidebarNavItem[] = [
-  {
-    icon: 'chart-line-star',
-    path: '/',
-    tooltip: 'Dashboard',
-    rootPath: '/'
-  },
-  {
-    icon: 'profile-circle',
-    path: '/public-profile/profiles/default',
-    tooltip: 'Profile',
-    rootPath: '/public-profile/'
-  },
-  {
-    icon: 'setting-2',
-    path: '/account/home/get-started',
-    tooltip: 'Account',
-    rootPath: '/account/'
-  },
-  {
-    icon: 'users',
-    path: '/network/get-started',
-    tooltip: 'Network',
-    rootPath: '/network/'
-  },
-  {
-    icon: 'security-user',
-    path: '/authentication/get-started',
-    tooltip: 'Authentication',
-    rootPath: '/authentication/'
-  },
-  {
-    icon: 'code',
-    path: '/account/billing/plans',
-    tooltip: 'Plans',
-    rootPath: '/account/billing'
-  },
-  {
-    icon: 'shop',
-    path: '/account/security/security-log',
-    tooltip: 'Security Logs',
-    rootPath: '/account/security'
-  },
-  {
-    icon: 'cheque',
-    path: '/account/notifications',
-    tooltip: 'Notifications',
-    rootPath: '/account/notifications'
-  },
-  {
-    icon: 'code',
-    path: '/account/members/roles',
-    tooltip: 'ACL',
-    rootPath: '/account/members'
-  },
-  {
-    icon: 'question',
-    path: '/account/api-keys',
-    tooltip: 'API Keys',
-    rootPath: '/account/api-keys'
-  }
-];
 
 const flattenMenuToSidebarItems = (menu: TMenuConfig | null | undefined): SidebarNavItem[] => {
   if (!menu) {
@@ -112,20 +51,15 @@ const flattenMenuToSidebarItems = (menu: TMenuConfig | null | undefined): Sideba
   const visit = (configs: TMenuConfig) => {
     configs.forEach((config) => {
       if (config.heading || config.disabled) {
-        if (config.children) {
-          visit(config.children);
-        }
-        return;
+        return; // skip headings/disabled
       }
 
       if (config.children && config.children.length > 0) {
-        if (config.path) {
-          addItem(config);
-        }
-        visit(config.children);
+        // 🚫 skip parent completely, do not recurse children
         return;
       }
 
+      // ✅ only leaf items with no children
       addItem(config);
     });
   };
@@ -165,14 +99,16 @@ const Sidebar = () => {
   const { getMenuConfig } = useMenus();
   const { hasRole } = useRoleAccess();
   const primaryMenu = getMenuConfig('primary');
+
   const accessibleMenu = useMemo(
     () => filterMenuConfigByRoles(primaryMenu ?? [], hasRole),
     [primaryMenu, hasRole]
   );
+
   const menuItems = useMemo(() => {
-    const flattened = flattenMenuToSidebarItems(accessibleMenu);
-    return flattened.length > 0 ? flattened : FALLBACK_ITEMS;
+    return flattenMenuToSidebarItems(accessibleMenu);
   }, [accessibleMenu]);
+
   const [selectedMenuItem, setSelectedMenuItem] = useState<SidebarNavItem | null>(null);
 
   useEffect(() => {
@@ -195,6 +131,10 @@ const Sidebar = () => {
   };
 
   const renderContent = () => {
+    if (menuItems.length === 0) {
+      return null; // hide sidebar entirely if no menu
+    }
+
     return (
       <div className="fixed w-[--tw-sidebar-width] lg:top-[--tw-header-height] top-0 bottom-0 z-20 lg:flex flex-col items-stretch shrink-0 group py-3 lg:py-0">
         <div className="flex grow shrink-0">
@@ -205,6 +145,8 @@ const Sidebar = () => {
             }}
           >
             {menuItems.map((item) => {
+              const IconName = item.icon ? toPascalCase(item.icon) : null;
+              const Icon = IconName && (LucideIcons as any)[IconName];
               const isExternal = item.path.startsWith('http');
               const isActive = selectedMenuItem?.path === item.path;
               const baseClasses =
@@ -223,7 +165,8 @@ const Sidebar = () => {
                     className={`${baseClasses}${activeClasses}`}
                   >
                     <span className="menu-icon">
-                      <KeenIcon icon={item.icon} />
+                      {item.icon && Icon && <Icon className={'h-4 w-4'} />}
+                      {item.icon && !Icon && <KeenIcon icon={item.icon} className={'text-lg'} />}
                     </span>
                     <span className="tooltip">{item.tooltip}</span>
                   </a>
@@ -239,7 +182,8 @@ const Sidebar = () => {
                   className={`${baseClasses} active:border-gray-300${activeClasses}`}
                 >
                   <span className="menu-icon">
-                    <KeenIcon icon={item.icon} />
+                    {item.icon && Icon && <Icon className={'w-5 h-5'} />}
+                      {item.icon && !Icon && <KeenIcon icon={item.icon} className={'text-lg'} />}
                   </span>
                   <span className="tooltip">{item.tooltip}</span>
                 </Link>

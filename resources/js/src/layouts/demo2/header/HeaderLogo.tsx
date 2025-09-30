@@ -26,30 +26,32 @@ const HeaderLogo = () => {
   const primaryMenu = getMenuConfig('primary');
   const { hasRole } = useRoleAccess();
 
+  // Compute only accessible items from MENU_ROOT
   const accessibleRootItems = useMemo(() => {
     return MENU_ROOT.filter((item) => {
       if (typeof item.childrenIndex !== 'number') {
         return true;
       }
-
       const menuItem = primaryMenu?.[item.childrenIndex];
-
       return menuItemHasAccess(menuItem, hasRole);
     });
   }, [primaryMenu, hasRole]);
 
-  const [selectedMenuItem, setSelectedMenuItem] = useState(() => accessibleRootItems[0] ?? MENU_ROOT[0]);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
 
   useEffect(() => {
-    const matchedItem = accessibleRootItems.find((item) => item.rootPath && pathname.includes(item.rootPath));
+    // Match item based on current path
+    const matchedItem = accessibleRootItems.find(
+      (item) => item.rootPath && pathname.includes(item.rootPath)
+    );
 
     if (matchedItem) {
       setSelectedMenuItem(matchedItem);
-    } else if (!accessibleRootItems.includes(selectedMenuItem)) {
-      setSelectedMenuItem(accessibleRootItems[0] ?? selectedMenuItem);
+    } else if (selectedMenuItem && !accessibleRootItems.includes(selectedMenuItem)) {
+      // Reset if previously selected item is no longer accessible
+      setSelectedMenuItem(null);
     }
   }, [pathname, accessibleRootItems, selectedMenuItem]);
-
 
   return (
     <div className="flex items-center gap-2 lg:gap-5 2xl:-ml-[60px]">
@@ -68,25 +70,22 @@ const HeaderLogo = () => {
             trigger="hover"
             dropdownProps={{
               placement: isRTL() ? 'bottom-end' : 'bottom-start',
-              modifiers: [
-                {
-                  name: 'offset',
-                  options: {
-                    offset: [0, 10] // [skid, distance]
-                  }
-                }
-              ]
+              modifiers: [{ name: 'offset', options: { offset: [0, 10] } }]
             }}
           >
             <MenuToggle className="text-gray-900 font-medium">
-              {selectedMenuItem.title}
+              {selectedMenuItem ? selectedMenuItem.title : 'Manage Apps'}
               <MenuArrow>
                 <KeenIcon icon="down" />
               </MenuArrow>
             </MenuToggle>
             <MenuSub className="menu-default w-48">
               {accessibleRootItems.map((item, index) => (
-                <MenuItem key={index} className={item === selectedMenuItem ? 'active' : ''}>
+                <MenuItem
+                  key={index}
+                  className={item === selectedMenuItem ? 'active' : ''}
+                  onClick={() => setSelectedMenuItem(item)}
+                >
                   <MenuLink path={item.path}>
                     {item.icon && (
                       <MenuIcon>

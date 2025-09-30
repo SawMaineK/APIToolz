@@ -11,23 +11,22 @@ import {
   MenuSub,
   MenuTitle
 } from '@/components/menu';
-import { useMenus } from '@/providers';
-import { useResponsive } from '@/hooks';
+import { useAccessibleMenu, useResponsive } from '@/hooks';
 import { useLanguage } from '@/i18n';
 
 const SidebarMenu = () => {
   const isDesktop = useResponsive('up', 'lg');
-  const { getMenuConfig } = useMenus();
-  const primaryMenuConfig = getMenuConfig('primary');
-  const megaMenuConfig = getMenuConfig('mega');
+  const menuConfig = useAccessibleMenu('primary');
   const { isRTL } = useLanguage();
-  const menuConfig = [
+  const fallbackMenu = [
     {
       title: 'Boards',
       icon: 'chart-line-star',
       path: '/'
     }
   ];
+
+  const resolvedMenu = menuConfig.length > 0 ? menuConfig : fallbackMenu;
 
   const buildMenu = (items: TMenuConfig) => {
     return items.map((item, index) => {
@@ -199,7 +198,7 @@ const SidebarMenu = () => {
 
   return (
     <Menu highlight={true} multipleExpand={false} className="flex flex-col gap-2.5 grow">
-      {menuConfig && buildMenu(menuConfig)}
+      {buildMenu(resolvedMenu)}
     </Menu>
   );
 };

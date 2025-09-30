@@ -8,20 +8,14 @@ import { useLanguage } from '@/i18n';
 import { useAuthContext } from '@/auth';
 
 const HeaderTopbar = () => {
-  const itemChatRef = useRef<any>(null);
   const itemUserRef = useRef<any>(null);
   const itemNotificationsRef = useRef<any>(null);
   const { isRTL } = useLanguage();
   const { currentUser } = useAuthContext();
 
-  const avatarSrc =
-    currentUser?.avatar
-      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
-      : toAbsoluteUrl('/media/avatars/blank.png');
-
-  const handleDropdownChatShow = () => {
-    window.dispatchEvent(new Event('resize'));
-  };
+  const avatarSrc = currentUser?.avatar
+    ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+    : toAbsoluteUrl('/media/avatars/blank.png');
 
   return (
     <div className="flex items-center gap-3.5">
@@ -47,32 +41,6 @@ const HeaderTopbar = () => {
               <KeenIcon icon="notification-status" className="text-gray-600" />
             </MenuToggle>
             {DropdownNotifications({ menuTtemRef: itemNotificationsRef })}
-          </MenuItem>
-        </Menu>
-
-        <Menu>
-          <MenuItem
-            ref={itemChatRef}
-            onShow={handleDropdownChatShow}
-            toggle="dropdown"
-            trigger="click"
-            dropdownProps={{
-              placement: isRTL() ? 'bottom-start' : 'bottom-end',
-              modifiers: [
-                {
-                  name: 'offset',
-                  options: {
-                    offset: [75, 10] // [skid, distance]
-                  }
-                }
-              ]
-            }}
-          >
-            <MenuToggle className="btn btn-icon btn-icon-lg size-9 rounded-full hover:bg-gray-200 dropdown-open:bg-gray-200 text-gray-600">
-              <KeenIcon icon="messages" className="text-gray-600" />
-            </MenuToggle>
-
-            {/* {DropdownChat({ menuTtemRef: itemChatRef })} */}
           </MenuItem>
         </Menu>
       </div>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { KeenIcon } from '@/components/keenicons';
 import {
   Menu,
@@ -9,30 +10,26 @@ import {
   MenuTitle
 } from '@/components/menu';
 import { useMenus } from '@/providers';
-import { useLocation } from 'react-router';
 import { useLanguage } from '@/i18n';
+import { useRoleAccess } from '@/auth';
+import { filterMenuConfigByRoles } from '@/components/menu/utils';
 
 const NavbarMenu = () => {
-  const { pathname } = useLocation();
   const { getMenuConfig } = useMenus();
   const primaryMenu = getMenuConfig('primary');
-  const modelMenu = getMenuConfig('model');
   const { isRTL } = useLanguage();
+  const { hasRole } = useRoleAccess();
 
-  let navbarMenu;
+  const navbarMenu = useMemo(() => {
+    return filterMenuConfigByRoles(primaryMenu ?? [], hasRole);
+  }, [primaryMenu, hasRole]);
 
-  if (pathname.includes('/model/')) {
-    navbarMenu = modelMenu?.[0];
-  } else if (pathname.includes('/network/')) {
-    navbarMenu = primaryMenu?.[4];
-  } else if (pathname.includes('/authentication/')) {
-    navbarMenu = primaryMenu?.[5];
-  } else {
-    navbarMenu = primaryMenu?.[3];
-  }
+  const buildMenu = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole).filter(
+      (item) => item.title !== 'New Item' && item.title != null
+    );
 
-  const buildMenu = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem
@@ -63,7 +60,7 @@ const NavbarMenu = () => {
             key={index}
             className="border-b-2 border-b-transparent menu-item-active:border-b-gray-900 menu-item-here:border-b-gray-900"
           >
-            <MenuLink path={item.path} className="gap-2.5">
+            <MenuLink path={item.path?.toLowerCase()} className="gap-2.5">
               <MenuTitle className="text-nowrap text-sm text-gray-800 menu-item-active:text-gray-900 menu-item-active:font-medium menu-item-here:text-gray-900 menu-item-here:font-medium menu-item-show:text-gray-900 menu-link-hover:text-gray-900">
                 {item.title}
               </MenuTitle>
@@ -74,8 +71,10 @@ const NavbarMenu = () => {
     });
   };
 
-  const buildMenuChildren = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+  const buildMenuChildren = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole);
+
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem
@@ -108,7 +107,7 @@ const NavbarMenu = () => {
       } else if (!item.disabled) {
         return (
           <MenuItem key={index}>
-            <MenuLink path={item.path}>
+            <MenuLink path={item.path?.toLowerCase()}>
               <MenuTitle>{item.title}</MenuTitle>
             </MenuLink>
           </MenuItem>
@@ -121,7 +120,7 @@ const NavbarMenu = () => {
     <div className="grid items-stretch">
       <div className="scrollable-x-auto flex items-stretch">
         <Menu highlight={true} className="gap-5 lg:gap-7.5">
-          {navbarMenu && navbarMenu.children && buildMenu(navbarMenu.children)}
+          {navbarMenu && navbarMenu && buildMenu(navbarMenu)}
         </Menu>
       </div>
     </div>
