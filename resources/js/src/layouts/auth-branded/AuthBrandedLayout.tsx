@@ -2,11 +2,13 @@ import { Link, Outlet } from 'react-router-dom';
 import { Fragment } from 'react';
 import { toAbsoluteUrl } from '@/utils';
 import useBodyClasses from '@/hooks/useBodyClasses';
+import { useBranding } from '@/hooks';
 import { AuthBrandedLayoutProvider } from './AuthBrandedLayoutProvider';
 
 const Layout = () => {
   // Applying body classes to manage the background color in dark mode
   useBodyClasses('dark:bg-coal-500');
+  const { logoSmall, logoDarkSmall } = useBranding();
 
   return (
     <Fragment>
@@ -29,11 +31,8 @@ const Layout = () => {
         <div className="lg:rounded-xl lg:border lg:border-gray-200 lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg">
           <div className="flex flex-col p-8 lg:p-16 gap-4">
             <Link to="/">
-              <img
-                src={toAbsoluteUrl('/media/app/mini-logo.svg')}
-                className="h-[28px] max-w-none"
-                alt=""
-              />
+              <img src={logoSmall} className="h-[28px] max-w-none dark:hidden" alt="logo" />
+              <img src={logoDarkSmall} className="h-[28px] max-w-none hidden dark:block" alt="logo" />
             </Link>
 
             <div className="flex flex-col gap-3">

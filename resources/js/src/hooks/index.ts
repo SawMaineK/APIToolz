@@ -5,3 +5,5 @@ export * from './useResponsive';
 export * from './useScrollPosition';
 export * from './useViewport';
 export * from './useBodyClasses';
+export * from './useBranding';
+export * from './useAccessibleMenu';

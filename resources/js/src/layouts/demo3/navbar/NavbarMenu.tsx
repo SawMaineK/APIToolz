@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { KeenIcon } from '@/components/keenicons';
 import {
   Menu,
@@ -11,6 +12,8 @@ import {
 import { useMenus } from '@/providers';
 import { useLocation } from 'react-router';
 import { useLanguage } from '@/i18n';
+import { useRoleAccess } from '@/auth';
+import { filterMenuConfigByRoles, menuItemHasAccess } from '@/components/menu/utils';
 
 const NavbarMenu = () => {
   const { pathname } = useLocation();
@@ -18,21 +21,40 @@ const NavbarMenu = () => {
   const primaryMenu = getMenuConfig('primary');
   const modelMenu = getMenuConfig('model');
   const { isRTL } = useLanguage();
+  const { hasRole } = useRoleAccess();
 
-  let navbarMenu;
+  const navbarMenu = useMemo(() => {
+    const resolveCandidate = () => {
+      if (pathname.includes('/model/')) {
+        return modelMenu?.[0];
+      }
 
-  if (pathname.includes('/model/')) {
-    navbarMenu = modelMenu?.[0];
-  } else if (pathname.includes('/network/')) {
-    navbarMenu = primaryMenu?.[4];
-  } else if (pathname.includes('/authentication/')) {
-    navbarMenu = primaryMenu?.[5];
-  } else {
-    navbarMenu = primaryMenu?.[3];
-  }
+      if (pathname.includes('/network/')) {
+        return primaryMenu?.[4];
+      }
 
-  const buildMenu = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+      if (pathname.includes('/authentication/')) {
+        return primaryMenu?.[5];
+      }
+
+      return primaryMenu?.[3];
+    };
+
+    const candidate = resolveCandidate();
+
+    if (menuItemHasAccess(candidate, hasRole)) {
+      return candidate;
+    }
+
+    return (modelMenu ?? [])
+      .concat(primaryMenu ?? [])
+      .find((item) => menuItemHasAccess(item, hasRole) && item.children);
+  }, [pathname, primaryMenu, modelMenu, hasRole]);
+
+  const buildMenu = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole);
+
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem
@@ -74,8 +96,10 @@ const NavbarMenu = () => {
     });
   };
 
-  const buildMenuChildren = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+  const buildMenuChildren = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole);
+
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem

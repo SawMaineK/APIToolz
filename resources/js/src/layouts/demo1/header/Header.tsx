@@ -4,11 +4,11 @@ import { Container } from '@/components/container';
 import { MegaMenu } from '../mega-menu';
 import { HeaderLogo, HeaderTopbar } from './';
 import { useDemo1Layout } from '../';
-import { useAuthContext } from '@/auth';
+import { useRoleAccess } from '@/auth';
 
 const Header = () => {
   const { headerSticky } = useDemo1Layout();
-  const { currentUser } = useAuthContext();
+  const { isSuperAdmin } = useRoleAccess();
 
   useEffect(() => {
     if (headerSticky) {
@@ -29,7 +29,7 @@ const Header = () => {
         <HeaderLogo />
         {/* <div></div> */}
         <div className="mt-7">
-          {currentUser?.roles?.some((role: any) => (role?.name ?? role) === 'super') ? (
+          {isSuperAdmin() ? (
             <MegaMenu />
           ) : null}
         </div>

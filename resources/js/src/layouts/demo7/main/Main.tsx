@@ -1,8 +1,8 @@
 import { Fragment, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Outlet, useLocation } from 'react-router';
-import {useMenuCurrentItem} from '@/components/menu';
-import { useMenus } from '@/providers';
+import { useMenuCurrentItem } from '@/components/menu';
+import { useAccessibleMenu } from '@/hooks';
 import { Header, Footer } from '..';
 import { Toolbar, ToolbarHeading, ToolbarActions } from '../toolbar';
 import { Link } from 'react-router-dom';
@@ -17,8 +17,7 @@ import { KeenIcon } from '@/components/keenicons';
 
 const Main = () => {
   const { pathname } = useLocation();
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
+  const menuConfig = useAccessibleMenu('primary');
   const { isRTL } = useLanguage();
   const menuItem = useMenuCurrentItem(pathname, menuConfig);
   

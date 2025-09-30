@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { useMenus } from '@/providers';
 import { useMenuCurrentItem } from '@/components';
+import { useAccessibleMenu } from '@/hooks';
 import { useLocation } from 'react-router';
 import { ToolbarBreadcrumbs } from './ToolbarBreadcrumbs';
 
@@ -9,9 +9,8 @@ export interface IToolbarHeadingProps {
 }
 
 const ToolbarHeading = ({ title = '' }: IToolbarHeadingProps) => {
-  const { getMenuConfig } = useMenus();
   const { pathname } = useLocation();
-  const currentMenuItem = useMenuCurrentItem(pathname, getMenuConfig('primary'));
+  const currentMenuItem = useMenuCurrentItem(pathname, useAccessibleMenu('primary'));
 
   return (
     <div className="flex items-center flex-wrap gap-1 lg:gap-5">

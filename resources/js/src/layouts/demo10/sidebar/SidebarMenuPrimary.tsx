@@ -11,7 +11,7 @@ import {
   MenuSub,
   MenuTitle
 } from '@/components/menu';
-import { useMenus } from '@/providers';
+import { useAccessibleMenu } from '@/hooks';
 
 const SidebarMenuPrimary = () => {
   const newItem = {
@@ -21,8 +21,7 @@ const SidebarMenuPrimary = () => {
     path: '/'
   };
 
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
+  const menuConfig = useAccessibleMenu('primary');
 
   // Prepend the new item to the menuConfig
   //const menuConfigWithNewItem = [newItem, ...menuConfig];
@@ -143,7 +142,7 @@ const SidebarMenuPrimary = () => {
     <div className="mb-5">
       <h3 className="text-sm text-gray-500 uppercase ps-5 inline-block mb-3">Pages</h3>
       <Menu highlight={true} multipleExpand={false} className="flex flex-col w-full gap-1.5 px-3.5">
-        {menuConfig && buildMenu(menuConfig)}
+        {buildMenu(menuConfig)}
       </Menu>
     </div>
   );

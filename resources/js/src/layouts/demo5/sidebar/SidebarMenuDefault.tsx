@@ -11,11 +11,10 @@ import {
   MenuSub,
   MenuTitle
 } from '@/components/menu';
-import { useMenus } from '@/providers';
+import { useAccessibleMenu } from '@/hooks';
 
 const SidebarMenuDefault = () => {
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('secondary');
+  const menuConfig = useAccessibleMenu('secondary');
   const indention = ['ps-2.5', 'ps-5', 'px-7'];
 
   const buildMenu = (items: TMenuConfig) => {
@@ -93,7 +92,7 @@ const SidebarMenuDefault = () => {
 
   return (
     <Menu highlight={true} multipleExpand={false} className="flex flex-col w-full gap-px px-2.5">
-      {menuConfig && buildMenu(menuConfig)}
+      {buildMenu(menuConfig)}
     </Menu>
   );
 };

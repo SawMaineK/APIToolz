@@ -1,13 +1,12 @@
 import { Fragment } from 'react';
 import { useMenuBreadcrumbs } from '@/components';
 import { Link } from 'react-router-dom';
-import { useMenus } from '@/providers';
+import { useAccessibleMenu } from '@/hooks';
 import { useLocation } from 'react-router';
 
 const ToolbarBreadcrumbs = () => {
-  const { getMenuConfig } = useMenus();
   const { pathname } = useLocation();
-  const items = useMenuBreadcrumbs(pathname, getMenuConfig('primary'));
+  const items = useMenuBreadcrumbs(pathname, useAccessibleMenu('primary'));
 
   return (
     <div className="flex items-center gap-1 text-2sm">

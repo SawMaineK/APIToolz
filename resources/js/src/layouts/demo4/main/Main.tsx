@@ -2,11 +2,10 @@ import { Fragment, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Outlet, useLocation } from 'react-router';
 import { Menu, MenuItem, MenuToggle, useMenuCurrentItem } from '@/components/menu';
-import { useMenus } from '@/providers';
 import { Header, Sidebar, Footer, Toolbar, ToolbarActions, ToolbarHeading } from '..';
 import { Link } from 'react-router-dom';
 import { KeenIcon } from '@/components';
-import { useResponsive } from '@/hooks';
+import { useAccessibleMenu, useResponsive } from '@/hooks';
 import { ModalSearch } from '@/partials/modals/search/ModalSearch';
 import { DropdownNotifications } from '@/partials/dropdowns/notifications';
 
@@ -14,8 +13,7 @@ const Main = () => {
   const mobileMode = useResponsive('down', 'lg');
   const itemNotificationsRef = useRef<any>(null);
   const { pathname } = useLocation();
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
+  const menuConfig = useAccessibleMenu('primary');
   const menuItem = useMenuCurrentItem(pathname, menuConfig);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const handleOpen = () => setSearchModalOpen(true);

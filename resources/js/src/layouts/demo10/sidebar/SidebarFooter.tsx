@@ -7,10 +7,15 @@ import { DropdownNotifications } from '@/partials/dropdowns/notifications';
 import { useLanguage } from '@/i18n';
 
 const SidebarFooter = forwardRef<HTMLDivElement, any>((props, ref) => {
-  const { logout } = useAuthContext();
+  const { currentUser, logout } = useAuthContext();
   const itemUserRef = useRef<any>(null);
   const itemNotificationsRef = useRef<any>(null);
   const { isRTL } = useLanguage();
+
+  const avatarSrc =
+    currentUser?.avatar
+      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+      : toAbsoluteUrl('/media/avatars/blank.png');
 
   return (
     <div ref={ref} className="flex flex-center justify-between shrink-0 ps-4 pe-3.5 mb-3.5">
@@ -34,7 +39,7 @@ const SidebarFooter = forwardRef<HTMLDivElement, any>((props, ref) => {
           <MenuToggle className="btn btn-icon rounded-full">
             <img
               className="size-8 rounded-full justify-center border border-gray-500 shrink-0"
-              src={toAbsoluteUrl('/media/avatars/gray/5.png')}
+              src={avatarSrc}
               alt=""
             />
           </MenuToggle>

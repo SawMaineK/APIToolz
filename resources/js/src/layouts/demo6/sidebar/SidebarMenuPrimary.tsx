@@ -11,7 +11,7 @@ import {
   MenuSub,
   MenuTitle
 } from '@/components/menu';
-import { useMenus } from '@/providers';
+import { useAccessibleMenu } from '@/hooks';
 
 const SidebarMenuPrimary = () => {
   const subIndetion = ['ps-7', 'ps-2.5', 'ps-2.5'];
@@ -125,12 +125,11 @@ const SidebarMenuPrimary = () => {
     );
   };
 
-  const { getMenuConfig } = useMenus();
-  const menuConfig = getMenuConfig('primary');
+  const menuConfig = useAccessibleMenu('primary');
 
   return (
     <Menu highlight={true} multipleExpand={false} className="flex flex-col w-full gap-1.5 px-3.5">
-      {menuConfig && buildMenu(menuConfig)}
+      {buildMenu(menuConfig)}
     </Menu>
   );
 };
