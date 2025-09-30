@@ -11,12 +11,15 @@ import {
 import { useMenus } from '@/providers';
 import { useLocation } from 'react-router';
 import { useLanguage } from '@/i18n';
+import { useRoleAccess } from '@/auth';
+import { filterMenuConfigByRoles } from '@/components/menu/utils';
 
 const NavbarMenu = () => {
   const { pathname } = useLocation();
   const { getMenuConfig } = useMenus();
   const primaryMenu = getMenuConfig('primary');
   const { isRTL } = useLanguage();
+  const { hasRole } = useRoleAccess();
   let navbarMenu;
 
   if (pathname.includes('/public-profile/')) {
@@ -29,8 +32,10 @@ const NavbarMenu = () => {
     navbarMenu = primaryMenu?.[3];
   }
 
-  const buildMenu = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+  const buildMenu = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole);
+
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem
@@ -72,8 +77,10 @@ const NavbarMenu = () => {
     });
   };
 
-  const buildMenuChildren = (items: TMenuConfig) => {
-    return items.map((item, index) => {
+  const buildMenuChildren = (items?: TMenuConfig | null) => {
+    const filteredItems = filterMenuConfigByRoles(items ?? [], hasRole);
+
+    return filteredItems.map((item, index) => {
       if (item.children) {
         return (
           <MenuItem

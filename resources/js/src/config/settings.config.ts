@@ -27,7 +27,9 @@ const defaultSettings: ISettings = {
     logo_url: '',
     logo_small_url: '',
     logo_dark_url: '',
-    logo_dark_small_url: ''
+    logo_dark_small_url: '',
+    theme_color: '#00A193',
+    layout: 'demo1'
   },
   menuConfig: [
     {
