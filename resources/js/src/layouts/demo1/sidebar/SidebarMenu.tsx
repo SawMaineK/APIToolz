@@ -17,7 +17,7 @@ import {
   MenuTitle
 } from '@/components/menu';
 import { useMenus } from '@/providers';
-import { useAuthContext } from '@/auth';
+import { useRoleAccess } from '@/auth';
 import { toLowerCase } from '@/pages/model/_helper';
 
 function toPascalCase(str: string): string {
@@ -59,9 +59,10 @@ const SidebarMenu = () => {
     'before:start-[32px]',
     'before:start-[32px]'
   ];
+  const { hasRole: canAccess } = useRoleAccess();
   const buildMenu = (items: TMenuConfig) => {
     return items
-      .filter((item) => hasRole(item.roles))
+      .filter((item) => canAccess(item.roles))
       .map((item, index) => {
         if (item.heading) {
           return buildMenuHeading(item, index);
@@ -166,7 +167,7 @@ const SidebarMenu = () => {
 
   const buildMenuItemChildren = (items: TMenuConfig, index: number, level: number = 0) => {
     return items
-      .filter((item) => hasRole(item.roles))
+      .filter((item) => canAccess(item.roles))
       .map((item, index) => {
         if (item.disabled) {
           return buildMenuItemChildDisabled(item, index, level);
@@ -303,14 +304,6 @@ const SidebarMenu = () => {
 
   const { getMenuConfig } = useMenus();
   const menuConfig = getMenuConfig('primary');
-  const { currentUser } = useAuthContext();
-
-  const hasRole = (allowedRoles?: string[]) => {
-    if (!allowedRoles || allowedRoles.length === 0) return true;
-    return currentUser?.roles?.some((role: any) => {
-      return allowedRoles.includes(role);
-    });
-  };
 
   return (
     <Menu highlight={true} multipleExpand={false} className={clsx('flex flex-col grow', itemsGap)}>

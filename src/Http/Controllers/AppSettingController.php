@@ -5,6 +5,8 @@ use Sawmainek\Apitoolz\Models\AppSetting;
 use Sawmainek\Apitoolz\Http\Requests\AppSettingRequest;
 use Sawmainek\Apitoolz\Services\AppSettingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Sawmainek\Apitoolz\Http\Resources\AppSettingResource;
 use Sawmainek\Apitoolz\Http\Controllers\APIToolzController;
 use Sawmainek\Apitoolz\Traits\HandlesReportWidgets;
@@ -146,7 +148,51 @@ class AppSettingController extends APIToolzController
     public function update(AppSettingRequest $request, $id)
     {
         $appSetting = AppSetting::findOrFail($id);
-        $updatedAppSetting = $this->appSettingService->update($appSetting, $request->validated());
+        $data = $request->validated();
+
+        $brandingInput = $data['branding'] ?? [];
+
+        if (is_string($brandingInput)) {
+            $brandingInput = json_decode($brandingInput, true) ?? [];
+        }
+
+        if (!is_array($brandingInput)) {
+            $brandingInput = [];
+        }
+
+        $existingBranding = $appSetting->branding ?? [];
+        if (!is_array($existingBranding)) {
+            $existingBranding = (array) $existingBranding;
+        }
+
+        $branding = array_merge($existingBranding, $brandingInput);
+
+        $fileFields = [
+            'branding_logo_url' => 'logo_url',
+            'branding_logo_small_url' => 'logo_small_url',
+            'branding_logo_dark_url' => 'logo_dark_url',
+            'branding_logo_dark_small_url' => 'logo_dark_small_url',
+        ];
+
+        foreach ($fileFields as $uploadField => $brandingKey) {
+            $file = $request->file($uploadField);
+
+            if ($request->hasFile($uploadField) && $file && $file->isValid()) {
+                $filename = now()->format('YmdHis') . '-' . Str::random(12) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('branding', $filename, env('FILESYSTEM_DISK', 'public'));
+                $branding[$brandingKey] = Storage::url($path);
+            } elseif (array_key_exists($brandingKey, $brandingInput)) {
+                $branding[$brandingKey] = $brandingInput[$brandingKey];
+            }
+        }
+
+        $data['branding'] = $branding;
+
+        foreach (array_keys($fileFields) as $uploadField) {
+            unset($data[$uploadField]);
+        }
+
+        $updatedAppSetting = $this->appSettingService->update($appSetting, $data);
         return $this->response(new AppSettingResource($updatedAppSetting));
     }
 

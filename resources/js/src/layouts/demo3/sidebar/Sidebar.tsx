@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { KeenIcon } from '@/components/keenicons';
 import { useResponsive, useViewport } from '@/hooks';
 import { useDemo3Layout } from '..';
-import { useEffect } from 'react';
-import { usePathname } from '@/providers';
+import { useEffect, useMemo, useState } from 'react';
+import { useMenus, usePathname } from '@/providers';
+import { useRoleAccess } from '@/auth';
+import { filterMenuConfigByRoles } from '@/components/menu/utils';
+import { IMenuItemConfig, TMenuConfig } from '@/components/menu';
 import {
   Sheet,
   SheetContent,
@@ -12,6 +15,144 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
+
+interface SidebarNavItem {
+  icon: string;
+  path: string;
+  tooltip: string;
+  rootPath?: string;
+}
+
+const FALLBACK_ITEMS: SidebarNavItem[] = [
+  {
+    icon: 'chart-line-star',
+    path: '/',
+    tooltip: 'Dashboard',
+    rootPath: '/'
+  },
+  {
+    icon: 'profile-circle',
+    path: '/public-profile/profiles/default',
+    tooltip: 'Profile',
+    rootPath: '/public-profile/'
+  },
+  {
+    icon: 'setting-2',
+    path: '/account/home/get-started',
+    tooltip: 'Account',
+    rootPath: '/account/'
+  },
+  {
+    icon: 'users',
+    path: '/network/get-started',
+    tooltip: 'Network',
+    rootPath: '/network/'
+  },
+  {
+    icon: 'security-user',
+    path: '/authentication/get-started',
+    tooltip: 'Authentication',
+    rootPath: '/authentication/'
+  },
+  {
+    icon: 'code',
+    path: '/account/billing/plans',
+    tooltip: 'Plans',
+    rootPath: '/account/billing'
+  },
+  {
+    icon: 'shop',
+    path: '/account/security/security-log',
+    tooltip: 'Security Logs',
+    rootPath: '/account/security'
+  },
+  {
+    icon: 'cheque',
+    path: '/account/notifications',
+    tooltip: 'Notifications',
+    rootPath: '/account/notifications'
+  },
+  {
+    icon: 'code',
+    path: '/account/members/roles',
+    tooltip: 'ACL',
+    rootPath: '/account/members'
+  },
+  {
+    icon: 'question',
+    path: '/account/api-keys',
+    tooltip: 'API Keys',
+    rootPath: '/account/api-keys'
+  }
+];
+
+const flattenMenuToSidebarItems = (menu: TMenuConfig | null | undefined): SidebarNavItem[] => {
+  if (!menu) {
+    return [];
+  }
+
+  const items: SidebarNavItem[] = [];
+  const seenPaths = new Set<string>();
+
+  const addItem = (config: IMenuItemConfig) => {
+    if (!config.path || seenPaths.has(config.path)) {
+      return;
+    }
+
+    seenPaths.add(config.path);
+
+    items.push({
+      icon: config.icon ?? 'dots-circle-horizontal',
+      path: config.path,
+      tooltip: config.title ?? config.path,
+      rootPath: config.rootPath ?? config.path
+    });
+  };
+
+  const visit = (configs: TMenuConfig) => {
+    configs.forEach((config) => {
+      if (config.heading || config.disabled) {
+        if (config.children) {
+          visit(config.children);
+        }
+        return;
+      }
+
+      if (config.children && config.children.length > 0) {
+        if (config.path) {
+          addItem(config);
+        }
+        visit(config.children);
+        return;
+      }
+
+      addItem(config);
+    });
+  };
+
+  visit(menu);
+
+  return items;
+};
+
+const isSidebarPathActive = (item: SidebarNavItem, pathname: string): boolean => {
+  const target = item.rootPath ?? item.path;
+
+  if (!target) {
+    return false;
+  }
+
+  if (target === '/') {
+    return pathname === '/';
+  }
+
+  if (pathname === target) {
+    return true;
+  }
+
+  const normalizedTarget = target.endsWith('/') ? target : `${target}/`;
+  return pathname.startsWith(normalizedTarget);
+};
 
 const Sidebar = () => {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useDemo3Layout();
@@ -21,59 +162,33 @@ const Sidebar = () => {
   const [viewportHeight] = useViewport();
   const scrollableOffset = 70;
   const scrollableHeight = viewportHeight - scrollableOffset;
-  const items = [
-    {
-      icon: 'chart-line-star',
-      path: '/',
-      tooltip: 'Dashboard'
-    },
-    {
-      icon: 'profile-circle',
-      path: '/public-profile/profiles/default',
-      tooltip: 'Profile'
-    },
-    {
-      icon: 'setting-2',
-      active: true,
-      path: '/account/home/get-started',
-      tooltip: 'Account'
-    },
-    {
-      icon: 'users',
-      path: '/network/get-started',
-      tooltip: 'Network'
-    },
-    {
-      icon: 'security-user',
-      path: '/account/billing/plans',
-      tooltip: 'Plans'
-    },
-    {
-      icon: 'messages',
-      path: '/account/security/security-log',
-      tooltip: 'Security Logs'
-    },
-    {
-      icon: 'shop',
-      path: '/account/notifications',
-      tooltip: 'Notifications'
-    },
-    {
-      icon: 'cheque',
-      path: '/account/members/roles',
-      tooltip: 'ACL'
-    },
-    {
-      icon: 'code',
-      path: '/account/api-keys',
-      tooltip: 'API Keys'
-    },
-    {
-      icon: 'question',
-      path: 'https://keenthemes.com/metronic/tailwind/docs/',
-      tooltip: 'Docs'
+  const { getMenuConfig } = useMenus();
+  const { hasRole } = useRoleAccess();
+  const primaryMenu = getMenuConfig('primary');
+  const accessibleMenu = useMemo(
+    () => filterMenuConfigByRoles(primaryMenu ?? [], hasRole),
+    [primaryMenu, hasRole]
+  );
+  const menuItems = useMemo(() => {
+    const flattened = flattenMenuToSidebarItems(accessibleMenu);
+    return flattened.length > 0 ? flattened : FALLBACK_ITEMS;
+  }, [accessibleMenu]);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<SidebarNavItem | null>(null);
+
+  useEffect(() => {
+    if (menuItems.length === 0) {
+      setSelectedMenuItem(null);
+      return;
     }
-  ];
+
+    const activeItem = menuItems.find((item) => isSidebarPathActive(item, pathname));
+
+    if (activeItem) {
+      setSelectedMenuItem(activeItem);
+    } else {
+      setSelectedMenuItem(menuItems[0]);
+    }
+  }, [menuItems, pathname]);
 
   const handleMobileSidebarClose = () => {
     setMobileSidebarOpen(false);
@@ -89,42 +204,47 @@ const Sidebar = () => {
               ...(desktopMode && scrollableHeight > 0 && { height: `${scrollableHeight}px` })
             }}
           >
-            {items.map((item, index) =>
-              item.path.startsWith('http') ? (
-                <a
-                  href={item.path}
-                  key={index}
-                  data-tooltip={item.tooltip}
-                  data-tooltip-placement="right"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`btn btn-icon btn-icon-lg rounded-full size-10 border here:border-gray-300 
-                    text-gray-600 hover:bg-light hover:text-primary hover:border-gray-300 ${
-                      item.active ? 'bg-light text-primary' : ''
-                    }`}
-                >
-                  <span className="menu-icon">
-                    <KeenIcon icon={item.icon} />
-                  </span>
-                  <span className="tooltip">{item.tooltip}</span>
-                </a>
-              ) : (
+            {menuItems.map((item) => {
+              const isExternal = item.path.startsWith('http');
+              const isActive = selectedMenuItem?.path === item.path;
+              const baseClasses =
+                'btn btn-icon btn-icon-lg rounded-full size-10 border text-gray-600 hover:bg-light hover:text-primary hover:border-gray-300';
+              const activeClasses = isActive ? ' bg-light text-primary border-gray-300' : '';
+
+              if (isExternal) {
+                return (
+                  <a
+                    href={item.path}
+                    key={item.path}
+                    data-tooltip={item.tooltip}
+                    data-tooltip-placement="right"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${baseClasses}${activeClasses}`}
+                  >
+                    <span className="menu-icon">
+                      <KeenIcon icon={item.icon} />
+                    </span>
+                    <span className="tooltip">{item.tooltip}</span>
+                  </a>
+                );
+              }
+
+              return (
                 <Link
                   to={item.path}
-                  key={index}
+                  key={item.path}
                   data-tooltip={item.tooltip}
                   data-tooltip-placement="right"
-                  className={`btn btn-icon btn-icon-lg rounded-full size-10 border active:border-gray-300 text-gray-600 hover:bg-light hover:text-primary hover:border-gray-300 ${
-                    item.active ? 'bg-light text-primary border-gray-300' : ''
-                  }`}
+                  className={`${baseClasses} active:border-gray-300${activeClasses}`}
                 >
                   <span className="menu-icon">
                     <KeenIcon icon={item.icon} />
                   </span>
                   <span className="tooltip">{item.tooltip}</span>
                 </Link>
-              )
-            )}
+              );
+            })}
           </div>
         </div>
       </div>

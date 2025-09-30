@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { KeenIcon } from '@/components/keenicons';
-import { toAbsoluteUrl } from '@/utils';
 import {
   Menu,
   MenuArrow,
@@ -12,39 +11,55 @@ import {
   MenuToggle
 } from '@/components/menu';
 import { MENU_ROOT } from '@/config';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/i18n';
+import { useBranding } from '@/hooks';
+import { useMenus } from '@/providers';
+import { useRoleAccess } from '@/auth';
+import { menuItemHasAccess } from '@/components/menu/utils';
 
 const HeaderLogo = () => {
   const { pathname } = useLocation();
   const { isRTL } = useLanguage();
-  const [selectedMenuItem, setSelectedMenuItem] = useState(MENU_ROOT[1]);
+  const { appName, logoSmall, logoDarkSmall } = useBranding();
+  const { getMenuConfig } = useMenus();
+  const primaryMenu = getMenuConfig('primary');
+  const { hasRole } = useRoleAccess();
+
+  const accessibleRootItems = useMemo(() => {
+    return MENU_ROOT.filter((item) => {
+      if (typeof item.childrenIndex !== 'number') {
+        return true;
+      }
+
+      const menuItem = primaryMenu?.[item.childrenIndex];
+
+      return menuItemHasAccess(menuItem, hasRole);
+    });
+  }, [primaryMenu, hasRole]);
+
+  const [selectedMenuItem, setSelectedMenuItem] = useState(() => accessibleRootItems[0] ?? MENU_ROOT[0]);
 
   useEffect(() => {
-    MENU_ROOT.forEach((item) => {
-      if (item.rootPath && pathname.includes(item.rootPath)) {
-        setSelectedMenuItem(item);
-      }
-    });
-  }, [pathname]);
+    const matchedItem = accessibleRootItems.find((item) => item.rootPath && pathname.includes(item.rootPath));
+
+    if (matchedItem) {
+      setSelectedMenuItem(matchedItem);
+    } else if (!accessibleRootItems.includes(selectedMenuItem)) {
+      setSelectedMenuItem(accessibleRootItems[0] ?? selectedMenuItem);
+    }
+  }, [pathname, accessibleRootItems, selectedMenuItem]);
+
 
   return (
     <div className="flex items-center gap-2 lg:gap-5 2xl:-ml-[60px]">
       <Link to="/" className="shrink-0">
-        <img
-          src={toAbsoluteUrl('/media/app/mini-logo-circle.svg')}
-          className="dark:hidden min-h-[42px]"
-          alt="logo"
-        />
-        <img
-          src={toAbsoluteUrl('/media/app/mini-logo-circle-dark.svg')}
-          className="hidden dark:inline-block min-h-[42px]"
-          alt="logo"
-        />
+        <img src={logoSmall} className="dark:hidden min-h-[42px]" alt="logo" />
+        <img src={logoDarkSmall} className="hidden dark:inline-block min-h-[42px]" alt="logo" />
       </Link>
 
       <div className="flex items-center">
-        <h3 className="text-gray-700 text-base hidden md:block">APIToolz</h3>
+        <h3 className="text-gray-700 text-base hidden md:block">{appName}</h3>
         <span className="text-sm text-gray-400 font-medium px-2.5 hidden md:inline">/</span>
 
         <Menu className="menu-default">
@@ -70,7 +85,7 @@ const HeaderLogo = () => {
               </MenuArrow>
             </MenuToggle>
             <MenuSub className="menu-default w-48">
-              {MENU_ROOT.map((item, index) => (
+              {accessibleRootItems.map((item, index) => (
                 <MenuItem key={index} className={item === selectedMenuItem ? 'active' : ''}>
                   <MenuLink path={item.path}>
                     {item.icon && (

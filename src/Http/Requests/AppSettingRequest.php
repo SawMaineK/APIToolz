@@ -30,16 +30,26 @@ class AppSettingRequest extends FormRequest
     public function rules()
     {
         return [
-			'id'=>'nullable|integer',
-			'key'=>'required',
-			'menu_config'=>'',
-			'branding'=>'',
-			'email_config'=>'',
-			'sms_config'=>'',
-			'other'=>'',
-			'created_at'=>'',
-			'updated_at'=>'',
-
+            'id' => 'nullable|integer',
+            'key' => 'required|string',
+            'menu_config' => 'nullable',
+            'branding' => 'nullable|array',
+            'branding.app_name' => 'nullable|string|max:255',
+            'branding.logo_url' => 'nullable|string',
+            'branding.logo_small_url' => 'nullable|string',
+            'branding.logo_dark_url' => 'nullable|string',
+            'branding.logo_dark_small_url' => 'nullable|string',
+            'branding.theme_color' => 'nullable|string',
+            'branding.layout' => 'nullable|string',
+            'branding_logo_url' => 'nullable|image|max:5120',
+            'branding_logo_small_url' => 'nullable|image|max:5120',
+            'branding_logo_dark_url' => 'nullable|image|max:5120',
+            'branding_logo_dark_small_url' => 'nullable|image|max:5120',
+            'email_config' => 'nullable',
+            'sms_config' => 'nullable',
+            'other' => 'nullable',
+            'created_at' => 'nullable',
+            'updated_at' => 'nullable'
         ];
     }
 
