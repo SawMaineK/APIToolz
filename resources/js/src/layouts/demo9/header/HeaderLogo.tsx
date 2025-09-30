@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { toAbsoluteUrl } from '@/utils';
 import {
   Menu,
   MenuArrow,
@@ -11,7 +10,7 @@ import {
   MenuToggle,
   KeenIcon
 } from '@/components';
-import { useResponsive } from '@/hooks';
+import { useResponsive, useBranding } from '@/hooks';
 
 import { useDemo9Layout } from '..';
 import { useLanguage } from '@/i18n';
@@ -33,6 +32,7 @@ const HeaderLogo = () => {
   const desktopMode = useResponsive('up', 'lg');
   const { setMobileMegaMenuOpen } = useDemo9Layout();
   const { isRTL } = useLanguage();
+  const { appName, logoSmall, logoDarkSmall } = useBranding();
 
   const handleSidebarOpen = () => {
     setMobileMegaMenuOpen(true);
@@ -40,7 +40,7 @@ const HeaderLogo = () => {
 
   const teams: IHeaderLogoTeams = [
     {
-      title: 'APIToolz',
+      title: appName,
       icon: 'profile-circle',
       urlPartial: '/public-profile/',
       path: '/public-profile/profiles/default'
@@ -71,18 +71,10 @@ const HeaderLogo = () => {
 
       <div className="flex items-center gap-2">
         <Link to="/">
-          <img
-            src={toAbsoluteUrl('/media/app/mini-logo-circle.svg')}
-            className="dark:hidden min-h-[34px]"
-            alt="logo"
-          />
-          <img
-            src={toAbsoluteUrl('/media/app/mini-logo-circle-dark.svg')}
-            className="hidden dark:inline-block min-h-[34px]"
-            alt="logo"
-          />
+          <img src={logoSmall} className="dark:hidden min-h-[34px]" alt="logo" />
+          <img src={logoDarkSmall} className="hidden dark:inline-block min-h-[34px]" alt="logo" />
         </Link>
-        <h3 className="text-gray-900 text-lg font-medium hidden md:block">Metronic</h3>
+        <h3 className="text-gray-900 text-lg font-medium hidden md:block">{appName}</h3>
       </div>
 
       {desktopMode && (

@@ -1,8 +1,7 @@
 import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
-import { MENU_SIDEBAR } from '@/config';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
-import { useMenus } from '@/providers';
+import { useMenus, useSettings } from '@/providers';
 import { ILayoutConfig, useLayout } from '@/providers';
 import { deepMerge } from '@/utils';
 import { useMenuChildren } from '@/components';
@@ -38,10 +37,11 @@ const Demo9LayoutProvider = ({ children }: PropsWithChildren) => {
   const { pathname } = useLocation(); // Gets the current path
   const { getLayout, setCurrentLayout } = useLayout(); // Hook to get and set layout configuration
   const { setMenuConfig } = useMenus(); // Accesses menu configuration methods
-  const secondaryMenu = useMenuChildren(pathname, MENU_SIDEBAR, 0); // Retrieves the secondary menu
+  const { settings } = useSettings();
+  const secondaryMenu = useMenuChildren(pathname, settings.menuConfig, 0); // Retrieves the secondary menu
 
   // Sets the primary and secondary menu configurations
-  setMenuConfig('primary', MENU_SIDEBAR);
+  setMenuConfig('primary', settings.menuConfig);
   setMenuConfig('secondary', secondaryMenu);
 
   // Merge the Demo9 layout configuration with the current layout configuration fetched via getLayout

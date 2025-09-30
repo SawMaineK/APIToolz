@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { KeenIcon, Menu, MenuItem, MenuToggle, DefaultTooltip, MenuIcon } from '@/components';
 import { useEffect, useRef, useState } from 'react';
 import { getHeight, toAbsoluteUrl } from '@/utils';
-import { useViewport } from '@/hooks';
+import { useBranding, useViewport } from '@/hooks';
 import { DropdownUser } from '@/partials/dropdowns/user';
 import { DropdownChat } from '@/partials/dropdowns/chat';
 import { DropdownApps } from '@/partials/dropdowns/apps';
@@ -69,6 +69,7 @@ const SidebarPrimary = () => {
   }, [viewportHeight]);
 
   const { pathname } = useLocation();
+  const { logoSmall, logoDarkSmall } = useBranding();
   const [selectedMenuItem, setSelectedMenuItem] = useState(menuItems[0]);
 
   useEffect(() => {
@@ -87,14 +88,8 @@ const SidebarPrimary = () => {
     <div className="flex flex-col items-stretch shrink-0 gap-5 py-5 w-[70px] border-e border-gray-300 dark:border-gray-200">
       <div ref={headerRef} className="hidden lg:flex items-center justify-center shrink-0">
         <Link to="/">
-          <img
-            src={toAbsoluteUrl('/media/app/mini-logo-gray.svg')}
-            className="dark:hidden min-h-[30px]"
-          />
-          <img
-            src={toAbsoluteUrl('/media/app/mini-logo-gray-dark.svg')}
-            className="hidden dark:block min-h-[30px]"
-          />
+          <img src={logoSmall} className="dark:hidden min-h-[30px]" alt="logo" />
+          <img src={logoDarkSmall} className="hidden dark:block min-h-[30px]" alt="logo" />
         </Link>
       </div>
       <div className="flex grow shrink-0">
