@@ -7,6 +7,7 @@ import { DropdownUser } from '@/partials/dropdowns/user';
 import { DropdownChat } from '@/partials/dropdowns/chat';
 import { DropdownApps } from '@/partials/dropdowns/apps';
 import { useLanguage } from '@/i18n';
+import { useAuthContext } from '@/auth';
 import { useMenus } from '@/providers';
 import { useRoleAccess } from '@/auth';
 import { filterMenuConfigByRoles } from '@/components/menu/utils';
@@ -128,6 +129,11 @@ const SidebarPrimary = () => {
   const [viewportHeight] = useViewport();
   const scrollableOffset = 80;
   const { isRTL } = useLanguage();
+  const { currentUser } = useAuthContext();
+  const avatarSrc =
+    currentUser?.avatar
+      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+      : toAbsoluteUrl('/media/avatars/blank.png');
 
   useEffect(() => {
     if (headerRef.current && footerRef.current) {
@@ -277,7 +283,7 @@ const SidebarPrimary = () => {
             <MenuToggle className="btn btn-icon rounded-full">
               <img
                 className="size-8 rounded-full justify-center border border-gray-500 shrink-0"
-                src={toAbsoluteUrl('/media/avatars/gray/5.png')}
+                src={avatarSrc}
                 alt=""
               />
             </MenuToggle>

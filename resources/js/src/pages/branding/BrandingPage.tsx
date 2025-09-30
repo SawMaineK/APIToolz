@@ -44,12 +44,7 @@ const LAYOUT_OPTIONS = [
 
 type BrandingLogoKey = 'logo_url' | 'logo_small_url' | 'logo_dark_url' | 'logo_dark_small_url';
 
-const LOGO_KEYS: BrandingLogoKey[] = [
-  'logo_url',
-  'logo_small_url',
-  'logo_dark_url',
-  'logo_dark_small_url'
-];
+const LOGO_KEYS: BrandingLogoKey[] = ['logo_url', 'logo_small_url', 'logo_dark_url', 'logo_dark_small_url'];
 
 const LOGO_FIELD_CONFIG: Record<BrandingLogoKey, { label: string; description: string }> = {
   logo_url: {
@@ -103,8 +98,7 @@ const BrandingPage = () => {
 
   const settingsBranding = useMemo(() => mapBranding(settings.branding), [settings.branding]);
   const [branding, setBranding] = useState<TBranding>(settingsBranding);
-  const [logoFiles, setLogoFiles] =
-    useState<Record<BrandingLogoKey, File | null>>(createEmptyLogoFiles());
+  const [logoFiles, setLogoFiles] = useState<Record<BrandingLogoKey, File | null>>(createEmptyLogoFiles());
   const [logoPreviews, setLogoPreviews] = useState<Record<BrandingLogoKey, string>>(
     getLogoPreviewState(settingsBranding)
   );
@@ -120,18 +114,21 @@ const BrandingPage = () => {
     logo_dark_small_url: null
   });
 
-  const resetLogoState = useCallback((source: TBranding) => {
-    LOGO_KEYS.forEach((key) => {
-      const currentUrl = objectUrlRef.current[key];
-      if (currentUrl) {
-        URL.revokeObjectURL(currentUrl);
-        objectUrlRef.current[key] = null;
-      }
-    });
+  const resetLogoState = useCallback(
+    (source: TBranding) => {
+      LOGO_KEYS.forEach((key) => {
+        const currentUrl = objectUrlRef.current[key];
+        if (currentUrl) {
+          URL.revokeObjectURL(currentUrl);
+          objectUrlRef.current[key] = null;
+        }
+      });
 
-    setLogoFiles(createEmptyLogoFiles());
-    setLogoPreviews(getLogoPreviewState(source));
-  }, []);
+      setLogoFiles(createEmptyLogoFiles());
+      setLogoPreviews(getLogoPreviewState(source));
+    },
+    []
+  );
 
   useEffect(() => {
     setBranding(settingsBranding);
@@ -247,7 +244,6 @@ const BrandingPage = () => {
 
     setIsSaving(true);
     const formData = new FormData();
-    formData.append('_method', 'PUT');
     formData.append('key', settings.configKey);
     formData.append('branding[app_name]', branding.app_name ?? '');
     formData.append('branding[layout]', branding.layout ?? DEFAULT_BRANDING_LAYOUT);
@@ -270,7 +266,7 @@ const BrandingPage = () => {
     });
 
     try {
-      const { data } = await axios.post(
+      const { data } = await axios.put(
         `${import.meta.env.VITE_APP_API_URL}/appsetting/${settings.configId}`,
         formData,
         {
@@ -304,10 +300,7 @@ const BrandingPage = () => {
     return previewBranding;
   }, [branding, logoPreviews]);
 
-  const brandingAssets = useMemo(
-    () => resolveBrandingAssets(brandingForPreview),
-    [brandingForPreview]
-  );
+  const brandingAssets = useMemo(() => resolveBrandingAssets(brandingForPreview), [brandingForPreview]);
 
   const isBrandingDirty = useMemo(() => {
     const hasLogoFileChanges = LOGO_KEYS.some((key) => Boolean(logoFiles[key]));
@@ -346,11 +339,7 @@ const BrandingPage = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex h-16 w-28 items-center justify-center overflow-hidden rounded border border-dashed border-muted-foreground/30 bg-muted/10">
             {preview ? (
-              <img
-                src={preview}
-                alt={`${label} preview`}
-                className="max-h-full w-full object-contain"
-              />
+              <img src={preview} alt={`${label} preview`} className="max-h-full w-full object-contain" />
             ) : (
               <span className="text-xs text-muted-foreground">No preview</span>
             )}
@@ -392,12 +381,7 @@ const BrandingPage = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-              disabled={!isBrandingDirty || isSaving}
-            >
+            <Button type="button" variant="outline" onClick={handleReset} disabled={!isBrandingDirty || isSaving}>
               Reset
             </Button>
             <Button type="submit" disabled={!isBrandingDirty || isSaving}>
@@ -411,8 +395,7 @@ const BrandingPage = () => {
             <CardHeader>
               <CardTitle>Logo assets</CardTitle>
               <CardDescription>
-                Provide the logo files that will be used across headers, sidebars and loader
-                screens.
+                Provide the logo files that will be used across headers, sidebars and loader screens.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -456,9 +439,7 @@ const BrandingPage = () => {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {(['logo_url', 'logo_small_url'] as BrandingLogoKey[]).map((key) =>
-                  renderLogoUpload(key)
-                )}
+                {(['logo_url', 'logo_small_url'] as BrandingLogoKey[]).map((key) => renderLogoUpload(key))}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -498,8 +479,7 @@ const BrandingPage = () => {
             <CardHeader>
               <CardTitle>Theme & preview</CardTitle>
               <CardDescription>
-                Switch between light and dark modes and preview how your branding appears in each
-                theme.
+                Switch between light and dark modes and preview how your branding appears in each theme.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -564,9 +544,7 @@ const BrandingPage = () => {
                     />
                     <img
                       src={
-                        appliedTheme === 'dark'
-                          ? brandingAssets.logoDarkSmall
-                          : brandingAssets.logoSmall
+                        appliedTheme === 'dark' ? brandingAssets.logoDarkSmall : brandingAssets.logoSmall
                       }
                       alt="Compact logo preview"
                       className="h-8 w-auto"

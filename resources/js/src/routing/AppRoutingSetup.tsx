@@ -87,10 +87,7 @@ const resolveLayoutKey = (preferred?: string | null): LayoutKey => {
 const AppRoutingSetup = (): ReactElement => {
   const { settings } = useSettings();
 
-  const layoutKey = useMemo(
-    () => resolveLayoutKey(settings.branding?.layout),
-    [settings.branding?.layout]
-  );
+  const layoutKey = useMemo(() => resolveLayoutKey(settings.branding?.layout), [settings.branding?.layout]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

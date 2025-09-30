@@ -18,6 +18,7 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
+import { useAuthContext } from '@/auth';
 
 const Sidebar = () => {
   const desktopMode = useResponsive('up', 'lg');
@@ -27,7 +28,13 @@ const Sidebar = () => {
   const itemChatRef = useRef<any>(null);
   const itemUserRef = useRef<any>(null);
   const { isRTL } = useLanguage();
+  const { currentUser } = useAuthContext();
   const { logoSmall, logoDarkSmall } = useBranding();
+
+  const avatarSrc =
+    currentUser?.avatar
+      ? `${import.meta.env.VITE_APP_IMAGE_URL}/${currentUser.avatar}`
+      : toAbsoluteUrl('/media/avatars/blank.png');
 
   const handleDropdownChatShow = () => {
     window.dispatchEvent(new Event('resize'));
@@ -153,7 +160,7 @@ const Sidebar = () => {
               <MenuToggle className="btn btn-icon">
                 <img
                   className="size-8 justify-center rounded-lg border border-gray-500 shrink-0"
-                  src={toAbsoluteUrl('/media/avatars/gray/5.png')}
+                  src={avatarSrc}
                   alt=""
                 />
               </MenuToggle>
