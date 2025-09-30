@@ -10,12 +10,9 @@ import { Subject } from 'rxjs';
 import { generateFormLayout, objectToFormData, toFormLayout } from '../_helper';
 import { Toolbar, ToolbarActions, ToolbarHeading, ToolbarPageTitle } from '@/partials/toolbar';
 import { KeenIcon } from '@/components/keenicons';
-import { useLanguage } from '@/i18n';
-import { useRef } from 'react';
 import { useAuthContext } from '@/auth';
 
 const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => {
-  const { isRTL } = useLanguage();
   const navigate = useNavigate();
   const { currentUser } = useAuthContext();
 
@@ -126,7 +123,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
           />
         </div>
       ) : (
-        <div className="card w-full">
+        <div className="max-w-2xl mx-auto my-10 bg-white border rounded-xl shadow-lg">
           <div className="card-body flex flex-col gap-5">
             <Toolbar>
               <ToolbarHeading>
