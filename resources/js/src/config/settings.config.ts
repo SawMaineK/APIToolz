@@ -44,6 +44,16 @@ const defaultSettings: ISettings = {
       title: 'Users',
       icon: 'users',
       path: '/admin/users'
+    },
+    {
+      heading: 'Settings',
+      roles: ['super', 'admin']
+    },
+    {
+      title: 'Branding',
+      icon: 'brush',
+      path: '/admin/branding',
+      roles: ['super', 'admin']
     }
   ]
 };

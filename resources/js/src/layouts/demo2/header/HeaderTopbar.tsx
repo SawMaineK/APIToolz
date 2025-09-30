@@ -4,7 +4,6 @@ import { toAbsoluteUrl } from '@/utils';
 import { Menu, MenuItem, MenuToggle } from '@/components';
 import { DropdownUser } from '@/partials/dropdowns/user';
 import { DropdownNotifications } from '@/partials/dropdowns/notifications';
-import { DropdownChat } from '@/partials/dropdowns/chat';
 import { useLanguage } from '@/i18n';
 
 const HeaderTopbar = () => {
