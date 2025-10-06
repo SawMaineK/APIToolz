@@ -78,7 +78,9 @@ class OIDCLoginController extends APIToolzController
                 'name' => $roleName,
                 'guard_name' => 'sanctum',
             ]);
-            $user->roles()->sync($role, ['model_type' => User::class]);
+            $user->roles()->sync([
+                $role->id => ['model_type' => get_class($user)],
+            ]);
         }
 
         // --- Create Sanctum token for React ---

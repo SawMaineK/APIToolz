@@ -2,13 +2,33 @@ import { BaseForm } from '@/components/form/base/base-form';
 import axios from 'axios';
 import { Validators } from 'react-reactive-form';
 
+export interface Workflow {
+  name: string;
+  steps: WorkflowStep[];
+}
+
+export interface WorkflowField {
+  name: string;
+  type: string;
+  label: string;
+  required?: boolean;
+  readonly?: boolean;
+  options?: { value: string; label: string }[];
+  acceptFiles?: string[];
+  multipleFile?: boolean;
+  uploadType?: string;
+  uploadDir?: string;
+}
+
 export type WorkflowStep = {
   id: string;
   label: string;
   roles: string[];
-  form?: {
-    fields: BaseForm<string>[];
-  };
+  form?: { fields: WorkflowField[] };
+  conditions?: { when: string; next: string }[];
+  finished?: boolean;
+  create_model?: any;
+  update_models?: any[];
 };
 
 export type WorkflowInstance = {

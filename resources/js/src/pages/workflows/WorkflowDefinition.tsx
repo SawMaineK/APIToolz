@@ -10,8 +10,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Workflow } from './Workflows';
 import yaml from 'js-yaml';
-import WorkflowDiagram from './WorkflowDiagram'; // <-- import diagram component
 import { Edit, Network } from 'lucide-react';
+import { WorkflowBuilder } from './WorkflowBuilder';
 
 interface WorkflowDefinitionProps {
   workflow: Workflow;
@@ -19,11 +19,12 @@ interface WorkflowDefinitionProps {
 
 const WorkflowDefinition = ({ workflow }: WorkflowDefinitionProps) => {
   const [viewMode, setViewMode] = useState<'editor' | 'diagram'>('editor');
+  const [definition, setDefinition] = useState(workflow.definition || ``);
 
   const initialValues = {
     name: workflow.name,
     description: workflow.description,
-    definition: workflow.definition || ``
+    definition: definition
   };
 
   const formLayout: BaseForm<string>[] = [
@@ -42,6 +43,7 @@ const WorkflowDefinition = ({ workflow }: WorkflowDefinitionProps) => {
     })
   ];
 
+  // ✅ Only save to API when user explicitly clicks "Submit"
   const formSubmit = async (values: any, formGroup: FormGroup, submitted$: Subject<boolean>) => {
     try {
       await axios.post(`${import.meta.env.VITE_APP_API_URL}/workflows/${workflow.id}`, {
@@ -50,6 +52,7 @@ const WorkflowDefinition = ({ workflow }: WorkflowDefinitionProps) => {
         definition: values.definition,
         _method: 'PUT'
       });
+      setDefinition(values.definition);
       toast.success('Changes have been successfully applied.');
       submitted$.next(true);
     } catch (error: any) {
@@ -81,12 +84,17 @@ const WorkflowDefinition = ({ workflow }: WorkflowDefinitionProps) => {
   // Parse YAML workflow for diagram
   const parsedWorkflow = useMemo(() => {
     try {
-      return yaml.load(workflow.definition || '') as any;
+      const wf = yaml.load(definition || '') as any;
+      if (!wf) return null;
+      return {
+        name: wf.name || workflow.name,
+        steps: wf.steps || []
+      };
     } catch (e) {
       console.warn('Invalid YAML, cannot render diagram:', e);
       return null;
     }
-  }, [workflow.definition]);
+  }, [definition, workflow.name]);
 
   return (
     <div>
@@ -122,7 +130,16 @@ const WorkflowDefinition = ({ workflow }: WorkflowDefinitionProps) => {
           />
         )}
 
-        {viewMode === 'diagram' && parsedWorkflow && <WorkflowDiagram workflow={parsedWorkflow} />}
+        {viewMode === 'diagram' && parsedWorkflow && (
+          <WorkflowBuilder
+            workflow={parsedWorkflow}
+            onWorkflowChange={(wf) => {
+              // ✅ Only update local YAML, no API call here
+              const yamlDef = yaml.dump(wf, { noRefs: true });
+              setDefinition(yamlDef);
+            }}
+          />
+        )}
 
         {viewMode === 'diagram' && !parsedWorkflow && (
           <div className="p-4 bg-red-100 text-red-600 rounded">

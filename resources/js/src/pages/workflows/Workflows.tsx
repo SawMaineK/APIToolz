@@ -131,7 +131,7 @@ const Workflows: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       <Toolbar>
         <ToolbarHeading>
           <ToolbarPageTitle text={`Workflows`} />

@@ -53,6 +53,7 @@ class DatatableBuilder
     public static function buildWithSql($table, $sql, $softDelete = false)
     {
         try {
+            \Schema::disableForeignKeyConstraints();
             // ────────── SQLite-specific rewrites ──────────
             if (\DB::getDriverName() === 'sqlite') {
 
@@ -143,6 +144,8 @@ class DatatableBuilder
         } catch (\Exception $e) {
             echo $e->getMessage() . PHP_EOL . 'Abort…' . PHP_EOL;
             dd();
+        } finally {
+            \Schema::enableForeignKeyConstraints();
         }
 
         return 1;
@@ -302,10 +305,12 @@ class DatatableBuilder
                 return 'smallInteger';
             case 'tinyint':
                 return 'tinyInteger';
+            case 'time':
             case 'varchar':
-                return 'string';
             case 'character':
                 return 'string';
+            case 'datetime':
+                return 'datetime';
             case 'real':
             case 'numeric':
                 return 'decimal';
