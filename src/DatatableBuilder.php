@@ -151,6 +151,80 @@ class DatatableBuilder
         return 1;
     }
 
+    public static function generateMigrationFromExisting($table, $fileDir = "")
+    {
+        try {
+
+            // ────────── Fetch table columns and foreign keys ──────────
+            $columns = \Schema::getColumns($table);
+            $foreignKeys = \Schema::getForeignKeys($table);
+
+            $fields = [];
+            foreach ($columns as $col) {
+                // Skip auto and timestamps
+                if (in_array($col['name'], ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                    continue;
+                }
+
+                $field = [
+                    'name'    => $col['name'],
+                    'type'    => self::toCastFieldType($col['type_name']),
+                    'null'    => $col['nullable'] ? 'yes' : 'no',
+                    'default' => $col['default'],
+                ];
+
+                // detect enum values
+                if (isset($col['type']) && str_starts_with($col['type'], 'enum(')) {
+                    if (preg_match('/^enum\((.*)\)$/', $col['type'], $m)) {
+                        $field['enum'] = array_map(
+                            fn($v) => trim($v, " '\""),
+                            explode(',', $m[1])
+                        );
+                    }
+                }
+
+                $fields[] = $field;
+            }
+
+            $softDelete = collect($columns)->contains(fn($c) => $c['name'] === 'deleted_at');
+
+            // ────────── Prepare template variables ──────────
+            $codes['class'] = \Str::studly($table);
+            $codes['table'] = \Str::lower($table);
+            $codes['fields'] = [];
+            $codes['soft_delete'] = $softDelete ? '$table->softDeletes();' : '';
+            $codes['foreign_keys'] = [];
+
+            foreach ($fields as $field) {
+                $codes['fields'][] = self::getFieldMigrate($field['name'], [
+                    'type' => $field['type'],
+                    'default' => $field['default'] ?? null,
+                    'null' => $field['null'] ?? null,
+                    'enum' => $field['enum'] ?? null,
+                ]);
+            }
+
+            foreach ($foreignKeys as $fk) {
+                $codes['foreign_keys'][] = "\t\t\t\$table->foreign('{$fk['columns'][0]}')->references('{$fk['foreign_columns'][0]}')->on('{$fk['foreign_table']}');\n";
+            }
+
+            // ────────── Build migration file ──────────
+            $dir = $fileDir !== ""
+                ? $fileDir
+                : base_path("database/migrations/" . date('Y_m_d_his') . "_create_{$codes['table']}_table.php");
+
+            $build_migration = APIToolzGenerator::blend('database.table.create.tpl', $codes);
+            file_put_contents($dir, $build_migration);
+
+            echo "✅ Migration generated successfully for table '{$table}' at:\n{$dir}\n";
+
+        } catch (\Exception $e) {
+            echo "❌ Error: {$e->getMessage()}\n";
+            echo "Abort...\n";
+        }
+
+        return 1;
+    }
 
     public static function addField($table, $field = [])
     {

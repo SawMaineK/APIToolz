@@ -323,14 +323,6 @@ export const FormFieldPropertiesPanel: React.FC<FormFieldPropertiesPanelProps> =
         )}
 
         <Separator />
-
-        <h3 className="text-md font-semibold">File Input</h3>
-        {floatingInput(
-          'acceptFiles',
-          formField.acceptFiles.join(',') ?? '',
-          'Accepted Files (e.g. .pdf,.jpg)',
-          (e) => updateField('acceptFiles', e.target.value?.split(','))
-        )}
         <div className="flex items-center gap-2">
           <Switch
             checked={!!formField.filePreview}

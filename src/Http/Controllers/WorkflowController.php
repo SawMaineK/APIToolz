@@ -50,8 +50,9 @@ class WorkflowController extends APIToolzController
 
     public function store(WorkflowRequest $request): JsonResponse
     {
-        $workflow = Workflow::create($request->validated());
-        $workflow->slug = \Str::slug($workflow->name, '-');
+        $data = $request->validated();
+        $data['slug'] = \Str::slug($data['name'], '-');
+        $workflow = Workflow::create($data);
         if ($request->use_ai) {
             $prompt = $workflow->name;
             if(!empty($workflow->description)) {
@@ -321,7 +322,7 @@ class WorkflowController extends APIToolzController
         $instance->data                 = $instanceData;
         $instance->roles                = $nextStep['roles'] ?? [];
         $instance->current_step         = $nextStepId;
-        $instance->current_step_label   = $nextStep['label'] ?? null;
+        $instance->current_step_label   = $nextStep['label'] ?? 'step ?';
         $instance->status               = $nextStepId === 'completed' ? $request->input('status', 'completed') : 'in_progress';
         $instance->completed_at         = $nextStepId === 'completed' ? now() : null;
 
@@ -422,8 +423,18 @@ class WorkflowController extends APIToolzController
             if (!is_array($cm)) continue;
 
             $modelType = $cm['model_type'] ?? null;
+            // Normalize modelType to remove escaped backslashes
+            if (is_string($modelType)) {
+                $modelType = str_replace('\\\\', '\\', trim($modelType));
+            }
+
+            // Extra safety: handle simple names like "Company" → full namespace
+            if (!str_contains($modelType, '\\')) {
+                $modelType = "App\\Models\\{$modelType}";
+            }
+            // Validate existence
             if (!$modelType || !class_exists($modelType)) {
-                Log::warning("Skipping invalid create_model", $cm);
+                Log::warning("Skipping invalid create_model", ['model_type' => $modelType, 'config' => $cm]);
                 continue;
             }
 
@@ -512,7 +523,15 @@ class WorkflowController extends APIToolzController
                 ]);
                 continue;
             }
+            // Normalize modelType to remove escaped backslashes
+            if (is_string($modelType)) {
+                $modelType = str_replace('\\\\', '\\', trim($modelType));
+            }
 
+            // Extra safety: handle simple names like "Company" → full namespace
+            if (!str_contains($modelType, '\\')) {
+                $modelType = "App\\Models\\{$modelType}";
+            }
             $model = $modelType::find($resolvedValue);
             if (!$model) {
                 Log::error("Model not found", [

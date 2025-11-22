@@ -147,13 +147,13 @@ const WorkflowRunner: React.FC<Props> = ({
 
   /** 🔹 Auto-advance non-form steps */
   useEffect(() => {
-    if (currentStep && !currentStep.form) {
+    if (currentStep && !currentStep.form && !currentStep.form_array) {
       handleSubmit({}, new FormGroup({}), new Subject<boolean>());
     }
   }, [currentStep]);
 
   const currentIndex = steps
-    .filter((step) => step.form != null)
+    .filter((step) => step.form != null || step.form_array != null)
     .findIndex((s) => s.id === currentStep?.id);
   if (loading) {
     return (
@@ -199,10 +199,15 @@ const WorkflowRunner: React.FC<Props> = ({
       {/* Current Step */}
       <div className="border-t pt-4">
         <h2 className="text-xl font-bold mb-4">{currentStep.label}</h2>
-        {currentStep.form ? (
+        {currentStep.form || currentStep.form_array ? (
           <WorkflowForm
             key={currentStep.id}
-            fields={currentStep.form.fields}
+            formArray={currentStep.form_array != null}
+            fields={
+              currentStep.form_array != null
+                ? currentStep.form_array.fields
+                : currentStep.form?.fields || []
+            }
             roles={currentStep.roles}
             onSubmit={handleSubmit}
             initialValues={instance?.data || {}}

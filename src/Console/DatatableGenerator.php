@@ -3,98 +3,113 @@
 namespace Sawmainek\Apitoolz\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 use Sawmainek\Apitoolz\DatatableBuilder;
 
 class DatatableGenerator extends Command
 {
     public $fields = [];
-    public function __construct()
-    {
-        parent::__construct();
-    }
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'apitoolz:datatable {table} {--sql=} {--add-field=} {--update-field=} {--rename=} {--drop-field=} {--type=string} {--not-null} {--default=} {--field-after=id} {--soft-delete} {--remove} {--doc}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Generate data table based on provided name.';
+    protected $signature = 'apitoolz:datatable
+        {table : The name of the table to process}
+        {--sql= : Provide raw SQL for table creation}
+        {--add-field= : Add a new field to existing table}
+        {--update-field= : Update a field in existing table}
+        {--rename= : Rename the field being updated}
+        {--drop-field= : Remove a field from the table}
+        {--type=string : Field type (default string)}
+        {--not-null : Make field NOT NULL}
+        {--default= : Default value for the field}
+        {--field-after=id : Place new field after which column}
+        {--soft-delete : Enable soft deletes}
+        {--remove : Drop entire table}
+        {--generate-migration : Generate migration file from existing table}
+        {--doc : Show documentation}';
 
-    /**
-     * Execute the console command.
-     */
+    protected $description = 'Generate or modify datatable and optionally generate migration from existing table.';
+
     public function handle()
     {
         if ($this->option('doc')) {
             $this->printDocumentation();
             return;
         }
-        $this->info('Generating Datatable...');
-        $this->warn('Do not include table\'s id, created_at, updated_at and deleted_at. It will be auto included when generating.');
 
-        $table = $this->argument('table');
+        $table = Str::lower($this->argument('table'));
 
-        if (!\Schema::hasTable(\Str::lower($table))) {
-            if($this->option('sql') != '') {
-                DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
-                $this->info("The $table table has created successfully.");
-                return;
+        if ($this->option('generate-migration')) {
+            if (!\Schema::hasTable($table)) {
+                return $this->error("❌ The table '$table' does not exist in the database.");
             }
-            $fields = $this->askTableField();
-            DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
-            $this->info("The $table table has created successfully.");
+
+            $this->info("🔄 Generating migration for existing table: {$table}");
+            DatatableBuilder::generateMigrationFromExisting($table);
+            $this->info("✅ Migration for '{$table}' has been created successfully in database/migrations/");
+            return;
+        }
+
+        $this->info('🧱 Generating Datatable...');
+        $this->warn('Note: id, created_at, updated_at, deleted_at are added automatically.');
+
+        if (!\Schema::hasTable($table)) {
+            if ($this->option('sql')) {
+                DatatableBuilder::buildWithSql($table, $this->option('sql'), $this->option('soft-delete'));
+                $this->info("✅ The $table table has been created successfully.");
+            } else {
+                $fields = $this->askTableField();
+                DatatableBuilder::build($table, $fields, $this->option('soft-delete'));
+                $this->info("✅ The $table table has been created successfully.");
+            }
+
+            if ($this->option('migrate')) {
+                Artisan::call('migrate');
+                $this->info("📦 Migration executed for $table.");
+            }
         } else {
-            if($this->option('add-field') != "") {
+            // Table already exists — perform updates/removals
+            if ($this->option('add-field')) {
                 DatatableBuilder::addField($table, [
                     'name' => $this->option('add-field'),
                     'type' => $this->option('type'),
                     'default' => $this->option('default'),
                     'null' => !$this->option('not-null'),
-                    'after' => $this->option('field-after')
+                    'after' => $this->option('field-after'),
                 ]);
-                return $this->info("The $table table's {$this->option('update-field')} field has created successfully.");
-            }
-            else if($this->option('update-field') != "") {
-                DatatableBuilder::updateField($table, $this->option('update-field'),[
-                    'name' => $this->option('rename') != '' ? $this->option('rename') : $this->option('update-field'),
+                return $this->info("✅ Added new field '{$this->option('add-field')}' to $table.");
+            } elseif ($this->option('update-field')) {
+                DatatableBuilder::updateField($table, $this->option('update-field'), [
+                    'name' => $this->option('rename') ?: $this->option('update-field'),
                     'type' => $this->option('type'),
                     'default' => $this->option('default'),
                     'null' => !$this->option('not-null'),
-                    'after' => $this->option('field-after')
+                    'after' => $this->option('field-after'),
                 ]);
-                return $this->info("The $table table's {$this->option('update-field')} field has updated successfully.");
-            }
-            else if($this->option('drop-field') != "") {
+                return $this->info("✅ Updated field '{$this->option('update-field')}' in $table.");
+            } elseif ($this->option('drop-field')) {
                 DatatableBuilder::dropField($table, $this->option('drop-field'));
-                return $this->info("The $table table's {$this->option('drop-field')} field has deleted successfully.");
-            }
-            else if($this->option('remove')) {
+                return $this->info("🗑️ Dropped field '{$this->option('drop-field')}' from $table.");
+            } elseif ($this->option('remove')) {
                 DatatableBuilder::remove($table);
-                return $this->info("This $table table has deleted successfully.");
+                return $this->info("❌ Table $table has been removed successfully.");
             }
-            $this->error("This $table table is already exist.");
-        }
 
+            $this->error("⚠️ The table $table already exists. Use options like --add-field, --update-field, or --generate-migration.");
+        }
     }
 
-    function askTableField()
+    protected function askTableField()
     {
-        $field['name'] = $this->ask("- What is field name? (name, age, etc..)");
-        $field['type'] = $this->ask("- What is data type of {$field['name']}? (string, text, int, etc..)",'string');
-        $field['null'] = $this->ask("- This {$field['name']} is nullable? (yes/no)",'yes');
-        $more = $this->ask("Do you want to add more field? (yes/no)", 'no');
-        if($more == 'yes' || $more == 'y') {
-            $this->fields[] = $field;
+        $field['name'] = $this->ask("- What is the field name? (e.g., name, age)");
+        $field['type'] = $this->ask("- What is the data type of {$field['name']}? (string, text, int, etc.)", 'string');
+        $field['null'] = $this->ask("- Is {$field['name']} nullable? (yes/no)", 'yes');
+        $this->fields[] = $field;
+
+        $more = $this->ask("Do you want to add another field? (yes/no)", 'no');
+        if (in_array(strtolower($more), ['yes', 'y'])) {
             return $this->askTableField();
-        } else {
-            $this->fields[] = $field;
         }
+
         return $this->fields;
     }
 
@@ -106,37 +121,20 @@ class DatatableGenerator extends Command
         $this->line("  php artisan apitoolz:datatable table_name [options]");
         $this->line("");
         $this->info("Options:");
-        $this->line("  --sql=              Provide raw SQL to build the table schema.");
-        $this->line("  --add-field=        Add a new field to an existing table.");
-        $this->line("  --update-field=     Update an existing field in a table.");
-        $this->line("  --rename=           Rename the field being updated.");
-        $this->line("  --drop-field=       Remove a field from the table.");
-        $this->line("  --type=             Data type for the field (default: string).");
-        $this->line("  --not-null          Make the field NOT NULL.");
-        $this->line("  --default=          Default value for the field.");
-        $this->line("  --field-after=      Position the new/updated field after a specific field (default: id).");
-        $this->line("  --soft-delete       Enable soft deletes on the table.");
-        $this->line("  --remove            Drop the entire table.");
-        $this->line("  --doc               Show this documentation.");
+        $this->line("  --sql=                Create table from raw SQL");
+        $this->line("  --add-field=          Add a new column");
+        $this->line("  --update-field=       Update or rename a column");
+        $this->line("  --rename=             Rename a field");
+        $this->line("  --drop-field=         Drop a field");
+        $this->line("  --soft-delete         Enable soft deletes");
+        $this->line("  --remove              Drop the table");
+        $this->line("  --generate-migration  Create migration file from existing table");
+        $this->line("  --migrate             Run the migration after creation");
+        $this->line("  --doc                 Show documentation");
         $this->line("");
         $this->info("Examples:");
-        $this->line("  Create a new table interactively:");
-        $this->line("    php artisan apitoolz:datatable users");
-        $this->line("");
-        $this->line("  Create a table from SQL:");
-        $this->line("    php artisan apitoolz:datatable users --sql=\"CREATE TABLE users (...)\"");
-        $this->line("");
-        $this->line("  Add a field to an existing table:");
-        $this->line("    php artisan apitoolz:datatable users --add-field=email --type=string --not-null");
-        $this->line("");
-        $this->line("  Update and rename a field:");
-        $this->line("    php artisan apitoolz:datatable users --update-field=fullname --rename=name --type=string");
-        $this->line("");
-        $this->line("  Drop a field from a table:");
-        $this->line("    php artisan apitoolz:datatable users --drop-field=nickname");
-        $this->line("");
-        $this->line("  Remove the entire table:");
-        $this->line("    php artisan apitoolz:datatable users --remove");
+        $this->line("  php artisan apitoolz:datatable users --generate-migration");
+        $this->line("  php artisan apitoolz:datatable posts --add-field=title --type=string --not-null");
+        $this->line("  php artisan apitoolz:datatable products --sql=\"CREATE TABLE products (...)\"");
     }
-
 }

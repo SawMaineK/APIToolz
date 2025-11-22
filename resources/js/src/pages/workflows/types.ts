@@ -24,7 +24,8 @@ export type WorkflowStep = {
   id: string;
   label: string;
   roles: string[];
-  form?: { fields: WorkflowField[] };
+  form?: { fields: BaseForm<string>[] };
+  form_array?: { fields: BaseForm<string>[] };
   conditions?: { when: string; next: string }[];
   finished?: boolean;
   create_model?: any;

@@ -26,11 +26,11 @@ const WorkflowStepper: React.FC<StepperProps> = ({ steps, currentIndex }) => {
     <div className="w-full overflow-x-auto">
       <div className="flex flex-row items-start justify-start flex-nowrap mb-6 min-w-max">
         {steps
-          .filter((step) => step.form != null)
+          .filter((step) => step.form != null || step.form_array != null)
           .map((step, idx) => {
             const isCompleted = currentIndex > idx;
             const isActive = currentIndex === idx;
-            const isLast = idx === steps.filter((step) => step.form != null).length - 1;
+            const isLast = idx === steps.filter((step) => step.form != null || step.form_array != null).length - 1;
 
             return (
               <div

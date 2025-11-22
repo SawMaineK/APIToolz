@@ -23,8 +23,7 @@ class WorkflowRequest extends FormRequest
                 Rule::unique('workflows', 'name')->ignore($this->id),
             ],
             'description' => 'nullable|string',
-            'definition' => 'nullable|string',
-            'use_ai' => 'sometimes|boolean'
+            'definition' => 'nullable|string'
         ];
     }
 }

@@ -487,26 +487,30 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
   useEffect(() => {
     const subscriptions: Subscription[] = [];
 
+    const findFieldDefinition = (key: string): BaseForm<string> | undefined => {
+      let def = props.formLayout?.find((f) => f.name === key);
+      if (!def && props.formLayout) {
+        getFormType(props.formLayout, key, (type) => {
+          if (!def) def = type;
+        });
+      }
+      return def;
+    };
+
     const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     // Resolve a dotted path like "plan_id.unitprice"
     // Uses: nested control via group.get(path), object value, or formDef.findOption (async)
     // Optimized getValueForPath: resolves dotted paths, supports arrays, objects, and async findOption
-    const getValueForPath = async (path: string): Promise<any> => {
+    const getValueForPath = async (path: string, rootGroup?: FormGroup): Promise<any> => {
       const parts = path.split('.');
       const root = parts[0];
       const rest = parts.slice(1);
-      const formDef = props.formLayout?.find((f) => f.name === root);
-      const rootCtrl = props.formGroup?.get(root);
-
-      // Try to get the nested control directly
-      const nestedCtrl = props.formGroup?.get(path);
-      if (nestedCtrl) return nestedCtrl.value ?? 0;
-
-      // Try to resolve via findOption if available
-      if (formDef?.findOption && rootCtrl) {
+      const formDef = findFieldDefinition(root);
+      const resolveOption = async (ctrl?: AbstractControl | null) => {
+        if (!ctrl || !formDef?.findOption) return undefined;
         try {
-          const option = await formDef.findOption(rootCtrl.value);
+          const option = await formDef.findOption(ctrl.value);
           if (!option) return 0;
           let v: any = option;
           for (const p of rest) {
@@ -517,29 +521,52 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
         } catch {
           return 0;
         }
-      }
-
-      // Walk through value if it's an object or array
-      let v = rootCtrl?.value;
-      for (const p of rest) {
-        if (v == null) return 0;
-        if (Array.isArray(v)) {
-          // Sum property p for all items in array
-          v = v.reduce((sum, item) => sum + (item?.[p] ?? 0), 0);
-        } else {
-          v = v[p];
+      };
+      const resolveFromControl = (ctrl?: AbstractControl | null) => {
+        if (!ctrl) return undefined;
+        let v = ctrl.value;
+        for (const p of rest) {
+          if (v == null) return 0;
+          if (Array.isArray(v)) {
+            v = v.reduce((sum, item) => Number(sum) + Number(item?.[p] ?? 0), 0);
+          } else {
+            v = v[p];
+          }
         }
-      }
-      return v ?? 0;
+        return v ?? 0;
+      };
+
+      const nestedLocalCtrl = rootGroup?.get(path);
+      if (nestedLocalCtrl) return nestedLocalCtrl.value ?? 0;
+
+      const localRootCtrl = rootGroup?.get(root);
+      const localOptionValue = await resolveOption(localRootCtrl);
+      if (localOptionValue !== undefined) return localOptionValue;
+      const localResolved = resolveFromControl(localRootCtrl);
+      if (localResolved !== undefined) return localResolved;
+
+      const nestedCtrl = props.formGroup?.get(path);
+      if (nestedCtrl) return nestedCtrl.value ?? 0;
+
+      const rootCtrl = props.formGroup?.get(root);
+      const optionValue = await resolveOption(rootCtrl);
+      if (optionValue !== undefined) return optionValue;
+      const resolved = resolveFromControl(rootCtrl);
+      if (resolved !== undefined) return resolved;
+
+      return 0;
     };
 
     // Evaluate an expression asynchronously (resolves findOption as needed)
-    const evaluateExpressionAsync = async (expr: string): Promise<number | null> => {
+    const evaluateExpressionAsync = async (
+      expr: string,
+      contextGroup?: FormGroup
+    ): Promise<number | null> => {
       // tokens like "plan_id.unitprice" or "amount"
       const tokens = Array.from(new Set(expr.match(/[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*/g) || []));
 
       // Resolve all values (may be async because of findOption)
-      const values = await Promise.all(tokens.map((t) => getValueForPath(t)));
+      const values = await Promise.all(tokens.map((t) => getValueForPath(t, contextGroup)));
 
       // Replace tokens with numeric literals (escaped)
       let substituted = expr;
@@ -587,74 +614,116 @@ export const FlowFormLayoutControl = (props: IFormLayoutControl) => {
       // recalc function (async because of findOption)
       const recalc = async () => {
         // helper to set value on a single abstract control
-        const applyToControl = async (target: AbstractControl | null) => {
+        const applyToControl = async (
+          target: AbstractControl | null,
+          contextGroup?: FormGroup
+        ) => {
           if (!target) return;
+          const setIfChanged = (next: any) => {
+            const normalizedNext = next === undefined ? null : next;
+            const current = (target as any).value;
+            const same =
+              current === normalizedNext ||
+              (typeof current === 'number' &&
+                typeof normalizedNext === 'number' &&
+                Number.isNaN(current) &&
+                Number.isNaN(normalizedNext));
+            if (same) return;
+            target.setValue(normalizedNext, { onlySelf: false, emitEvent: true });
+          };
 
           if (simpleMatch) {
             // preserve findOption behavior for simple "key.prop" case
             const [, key, prop] = simpleMatch;
-            const formDef = props.formLayout?.find((f) => f.name === key);
-            const srcCtrl = props.formGroup?.get(key);
+            const formDef = findFieldDefinition(key);
+            const srcCtrl = (contextGroup as FormGroup | undefined)?.get?.(key) ?? props.formGroup?.get(key);
             const srcVal = srcCtrl?.value;
             if (prop && formDef?.findOption && srcVal !== undefined && srcVal !== null) {
               try {
                 const option = await formDef.findOption(srcVal);
                 if (option && prop in option) {
-                  target.setValue(option[prop], { onlySelf: false, emitEvent: true });
+                  setIfChanged(option[prop]);
                   return;
                 } else {
-                  target.setValue(null, { onlySelf: false, emitEvent: true });
+                  setIfChanged(null);
                   return;
                 }
               } catch {
-                target.setValue(null, { onlySelf: false, emitEvent: true });
+                setIfChanged(null);
                 return;
               }
             } else {
               // fallback: set raw control value
-              target.setValue(srcVal ?? null, { onlySelf: false, emitEvent: true });
+              setIfChanged(srcVal ?? null);
               return;
             }
           }
 
           // generic expression
-          const value = await evaluateExpressionAsync(expr);
+          const value = await evaluateExpressionAsync(expr, contextGroup);
           if (value === null) {
             // invalid or unsafe -> avoid setting Infinity/NaN. You can decide fallback (null or 0)
             // here we set null so the UI can choose how to display
-            target.setValue(null, { onlySelf: false, emitEvent: true });
+            setIfChanged(null);
           } else {
-            target.setValue(value, { onlySelf: false, emitEvent: true });
+            setIfChanged(value);
           }
         };
 
         if (parentGroup instanceof FormGroup) {
           const targetControl = parentGroup.get(formField.name);
-          await applyToControl(targetControl);
+          await applyToControl(targetControl, parentGroup);
         } else if (parentGroup instanceof FormArray) {
           // apply to each FormGroup item in the array
           parentGroup.controls.forEach((ctrl) => {
             if (ctrl instanceof FormGroup) {
-              applyToControl(ctrl.get(formField.name));
+              applyToControl(ctrl.get(formField.name), ctrl);
             }
           });
         }
       };
 
       // initial compute
-      recalc();
-
+      let recalcRunning = false;
+      let recalcPending = false;
+      const scheduleRecalc = () => {
+        if (recalcRunning) {
+          recalcPending = true;
+          return;
+        }
+        recalcRunning = true;
+        Promise.resolve(recalc()).finally(() => {
+          recalcRunning = false;
+          if (recalcPending) {
+            recalcPending = false;
+            scheduleRecalc();
+          }
+        });
+      };
+      scheduleRecalc();
+      let arrayValueChangeSub: Subscription | null = null;
+      const ensureArraySubscription = () => {
+        if (arrayValueChangeSub || !(parentGroup instanceof FormArray)) return;
+        const changes: any = (parentGroup as any).valueChanges;
+        if (changes && typeof changes.subscribe === 'function') {
+          const sub: any = changes.subscribe(() => scheduleRecalc());
+          if (sub?.unsubscribe) {
+            arrayValueChangeSub = sub as Subscription;
+            subscriptions.push(arrayValueChangeSub);
+          }
+        }
+      };
+      ensureArraySubscription();
       // subscribe to root control changes
       roots.forEach((root) => {
         const sourceCtrl = props.formGroup?.get(root);
         if (sourceCtrl && 'valueChanges' in sourceCtrl) {
           const sub = sourceCtrl.valueChanges.subscribe(() => {
-            recalc();
+            scheduleRecalc();
           });
           subscriptions.push(sub);
-        } else {
-          // If root sits inside array items, you may want to subscribe to array changes,
-          // or handle array-internal dependencies separately (depends on your data model).
+        } else if (parentGroup instanceof FormArray) {
+          ensureArraySubscription();
         }
       });
     };
