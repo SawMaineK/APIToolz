@@ -9,7 +9,7 @@ import { useAuthContext } from '@/auth';
 
 interface Props {
   formArray?: boolean;
-  fields: BaseForm<string>[];
+  fields: Array<BaseForm<string> | WorkflowField>;
   roles: string[];
   onSubmit: (values: any, formGroup: FormGroup, submitted$: Subject<boolean>) => void;
   initialValues?: Record<string, any>;

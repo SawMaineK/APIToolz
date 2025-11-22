@@ -324,6 +324,11 @@ export const FormLayoutFlow = (props: IFormLayoutBuilder) => {
     props.onSaveFormLayout && props.onSaveFormLayout(updatedLayout);
   };
 
+  const handleResetLayout = () => {
+    props.onResetFormLayout && props.onResetFormLayout();
+    handleResetLayoutPositions();
+  };
+
   const handleResetLayoutPositions = () => {
     localStorage.removeItem(`${LOCAL_STORAGE_KEY}-${props.title.replace(/\s+/g, '')}`);
     if (formGroup) setNodes(loadSavedLayout(props.formLayout, formGroup));
@@ -350,38 +355,49 @@ export const FormLayoutFlow = (props: IFormLayoutBuilder) => {
             {mode === 'builder' ? 'Layout Builder' : 'Form View'}
           </h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 flex-wrap items-center justify-end">
           {mode === 'builder' ? (
-            <>
-              <button
-                onClick={() => handleAddField()}
-                className="flex items-center gap-1 bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded shadow transition"
-              >
-                <Edit size={16} className="inline" />
-                Add Field
-              </button>
-              <button
-                onClick={handleSaveLayout}
-                className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded shadow transition"
-              >
-                <Save size={16} className="inline" />
-                Save Layout
-              </button>
-              <button
-                onClick={() => switchMode('form')}
-                className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded shadow transition"
-              >
-                <Play size={16} className="inline" />
-                Switch to Form
-              </button>
-              <button
-                onClick={handleResetLayoutPositions}
-                className="flex items-center gap-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded shadow transition"
-              >
-                <Trash size={16} className="inline" />
-                Reset Positions
-              </button>
-            </>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => handleAddField()}
+                  className="flex items-center gap-1 rounded border border-purple-200 bg-white px-3 py-1 text-purple-700 hover:bg-purple-50"
+                >
+                  <Edit size={16} className="inline" />
+                  Add Field
+                </button>
+                <button
+                  onClick={() => switchMode('form')}
+                  className="flex items-center gap-1 rounded border border-blue-200 bg-white px-3 py-1 text-blue-700 hover:bg-blue-50"
+                >
+                  <Play size={16} className="inline" />
+                  Form Preview
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pl-2 border-l border-gray-200">
+                <button
+                  onClick={handleSaveLayout}
+                  className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white shadow hover:bg-green-600"
+                >
+                  <Save size={16} className="inline" />
+                  Save Layout
+                </button>
+                <button
+                  onClick={handleResetLayout}
+                  className="flex items-center gap-1 rounded border border-gray-300 bg-white px-3 py-1 text-gray-800 hover:bg-gray-100"
+                >
+                  <Trash size={16} className="inline" />
+                  Reset Layout
+                </button>
+                <button
+                  onClick={handleResetLayoutPositions}
+                  className="flex items-center gap-1 rounded border border-gray-300 bg-white px-3 py-1 text-gray-800 hover:bg-gray-100"
+                >
+                  <Trash size={16} className="inline" />
+                  Reset Positions
+                </button>
+              </div>
+            </div>
           ) : (
             <button
               onClick={() => switchMode('builder')}

@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
-import { WorkflowStep } from '../types';
+import { WorkflowStep, FieldWithId } from '../types';
 import { SortableItem } from './SortableItem';
 import { FieldEditor } from './FieldEditor';
-import { FieldWithId } from '../Inspector';
 
 const uid = () => `f_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -16,8 +15,20 @@ export const FieldList: React.FC<{
   const sensors = useSensors(useSensor(PointerSensor));
   const [editId, setEditId] = useState<string | null>(null);
 
+  const normalizeField = (f: any): FieldWithId => {
+    if (!f) return { __id: uid(), name: '', type: 'text', label: '' };
+    const { __id, ...rest } = f;
+    return {
+      __id: __id || f.name || uid(),
+      ...rest,
+      name: rest.name ?? f.name ?? '',
+      type: rest.type ?? f.type ?? 'text',
+      label: rest.label ?? f.label ?? ''
+    };
+  };
+
   const fields: FieldWithId[] = Array.isArray(selected.form?.fields)
-    ? (selected.form.fields as FieldWithId[])
+    ? (selected.form.fields as any[]).map(normalizeField)
     : [];
 
   const updateFields = (next: FieldWithId[]) =>

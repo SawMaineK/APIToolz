@@ -1,26 +1,29 @@
 import React, { useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { WorkflowStep, WorkflowField, Workflow } from './types';
+import {
+  WorkflowStep,
+  WorkflowField,
+  Workflow,
+  FieldWithId,
+  ConditionWithId,
+  Condition
+} from './types';
 import { FieldList } from './components/FieldList';
 import { ConditionList } from './components/ConditionList';
 import { ModelActionsEditor } from './components/ModelActionsEditor';
 import { StepInfoEditor } from './components/StepInfoEditor';
 
-export type FieldWithId = WorkflowField & { __id: string };
-export type Condition = { when: string; next: string };
-export type ConditionWithId = Condition & { id: string };
-
 const tempCondId = () => `cond-${Math.random().toString(36).slice(2, 6)}`;
 const tempId = () => `temp_${Math.random().toString(36).slice(2, 6)}`;
 
 // UI-only ID seeding
-function seedFields(fields: WorkflowField[]): FieldWithId[] {
-  return fields.map((f) => ({ ...f, __id: (f as any).__id || f.name || tempId() }));
+function seedFields(fields: (WorkflowField | FieldWithId)[]): FieldWithId[] {
+  return fields.map((f) => ({ ...f, __id: (f as any).__id || (f as any).name || tempId() }));
 }
 function cleanFields(fields: FieldWithId[]): WorkflowField[] {
   return fields.map(({ __id, ...rest }) => rest);
 }
-function seedConditions(conds: Condition[]): ConditionWithId[] {
+function seedConditions(conds: ConditionWithId[] | { when: string; next: string }[]): ConditionWithId[] {
   return conds.map((c) => ({ ...c, id: (c as any).id || tempCondId() }));
 }
 function cleanConditions(conds: ConditionWithId[]): Condition[] {
@@ -43,8 +46,8 @@ export const Inspector: React.FC<{
 
     setSelected({
       ...selected,
-      form: { fields: seedFields(fields) } as any,
-      conditions: seedConditions(conds) as any
+      form: { fields: seedFields(fields as any) },
+      conditions: seedConditions(conds as any)
     });
   }, [selected?.id]);
 

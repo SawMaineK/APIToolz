@@ -20,13 +20,17 @@ export interface WorkflowField {
   uploadDir?: string;
 }
 
+export type FieldWithId = WorkflowField & { __id: string };
+export type Condition = { when: string; next: string };
+export type ConditionWithId = Condition & { id: string };
+
 export type WorkflowStep = {
   id: string;
   label: string;
   roles: string[];
-  form?: { fields: BaseForm<string>[] };
+  form?: { fields: BaseForm<string>[] | WorkflowField[] | FieldWithId[] };
   form_array?: { fields: BaseForm<string>[] };
-  conditions?: { when: string; next: string }[];
+  conditions?: Condition[] | ConditionWithId[];
   finished?: boolean;
   create_model?: any;
   update_models?: any[];
@@ -59,7 +63,11 @@ type ValidatorConfig = {
   message?: string;
 };
 
-export function createWorkflowField(type: FieldType, options: BaseForm<string>): BaseForm<string> {
+export function createWorkflowField(
+  type: FieldType,
+  options: BaseForm<string> | WorkflowField
+): BaseForm<string> {
+  const opts: any = options as any;
   let controlType: string;
   let options$: any;
 
@@ -71,8 +79,8 @@ export function createWorkflowField(type: FieldType, options: BaseForm<string>):
     case 'radio':
     case 'dropdown':
       controlType = 'dropdown';
-      if (options.options$?.type === 'api') {
-        const { endpoint, valueField, labelField } = options.options$.config;
+      if (opts.options$?.type === 'api') {
+        const { endpoint, valueField, labelField } = opts.options$.config;
         options$ = async () => {
           try {
             const res = await axios.get(
@@ -87,10 +95,10 @@ export function createWorkflowField(type: FieldType, options: BaseForm<string>):
             return [];
           }
         };
-      } else if (options.options$?.type === 'static') {
-        options$ = async () => options.options$.config || [];
+      } else if (opts.options$?.type === 'static') {
+        options$ = async () => opts.options$.config || [];
       } else {
-        options$ = async () => options.options || [];
+        options$ = async () => opts.options || [];
       }
       break;
     case 'checkbox':
@@ -166,6 +174,6 @@ export function createWorkflowField(type: FieldType, options: BaseForm<string>):
     type,
     controlType,
     options$,
-    validators: buildValidators(options.validators)
+    validators: buildValidators(opts.validators)
   });
 }

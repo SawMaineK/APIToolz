@@ -320,7 +320,7 @@ export const FileUpload: React.FC<BaseForm<string>> = ({ formGroup, ...props }) 
         className={!props.multipleFile ? 'file-input' : 'hidden'}
         multiple={props.multipleFile}
         onChange={onChange}
-        accept={props.acceptFiles?.join(',')}
+        accept={Array.isArray(props.acceptFiles) ? props.acceptFiles.join(',') : undefined}
       />
 
       {props.hint && <p className="text-sm text-gray-500">{props.hint}</p>}

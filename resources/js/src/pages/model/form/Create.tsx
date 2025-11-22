@@ -16,7 +16,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
   const navigate = useNavigate();
   const { currentUser } = useAuthContext();
 
-  // ✅ Permission checks
+  // Permission checks
   const canCreate = currentUser?.permissions?.some((perm) => perm === 'create');
   const canEdit = currentUser?.permissions?.some((perm) => perm === 'edit');
   const hasRole = currentUser?.roles?.some((role) => role === 'super');
@@ -24,7 +24,7 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
   const initialValues = {
     ...modelData
   };
-
+  const isFormLayoutBuilder = model.config.formLayout && model.config.formLayout.length > 0;
   const formLayout: BaseForm<string>[] = model.config.formLayout
     ? toFormLayout(model.config.formLayout, model.config.forms)
     : [
@@ -92,11 +92,11 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
     }
   };
 
-  // ✅ Determine required permission
+  // Determine required permission
   const isEditMode = !!modelData;
   const hasPermission = isEditMode ? canEdit : canCreate;
 
-  // ✅ If user doesn’t have permission, block access
+  // If user doesn’t have permission, block access
   if (!hasPermission) {
     return (
       <div className="p-6 text-center text-gray-500">
@@ -123,7 +123,13 @@ const Create = ({ model, modelData, isModal, onCreated }: ModelContentProps) => 
           />
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto my-10 border rounded-xl shadow-lg">
+        <div
+          className={
+            isFormLayoutBuilder
+              ? 'mx-auto border rounded-xl shadow-lg'
+              : 'max-w-2xl mx-auto my-10 border rounded-xl shadow-lg'
+          }
+        >
           <div className="card-body flex flex-col gap-5">
             <Toolbar>
               <ToolbarHeading>

@@ -2,9 +2,8 @@ import React from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, Trash2 } from 'lucide-react';
-import { WorkflowStep } from '../types';
+import { WorkflowStep, ConditionWithId } from '../types';
 import { SortableItem } from './SortableItem';
-import { ConditionWithId } from '../Inspector';
 
 export const ConditionList: React.FC<{
   selected: WorkflowStep;

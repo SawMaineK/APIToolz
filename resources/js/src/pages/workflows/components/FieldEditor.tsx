@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
-import { FieldWithId } from '../Inspector';
+import { FieldWithId } from '../types';
 
 export const FieldEditor: React.FC<{
   field: FieldWithId;
