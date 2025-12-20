@@ -139,7 +139,7 @@ class ModelBuilder
             }
             $relations = implode(', ', $loader);
             $codes['index_loader'] = "\$query->with([{$relations}]);";
-            $codes['show_loader'] = "\${$codes['alias']}->with([{$relations}]);";
+            $codes['show_loader'] = "\${$codes['alias']}->load([{$relations}]);";
         }
         $codes['resources'] = implode(",\n\t\t\t", $resource ?? []);
         $only_roles_fields = collect($config['grid'])
