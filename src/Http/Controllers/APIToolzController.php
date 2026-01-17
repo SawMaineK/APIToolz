@@ -135,7 +135,7 @@ class APIToolzController extends Controller
                 // Delete old single file if replacing
                 if (!$fileOption['image_multiple'] && isset($data[$this->info['key']])) {
                     $model = $this->model->find($data[$this->info['key']]);
-                    if ($model && $model->{$f['field']}?->url) {
+                    if ($model && is_object($model->{$f['field']}) && $model->{$f['field']}?->url) {
                         $oldPath = str_replace(url('/'), '', $model->{$f['field']}->url);
                         Storage::delete($oldPath);
                     }
