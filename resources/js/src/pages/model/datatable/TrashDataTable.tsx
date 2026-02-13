@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { DataGrid } from '@/components';
 import axios from 'axios';
-import { Toolbar, ToolbarDescription, ToolbarHeading, ToolbarPageTitle } from '@/partials/toolbar';
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle
+} from '@/partials/toolbar';
 import { ModelContentProps } from '../_models';
 import { generateColumns } from '../_helper';
 import { format } from 'date-fns';
@@ -12,11 +18,13 @@ import { useAuthContext } from '@/auth';
 
 const TrashDataTable = ({ model }: ModelContentProps) => {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { currentUser } = useAuthContext();
   const canDelete = currentUser?.permissions?.some((perm) => perm === 'delete');
 
   useEffect(() => {
     setRefreshKey((prev) => prev + 1);
+    setSelectedIds([]);
   }, [model]);
 
   const columns = useMemo(() => {
@@ -133,6 +141,46 @@ const TrashDataTable = ({ model }: ModelContentProps) => {
     }
   };
 
+  const handleBulkRestoreClick = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to restore ${selectedIds.length} record(s)?`)) {
+      return;
+    }
+
+    try {
+      await axios.post(`${import.meta.env.VITE_APP_API_URL}/${model.slug}/bulk-restore`, {
+        ids: selectedIds
+      });
+      toast.success('Records restored successfully');
+      setSelectedIds([]);
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      toast.error('Error restoring records');
+    }
+  };
+
+  const handleBulkForceDeleteClick = async () => {
+    if (selectedIds.length === 0) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete ${selectedIds.length} record(s)? This action cannot be undo.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await axios.post(`${import.meta.env.VITE_APP_API_URL}/${model.slug}/bulk-force-delete`, {
+        ids: selectedIds
+      });
+      toast.success('Records permanently deleted successfully');
+      setSelectedIds([]);
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      toast.error('Error deleting records');
+    }
+  };
+
   return (
     <>
       <Toolbar>
@@ -142,6 +190,29 @@ const TrashDataTable = ({ model }: ModelContentProps) => {
             {model?.desc || `Manage all your deleted ${model?.slug || ''}`}
           </ToolbarDescription>
         </ToolbarHeading>
+        {canDelete && (
+          <ToolbarActions>
+            <button
+              onClick={handleBulkRestoreClick}
+              disabled={selectedIds.length === 0}
+              className="btn btn-sm btn-light flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Undo2 size={16} />
+              <span className="truncate max-sm:hidden">{`Restore Selected (${selectedIds.length})`}</span>
+              <span className="sm:hidden">Restore</span>
+            </button>
+
+            <button
+              onClick={handleBulkForceDeleteClick}
+              disabled={selectedIds.length === 0}
+              className="btn btn-sm btn-danger flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 size={16} />
+              <span className="truncate max-sm:hidden">{`Delete Selected (${selectedIds.length})`}</span>
+              <span className="sm:hidden">Delete</span>
+            </button>
+          </ToolbarActions>
+        )}
       </Toolbar>
       <div className="mb-6"></div>
       <DataGrid
@@ -151,6 +222,10 @@ const TrashDataTable = ({ model }: ModelContentProps) => {
         onFetchData={fetchModels}
         rowSelection={true}
         getRowId={(row: { id: string }) => row.id}
+        onRowSelectionChange={(state) => {
+          const ids = Object.keys(state).filter((id) => state[id]);
+          setSelectedIds(ids);
+        }}
         pagination={{ size: 10 }}
         toolbar={<TrashDataTableFilter model={model} />}
         layout={{ card: true }}

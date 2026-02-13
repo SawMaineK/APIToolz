@@ -33,6 +33,11 @@ class ModelBuilder
         $codes['policy_delete'] = "";
         $codes['policy_restore'] = "";
         $codes['policy_force_delete'] = "";
+        $codes['policy_bulk_delete'] = "";
+        $codes['policy_bulk_restore'] = "";
+        $codes['policy_bulk_force_delete'] = "";
+        $codes['policy_bulk_update'] = "";
+        $codes['policy_export'] = "";
         $codes['only_roles'] = "";
         $codes['authentication'] = $model->auth ? "security={{\"apiAuth\":{}}}," : "";
         $codes['schema_requset'] = OASchemaBuilder::generateSchema($model->table, $model->name);
@@ -181,14 +186,37 @@ class ModelBuilder
         $codes['delete_event'] = "";
 
         if ($model->auth && $config['policy']) {
+
             $codes['policy_index'] = "\$this->authorize('viewAny', {$codes['model']}::class);";
             $codes['policy_store'] = "\$this->authorize('create', {$codes['model']}::class);";
             $codes['policy_show'] = "\$this->authorize('show', \${$codes['alias']});";
             $codes['policy_update'] = "\$this->authorize('update', \${$codes['alias']});";
-            $codes['policy_delete'] = "\$this->authorize('destroy', \${$codes['alias']});";
+            $codes['policy_delete'] = "\$this->authorize('delete', \${$codes['alias']});";
             $codes['policy_restore'] = "\$this->authorize('restore', \${$codes['alias']});";
-            $codes['policy_force_delete'] = "\$this->authorize('forceDestroy', \${$codes['alias']});";
+            $codes['policy_force_delete'] = "\$this->authorize('forceDelete', \${$codes['alias']});";
+
+            $codes['policy_bulk_delete'] = "\$this->authorize('bulkDelete', {$codes['model']}::class);";
+            $codes['policy_bulk_restore'] = "\$this->authorize('bulkRestore', {$codes['model']}::class);";
+            $codes['policy_bulk_force_delete'] = "\$this->authorize('bulkForceDelete', {$codes['model']}::class);";
+            $codes['policy_bulk_update'] = "\$this->authorize('bulkUpdate', {$codes['model']}::class);";
+            $codes['policy_export'] = "\$this->authorize('export', {$codes['model']}::class);";
+
+        } else {
+
+            $codes['policy_index'] = "";
+            $codes['policy_store'] = "";
+            $codes['policy_show'] = "";
+            $codes['policy_update'] = "";
+            $codes['policy_delete'] = "";
+            $codes['policy_restore'] = "";
+            $codes['policy_force_delete'] = "";
+            $codes['policy_bulk_delete'] = "";
+            $codes['policy_bulk_restore'] = "";
+            $codes['policy_bulk_force_delete'] = "";
+            $codes['policy_bulk_update'] = "";
+            $codes['policy_export'] = "";
         }
+
 
         if ($model->auth && $config['policy']) {
             $policyFile = app_path("Policies/{$codes['model']}Policy.php");

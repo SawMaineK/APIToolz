@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { DataGrid, KeenIcon } from '@/components';
 import axios from 'axios';
@@ -9,13 +9,11 @@ import {
   ToolbarHeading,
   ToolbarPageTitle
 } from '@/partials/toolbar';
-import { ChartNoAxesCombined, Cpu, Trash } from 'lucide-react';
+import { ChartNoAxesCombined, Download, Trash } from 'lucide-react';
 import { ModelContentProps } from '../_models';
 import { generateColumns } from '../_helper';
 import { CreateModal } from '../form/CreateModal';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/i18n';
-import { useRef } from 'react';
 import { DataTableFilter } from './DataTableFilter';
 import { SummaryWidgetCard } from '../summary/SummaryWidgetCard';
 import { format } from 'date-fns';
@@ -27,6 +25,8 @@ const DataTable = ({ model }: ModelContentProps) => {
   const [widgets, setWidgets] = useState<any[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const lastQueryParamsRef = useRef<URLSearchParams>(new URLSearchParams());
   const { currentUser } = useAuthContext();
   const canEdit = currentUser?.permissions?.some((perm) => perm === 'edit');
   const canDelete = currentUser?.permissions?.some((perm) => perm === 'delete');
@@ -38,6 +38,7 @@ const DataTable = ({ model }: ModelContentProps) => {
     setRefreshKey((prev) => prev + 1);
     setModelData(null);
     setCreateModalOpen(false);
+    setSelectedIds([]);
     setWidgets([]);
     if (canView && model.config.reports?.filter((report) => report.type == 'kpi').length > 0) {
       fetchSummaryWidgets(model.slug);
@@ -127,6 +128,7 @@ const DataTable = ({ model }: ModelContentProps) => {
       if (params.querySearch.length > 0) {
         queryParams.set('search', params.querySearch);
       }
+      lastQueryParamsRef.current = new URLSearchParams(queryParams.toString());
 
       const response = await axios.get(
         `${import.meta.env.VITE_APP_API_URL}/${model.slug}?${queryParams.toString()}`
@@ -159,6 +161,64 @@ const DataTable = ({ model }: ModelContentProps) => {
       } catch (error) {
         toast.error('Error deleting record');
       }
+    }
+  };
+
+  const handleBulkDeleteClick = async () => {
+    if (selectedIds.length === 0) {
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} record(s)?`)) {
+      return;
+    }
+
+    try {
+      await axios.post(`${import.meta.env.VITE_APP_API_URL}/${model.slug}/bulk-delete`, {
+        ids: selectedIds
+      });
+      toast.success('Records deleted successfully');
+      setSelectedIds([]);
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      toast.error('Error deleting records');
+    }
+  };
+
+  const handleExportClick = async () => {
+    try {
+      const queryParams = new URLSearchParams(lastQueryParamsRef.current.toString());
+      queryParams.delete('page');
+      queryParams.delete('per_page');
+
+      const fields = model.config.grid
+        .filter((column: any) => column.download && !column.hidden)
+        .map((column: any) => column.field)
+        .join(',');
+
+      if (fields) {
+        queryParams.set('fields', fields);
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_APP_API_URL}/${model.slug}/export?${queryParams.toString()}`,
+        { responseType: 'blob' }
+      );
+
+      const fileBlob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(fileBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+      const modelSlug = model.slug.replace(/-/g, '_');
+      const fileName = `${modelSlug}_${timestamp}.csv`;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Error exporting data');
     }
   };
 
@@ -200,6 +260,27 @@ const DataTable = ({ model }: ModelContentProps) => {
             </Link>
           )}
 
+          <button
+            onClick={handleExportClick}
+            className="btn btn-sm btn-light flex items-center gap-2 whitespace-nowrap"
+          >
+            <Download size={16} />
+            <span className="truncate max-sm:hidden">Export</span>
+            <span className="sm:hidden">CSV</span>
+          </button>
+
+          {canDelete && (
+            <button
+              onClick={handleBulkDeleteClick}
+              disabled={selectedIds.length === 0}
+              className="btn btn-sm btn-danger flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash size={16} />
+              <span className="truncate max-sm:hidden">{`Delete (${selectedIds.length})`}</span>
+              <span className="sm:hidden">Delete</span>
+            </button>
+          )}
+
           {canCreate && (
             <button
               onClick={() => {
@@ -238,6 +319,10 @@ const DataTable = ({ model }: ModelContentProps) => {
             onFetchData={fetchModels}
             rowSelection={true}
             getRowId={(row: { id: string }) => row.id}
+            onRowSelectionChange={(state) => {
+              const ids = Object.keys(state).filter((id) => state[id]);
+              setSelectedIds(ids);
+            }}
             pagination={{ size: 10 }}
             toolbar={<DataTableFilter model={model} />}
             layout={{ card: true }}

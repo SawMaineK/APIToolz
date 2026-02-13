@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Sawmainek\Apitoolz\Models\Model;
 use Sawmainek\Apitoolz\Facades\ModelConfigUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * @OA\Info(title="API Documentation", version="0.1")
@@ -186,6 +187,54 @@ class APIToolzController extends Controller
         }
 
         return $option['image_multiple'] ? $results : $results[0];
+    }
+
+    /**
+    * Stream CSV download from a query using cursor() to avoid memory issues.
+    *
+    * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $query
+    * @param  array  $columns
+    * @param  string  $fileName
+    * @return \Symfony\Component\HttpFoundation\StreamedResponse
+    */
+    protected function streamCsvDownload($query, array $columns, string $fileName = 'export.csv'): StreamedResponse
+    {
+        // Ensure fileName ends with .csv
+        if (!Str::endsWith($fileName, '.csv')) {
+            $fileName .= '.csv';
+        }
+
+        return \response()->streamDownload(function () use ($query, $columns) {
+            $handle = fopen('php://output', 'w');
+
+            // Optional: Write UTF-8 BOM for Excel compatibility
+            // fwrite($handle, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($handle, $columns);
+
+            foreach ($query->cursor() as $rowModel) {
+                $row = [];
+
+                foreach ($columns as $column) {
+                    $value = $rowModel->getAttribute($column);
+
+                    if ($value instanceof \DateTimeInterface) {
+                        $value = $value->format(DATE_ATOM);
+                    } elseif (is_array($value) || is_object($value)) {
+                        $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+                    }
+
+                    $row[] = $value;
+                }
+
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
 }
